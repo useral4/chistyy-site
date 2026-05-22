@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Чистый сайт — проверка сайта на штрафы и SEO</title>
+    <meta
+      name="description"
+      content="Сервис проверки сайта на юридические риски, документы, рекламу, персональные данные и SEO-ошибки."
+    />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="#audit" aria-label="Чистый сайт">
+        <span class="brand-mark">ЧС</span>
+        <span>
+          <strong>Чистый сайт</strong>
+          <small>проверка рисков и SEO</small>
+        </span>
+      </a>
+
+      <nav class="nav" aria-label="Основная навигация">
+        <a href="#audit">Проверка</a>
+        <a href="#scope">Что проверяем</a>
+        <a href="#services">Пакеты</a>
+        <a href="#report">Отчёт</a>
+      </nav>
+
+      <button class="ghost-button" data-open-lead>Получить разбор</button>
+    </header>
+
+    <main>
+      <section class="hero" id="audit">
+        <div class="hero-bg" data-parallax></div>
+        <div class="hero-copy reveal">
+          <p class="eyebrow">Проверка сайта перед штрафами и потерей заявок</p>
+          <h1>Чистый сайт</h1>
+          <p class="lead">
+            Быстро находим юридические риски, ошибки в документах, рекламе, персональных данных и базовой SEO-подготовке. Показываем сумму возможного риска и понятный план исправлений.
+          </p>
+
+          <form class="scan-form" id="scanForm">
+            <label for="urlInput">Адрес сайта</label>
+            <div class="url-row">
+              <input
+                id="urlInput"
+                name="url"
+                type="text"
+                inputmode="url"
+                placeholder="example.ru"
+                value="chistyisait.ru"
+                autocomplete="url"
+                required
+              />
+              <button class="primary-button" type="submit">
+                <span>Проверить сайт</span>
+              </button>
+            </div>
+
+            <div class="segmented" role="radiogroup" aria-label="Тип сайта">
+              <label>
+                <input type="radio" name="profile" value="lead" checked />
+                <span>Услуги</span>
+              </label>
+              <label>
+                <input type="radio" name="profile" value="shop" />
+                <span>Магазин</span>
+              </label>
+              <label>
+                <input type="radio" name="profile" value="media" />
+                <span>Медиа</span>
+              </label>
+              <label>
+                <input type="radio" name="profile" value="b2b" />
+                <span>B2B</span>
+              </label>
+            </div>
+          </form>
+
+          <div class="hero-points">
+            <span>152-ФЗ и формы</span>
+            <span>Реклама и ERID</span>
+            <span>SEO и индексация</span>
+          </div>
+        </div>
+
+        <aside class="summary-panel reveal" aria-live="polite">
+          <div class="orbit" aria-hidden="true">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+          <div class="status-card">
+            <div>
+              <p class="muted-label">Риск сейчас</p>
+              <strong id="riskLabel">Готов к проверке</strong>
+            </div>
+            <div class="score-ring" id="scoreRing" style="--score: 0">
+              <span id="scoreValue">—</span>
+            </div>
+          </div>
+
+          <div class="money-card">
+            <p class="muted-label">Потенциальные штрафы</p>
+            <strong id="fineValue">—</strong>
+            <span id="fineHint">Оценка появится после проверки</span>
+          </div>
+
+          <div class="mini-grid">
+            <div>
+              <span id="legalCount">—</span>
+              <small>юридических рисков</small>
+            </div>
+            <div>
+              <span id="seoCount">—</span>
+              <small>SEO-задач</small>
+            </div>
+            <div>
+              <span id="totalCount">—</span>
+              <small>всего задач</small>
+            </div>
+          </div>
+        </aside>
+      </section>
+
+      <section class="scope-band" id="scope">
+        <div class="section-heading reveal">
+          <div>
+            <p class="eyebrow">Что внутри проверки</p>
+            <h2>Не просто список ошибок, а карта рисков сайта</h2>
+          </div>
+        </div>
+
+        <div class="scope-grid">
+          <article class="scope-card reveal">
+            <span>01</span>
+            <h3>Документы и формы</h3>
+            <p>Проверяем политику ПДн, согласия, cookie, реквизиты, оферту, оплату и возврат.</p>
+          </article>
+          <article class="scope-card reveal">
+            <span>02</span>
+            <h3>Реклама и маркировка</h3>
+            <p>Ищем рекламные блоки, ERID, данные рекламодателя и зоны, где возможны претензии.</p>
+          </article>
+          <article class="scope-card reveal">
+            <span>03</span>
+            <h3>SEO и техническая база</h3>
+            <p>Смотрим title, description, H1/H2, alt, canonical, Open Graph, sitemap, robots и скорость.</p>
+          </article>
+          <article class="scope-card reveal">
+            <span>04</span>
+            <h3>Приоритет исправлений</h3>
+            <p>Отделяем важное от косметики и показываем, что закрывать первым.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="services-band" id="services">
+        <div class="section-heading reveal">
+          <div>
+            <p class="eyebrow">Пакеты исправлений</p>
+            <h2>Можно выбрать пакет и сразу оставить заявку</h2>
+          </div>
+          <button class="primary-button compact" data-open-lead>Получить консультацию</button>
+        </div>
+
+        <div class="service-grid" id="serviceGrid"></div>
+      </section>
+
+      <section class="report-band" id="report">
+        <div class="section-heading reveal">
+          <div>
+            <p class="eyebrow">Отчёт</p>
+            <h2>Что нашёл аудит</h2>
+          </div>
+          <button class="ghost-button compact" id="copySummary" type="button">
+            Скопировать вывод
+          </button>
+        </div>
+
+        <div class="notice" id="notice" hidden></div>
+
+        <div class="report-grid">
+          <article class="report-column reveal">
+            <div class="column-head">
+              <span class="dot legal"></span>
+              <h3>Штрафы и документы</h3>
+            </div>
+            <div class="check-list" id="legalChecks">
+              <div class="empty-state">Запустите проверку, чтобы увидеть юридические риски.</div>
+            </div>
+          </article>
+
+          <article class="report-column reveal">
+            <div class="column-head">
+              <span class="dot seo"></span>
+              <h3>SEO и техническая база</h3>
+            </div>
+            <div class="check-list" id="seoChecks">
+              <div class="empty-state">Здесь появятся SEO-задачи и технические риски.</div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="process-band" id="process">
+        <div class="process-copy reveal">
+          <p class="eyebrow">Как работаем</p>
+          <h2>От проверки к исправлениям без лишней сложности</h2>
+        </div>
+
+        <div class="process-list">
+          <div class="reveal">
+            <strong>01</strong>
+            <span>Проверяем сайт и показываем сумму риска</span>
+          </div>
+          <div class="reveal">
+            <strong>02</strong>
+            <span>Выбираем пакет исправлений под найденные проблемы</span>
+          </div>
+          <div class="reveal">
+            <strong>03</strong>
+            <span>Закрываем документы, SEO и технические задачи</span>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <dialog class="lead-dialog" id="leadDialog">
+      <form method="dialog" class="lead-card">
+        <button class="icon-button" value="cancel" aria-label="Закрыть">×</button>
+        <p class="eyebrow">Заявка</p>
+        <h2 id="leadTitle">Разберём сайт и зафиксируем стоимость</h2>
+        <div class="lead-package" id="leadPackage">Выберите пакет или отправьте общий запрос.</div>
+        <div class="lead-fields">
+          <label>
+            Имя
+            <input type="text" placeholder="Екатерина" />
+          </label>
+          <label>
+            Telegram или email
+            <input type="text" placeholder="@username или mail@example.ru" />
+          </label>
+          <label>
+            Комментарий
+            <textarea id="leadComment" rows="3" placeholder="Что важно проверить в первую очередь?"></textarea>
+          </label>
+        </div>
+        <button class="primary-button" value="default">Отправить заявку</button>
+      </form>
+    </dialog>
+
+    <script src="/app.js" defer></script>
+  </body>
+</html>

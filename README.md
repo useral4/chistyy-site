@@ -1,0 +1,39 @@
+# Чистый сайт
+
+MVP сервиса для быстрой проверки сайта на юридические риски, потенциальные штрафы и SEO-проблемы.
+
+## Что умеет
+
+- Принимает URL сайта и серверно загружает HTML.
+- Проверяет документы и штрафные риски: политику ПДн, согласия у форм, cookie, рекламу/ERID, реквизиты, оферту, уведомление оператора, детские данные и платёжные условия.
+- Проверяет SEO и техническую базу: title, description, H1/H2, alt, canonical, Open Graph, robots.txt, sitemap.xml, скорость, viewport, Schema.org, favicon и HTTPS.
+- Считает ориентировочную верхнюю границу потенциальных штрафов.
+- Показывает понятный отчёт и подробные фикс-пакеты исправлений с заявкой на конкретный пакет.
+
+Важно: расчёт штрафов является продуктовой оценкой риска, а не юридическим заключением. Перед запуском в продакшн матрицу штрафов нужно утвердить с юристом.
+
+## Правовая база для MVP
+
+- 152-ФЗ «О персональных данных»: https://ips.pravo.gov.ru/api/ips/legislation/document?baseid=None&hash=98490812b3409e2a8d78a11ca9010f434ea3d9250a11dbbdb78690cd5551bdd6
+- ПП РФ №948 о данных по интернет-рекламе: https://publication.pravo.gov.ru/document/0001202205270045
+- КоАП РФ: https://www.consultant.ru/document/cons_doc_LAW_34661/
+
+## Запуск
+
+Если обычный `node` доступен:
+
+```bash
+node server.js
+```
+
+Если используется встроенный runtime Codex на Windows:
+
+```powershell
+& "$env:USERPROFILE\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe" server.js
+```
+
+После запуска откройте:
+
+```text
+http://localhost:4173
+```
