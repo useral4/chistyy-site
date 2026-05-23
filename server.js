@@ -133,6 +133,9 @@ function stripTags(value) {
     .replace(/<script[\s\S]*?<\/script>/gi, " ")
     .replace(/<style[\s\S]*?<\/style>/gi, " ")
     .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;|&#160;/gi, " ")
+    .replace(/&laquo;|&raquo;|&quot;/gi, '"')
+    .replace(/&amp;/gi, "&")
     .replace(/\s+/g, " ")
     .trim();
 }
@@ -155,19 +158,22 @@ function makeCheck({
   group,
   title,
   passed,
+  status = "",
   severity,
   fineMax = 0,
   law = "",
   evidence = "",
   fix = ""
 }) {
+  const resolvedStatus = status || (passed ? "passed" : "failed");
+
   return {
     id,
     group,
     title,
-    status: passed ? "passed" : "failed",
+    status: resolvedStatus,
     severity,
-    fineMax: passed ? 0 : fineMax,
+    fineMax: resolvedStatus === "failed" ? fineMax : 0,
     law,
     evidence,
     fix
@@ -289,39 +295,56 @@ function analyzeHtml({ html, robots, sitemap, targetUrl, profile, timing }) {
     /required[^>]+checkbox/i,
     /consent/i
   ]);
-  const usesCookie = hasAny(lower, [
-    /cookie/i,
-    /cookies/i,
-    /куки/i,
-    /localstorage/i,
+  const hasAnalytics = hasAny(lower, [
     /ym\(/i,
     /gtag\(/i,
+    /ga\(/i,
     /google-analytics/i,
-    /metrika/i
+    /googletagmanager/i,
+    /metrika/i,
+    /mc\.yandex\.ru/i,
+    /facebook\.net\/.*fbevents/i,
+    /fbq\(/i
   ]);
+  const hasCookieStorageCode = hasAny(lower, [
+    /document\.cookie/i,
+    /localstorage/i,
+    /sessionstorage/i,
+    /cookie[_-]?(consent|notice|banner)/i,
+    /cookies?\.set/i
+  ]);
+  const hasCookieText = hasAny(lower, [/cookie/i, /cookies/i, /куки/i]);
+  const usesCookie = hasCookieStorageCode || hasAnalytics || hasCookieText;
   const hasCookieBanner = hasAny(lower, [
     /cookie[^<]{0,140}(accept|agree|соглас|принять|ок)/i,
     /(accept|agree|соглас|принять|ок)[^<]{0,140}cookie/i,
     /куки[^<]{0,140}(соглас|принять|ок)/i
   ]);
-  const hasAdLanguage = hasAny(lower, [
-    /реклама/i,
-    /рекламодатель/i,
-    /спонсор/i,
+  const hasAdPlacement = hasAny(lower, [
+    /erid\s*[:=]?\s*[a-zа-я0-9_-]{6,}/i,
     /advertisement/i,
     /sponsored/i,
-    /promo/i,
-    /erid/i
+    /<[^>]+class=["'][^"']*(?:ad-|ads-|banner-ad|promo-banner)[^"']*["']/i,
+    /(партн[её]рск|спонсорск)[^<]{0,120}(?:материал|публикац|размещ|ссылка|баннер)/i,
+    /реклама[^<]{0,120}(?:erid|рекламодатель|партн[её]ра|спонсор|промокод|скидк[аи])/i
+  ]);
+  const hasAdServiceContext = hasAny(text, [
+    /агентств[оа][^\.]{0,80}реклам/i,
+    /контекстная реклама/i,
+    /таргетированная реклама/i,
+    /ведение вконтакте/i,
+    /маркетинг/i,
+    /рекламная рассылка/i
   ]);
   const hasErid = /erid\s*[:=]?\s*[a-zа-я0-9_-]{6,}/i.test(lower);
   const hasCompanyInfo = hasAny(text, [
     /инн\s*\d{10,12}/i,
     /огрн\s*\d{13,15}/i,
-    /ооо\s/i,
-    /ип\s[а-яё-]/i,
+    /ооо(?:\s|["«])/i,
+    /ип(?:\s|["«])/i,
     /юридический адрес/i,
     /реквизит/i
-  ]);
+  ]) || hasAny(lower, [/"taxid"\s*:\s*"\d{10,12}"/i, /"legalname"\s*:/i]);
   const hasOffer = hasAny(text, [
     /оферта/i,
     /публичная оферта/i,
@@ -373,24 +396,40 @@ function analyzeHtml({ html, robots, sitemap, targetUrl, profile, timing }) {
     makeCheck({
       id: "cookie-consent",
       group: "legal",
-      title: "Cookie-уведомление и согласие",
-      passed: !usesCookie || hasCookieBanner,
+      title: "Счётчики аналитики и cookie",
+      passed: !usesCookie || hasCookieBanner || hasPrivacy,
+      status:
+        usesCookie && !hasCookieBanner && hasPrivacy
+          ? "review"
+          : !usesCookie || hasCookieBanner
+            ? "passed"
+            : "failed",
       severity: usesCookie ? "medium" : "low",
-      fineMax: usesCookie ? 100000 : 0,
+      fineMax: usesCookie && !hasPrivacy ? 100000 : 0,
       law: "152-ФЗ; позиция РКН по идентификаторам пользователей",
-      evidence: usesCookie ? "Есть признаки аналитики, счётчиков или cookie" : "Cookie и аналитика не обнаружены",
-      fix: "Показать cookie-уведомление, объяснить цель cookie и добавить ссылку на политику"
+      evidence: hasAnalytics
+        ? "Найдены счётчики аналитики. Это не всегда означает отдельный штраф, но их нужно описать в политике"
+        : usesCookie
+          ? "Найдены признаки cookie или локального хранения данных"
+          : "Cookie, локальное хранение и счётчики аналитики не обнаружены",
+      fix: hasPrivacy
+        ? "Проверить, что в политике описаны счётчики аналитики и идентификаторы пользователей"
+        : "Добавить политику и описать, какие идентификаторы собирает сайт"
     }),
     makeCheck({
       id: "ad-marking",
       group: "legal",
       title: "Маркировка рекламы и ERID",
-      passed: !hasAdLanguage || hasErid,
-      severity: hasAdLanguage ? "high" : "low",
-      fineMax: hasAdLanguage ? 500000 : 0,
+      passed: !hasAdPlacement || hasErid,
+      severity: hasAdPlacement ? "high" : "low",
+      fineMax: hasAdPlacement && !hasErid ? 500000 : 0,
       law: "38-ФЗ «О рекламе», ст. 18.1; КоАП РФ, ст. 14.3",
-      evidence: hasAdLanguage ? "На странице есть слова и блоки, похожие на рекламу" : "Явные рекламные блоки не найдены",
-      fix: "Проверить рекламные размещения и добавить пометку «Реклама», рекламодателя и ERID там, где это нужно"
+      evidence: hasAdPlacement
+        ? "Есть признаки рекламного размещения или ERID-блока"
+        : hasAdServiceContext
+          ? "Сайт говорит о рекламных услугах, но признаков чужого рекламного размещения на странице не найдено"
+          : "Явные рекламные размещения не найдены",
+      fix: "Маркировать нужно именно рекламные размещения: пометка «Реклама», рекламодатель и ERID там, где это требуется"
     }),
     makeCheck({
       id: "company-details",
@@ -419,11 +458,16 @@ function analyzeHtml({ html, robots, sitemap, targetUrl, profile, timing }) {
       group: "legal",
       title: "Уведомление оператора ПДн",
       passed: hasOperatorNotice || formCount === 0,
+      status: hasOperatorNotice || formCount === 0 ? "passed" : "review",
       severity: formCount > 0 ? "medium" : "low",
-      fineMax: formCount > 0 ? 50000 : 0,
+      fineMax: 0,
       law: "152-ФЗ, ст. 22; КоАП РФ, ст. 19.7",
-      evidence: hasOperatorNotice ? "Есть признаки уведомления или упоминания РКН" : "Не видно, что обязанность уведомления РКН уже проверяли",
-      fix: "Проверить, нужно ли уведомлять РКН, и при необходимости подготовить запись оператора"
+      evidence: hasOperatorNotice
+        ? "Есть признаки уведомления или упоминания РКН"
+        : formCount > 0
+          ? "По странице нельзя понять, подавал ли владелец уведомление в РКН"
+          : "Формы сбора данных не обнаружены",
+      fix: "Это проверяется не по дизайну сайта, а по реестру и процессам компании: нужно уточнить, подавалось ли уведомление оператора ПДн"
     }),
     makeCheck({
       id: "children-data",

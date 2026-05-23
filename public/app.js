@@ -43,6 +43,12 @@ const severityLabels = {
   high: "важный"
 };
 
+const statusLabels = {
+  passed: "ОК",
+  failed: "Риск",
+  review: "Проверить"
+};
+
 const defaultServices = [
   {
     id: "legal",
@@ -130,16 +136,17 @@ function setLoading(isLoading) {
 
 function renderCheck(check) {
   const passed = check.status === "passed";
+  const review = check.status === "review";
   const meta = [`приоритет: ${severityLabels[check.severity] || check.severity}`];
 
   if (check.law) meta.push(check.law);
 
   return `
-    <div class="check-item ${passed ? "passed" : "failed"}">
+    <div class="check-item ${passed ? "passed" : review ? "review" : "failed"}">
       <div class="check-top">
         <strong>${escapeHtml(check.title)}</strong>
-        <span class="status-pill ${passed ? "passed" : "failed"}">
-          ${passed ? "ОК" : "Риск"}
+        <span class="status-pill ${passed ? "passed" : review ? "review" : "failed"}">
+          ${statusLabels[check.status] || "Риск"}
         </span>
       </div>
       <p><b>Что видно:</b> ${escapeHtml(check.evidence)}</p>
@@ -148,7 +155,7 @@ function renderCheck(check) {
           ? `<div class="fine-badge">Возможный риск до ${formatRub(check.fineMax)}</div>`
           : ""
       }
-      ${passed ? "" : `<p class="fix-line"><b>Что сделать:</b> ${escapeHtml(check.fix)}</p>`}
+      ${passed ? "" : `<p class="fix-line"><b>${review ? "Что проверить" : "Что сделать"}:</b> ${escapeHtml(check.fix)}</p>`}
       <div class="check-meta">
         ${meta.map((item) => `<span>${escapeHtml(item)}</span>`).join("")}
       </div>
@@ -259,7 +266,11 @@ function renderActiveReport() {
     ? `Найдено ${failed.length} ${copy.countLabel}`
     : "Критичных проблем в этом направлении не найдено";
   resultFine.textContent =
-    selectedMode === "legal" && focusedFine ? `до ${formatRub(focusedFine)}` : "не считаем как штраф";
+    selectedMode === "legal"
+      ? focusedFine
+        ? `до ${formatRub(focusedFine)}`
+        : "0 ₽"
+      : "не считаем как штраф";
   resultNext.textContent = copy.next;
 }
 

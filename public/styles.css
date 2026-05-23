@@ -822,6 +822,11 @@ h3 {
   border-color: rgba(226, 76, 100, 0.28);
 }
 
+.check-item.review {
+  border-color: rgba(245, 165, 36, 0.32);
+  background: #fffaf0;
+}
+
 .check-item.passed {
   border-color: rgba(19, 185, 129, 0.2);
   background: #f6fffb;
@@ -876,6 +881,11 @@ h3 {
 .status-pill.failed {
   background: rgba(226, 76, 100, 0.12);
   color: var(--red);
+}
+
+.status-pill.review {
+  background: rgba(245, 165, 36, 0.16);
+  color: #9a6100;
 }
 
 .status-pill.passed {
