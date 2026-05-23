@@ -356,8 +356,8 @@ function analyzeHtml({ html, robots, sitemap, targetUrl, profile, timing }) {
       severity: "high",
       fineMax: 60000,
       law: "152-ФЗ, ст. 18.1; КоАП РФ, ст. 13.11",
-      evidence: hasPrivacy ? "Найдены признаки политики ПДн" : "Не найден явный текст или ссылка на политику",
-      fix: "Опубликовать политику ПДн и поставить ссылку рядом с формами и в футере"
+      evidence: hasPrivacy ? "На сайте есть признаки политики персональных данных" : "На странице не видно понятной ссылки на политику персональных данных",
+      fix: "Добавить политику персональных данных и поставить ссылку рядом с формами, в футере и в cookie-блоке"
     }),
     makeCheck({
       id: "form-consent",
@@ -367,8 +367,8 @@ function analyzeHtml({ html, robots, sitemap, targetUrl, profile, timing }) {
       severity: formCount > 0 ? "high" : "medium",
       fineMax: formCount > 0 ? 300000 : 0,
       law: "152-ФЗ, ст. 9; КоАП РФ, ст. 13.11",
-      evidence: formCount > 0 ? `Обнаружены формы или поля: ${formCount}` : "Формы не обнаружены",
-      fix: "Добавить явное согласие под каждую форму и хранить версию текста согласия"
+      evidence: formCount > 0 ? `На странице есть формы или поля ввода: ${formCount}` : "Формы и поля ввода не обнаружены",
+      fix: "Под каждой формой добавить чекбокс или текст согласия на обработку персональных данных"
     }),
     makeCheck({
       id: "cookie-consent",
@@ -378,8 +378,8 @@ function analyzeHtml({ html, robots, sitemap, targetUrl, profile, timing }) {
       severity: usesCookie ? "medium" : "low",
       fineMax: usesCookie ? 100000 : 0,
       law: "152-ФЗ; позиция РКН по идентификаторам пользователей",
-      evidence: usesCookie ? "Найдены признаки аналитики или cookie" : "Cookie и аналитика не обнаружены",
-      fix: "Добавить cookie-баннер, ссылку на политику и действие согласия"
+      evidence: usesCookie ? "Есть признаки аналитики, счётчиков или cookie" : "Cookie и аналитика не обнаружены",
+      fix: "Показать cookie-уведомление, объяснить цель cookie и добавить ссылку на политику"
     }),
     makeCheck({
       id: "ad-marking",
@@ -389,8 +389,8 @@ function analyzeHtml({ html, robots, sitemap, targetUrl, profile, timing }) {
       severity: hasAdLanguage ? "high" : "low",
       fineMax: hasAdLanguage ? 500000 : 0,
       law: "38-ФЗ «О рекламе», ст. 18.1; КоАП РФ, ст. 14.3",
-      evidence: hasAdLanguage ? "Есть рекламные формулировки" : "Явные рекламные блоки не найдены",
-      fix: "Добавить пометку «Реклама», рекламодателя и ERID к рекламным блокам"
+      evidence: hasAdLanguage ? "На странице есть слова и блоки, похожие на рекламу" : "Явные рекламные блоки не найдены",
+      fix: "Проверить рекламные размещения и добавить пометку «Реклама», рекламодателя и ERID там, где это нужно"
     }),
     makeCheck({
       id: "company-details",
@@ -400,7 +400,7 @@ function analyzeHtml({ html, robots, sitemap, targetUrl, profile, timing }) {
       severity: "medium",
       fineMax: isCommerce ? 10000 : 0,
       law: "ЗоЗПП, ст. 8-10; КоАП РФ, ст. 14.8",
-      evidence: hasCompanyInfo ? "Найдены ИНН, ОГРН, ИП/ООО или реквизиты" : "Реквизиты владельца не найдены",
+      evidence: hasCompanyInfo ? "Найдены ИНН, ОГРН, ИП/ООО или реквизиты" : "Пользователь не видит, кто юридически отвечает за сайт",
       fix: "Добавить реквизиты, юридический адрес, контакты и режим работы"
     }),
     makeCheck({
@@ -411,8 +411,8 @@ function analyzeHtml({ html, robots, sitemap, targetUrl, profile, timing }) {
       severity: isCommerce ? "high" : "low",
       fineMax: isCommerce ? 40000 : 0,
       law: "ЗоЗПП; правила дистанционной продажи",
-      evidence: hasOffer ? "Найдены признаки оферты или возврата" : `${profileConfig.label}: условия не найдены`,
-      fix: "Подготовить оферту, правила оплаты, доставки и возврата"
+      evidence: hasOffer ? "Найдены признаки оферты, оплаты или возврата" : `${profileConfig.label}: условия покупки, оплаты или возврата не найдены`,
+      fix: "Подготовить оферту и понятные правила оплаты, доставки, возврата или отмены услуги"
     }),
     makeCheck({
       id: "operator-notice",
@@ -422,8 +422,8 @@ function analyzeHtml({ html, robots, sitemap, targetUrl, profile, timing }) {
       severity: formCount > 0 ? "medium" : "low",
       fineMax: formCount > 0 ? 50000 : 0,
       law: "152-ФЗ, ст. 22; КоАП РФ, ст. 19.7",
-      evidence: hasOperatorNotice ? "Есть признаки уведомления РКН" : "Признаки уведомления оператора не найдены",
-      fix: "Проверить обязанность уведомления РКН и подготовить запись оператора"
+      evidence: hasOperatorNotice ? "Есть признаки уведомления или упоминания РКН" : "Не видно, что обязанность уведомления РКН уже проверяли",
+      fix: "Проверить, нужно ли уведомлять РКН, и при необходимости подготовить запись оператора"
     }),
     makeCheck({
       id: "children-data",
@@ -433,8 +433,8 @@ function analyzeHtml({ html, robots, sitemap, targetUrl, profile, timing }) {
       severity: "high",
       fineMax: hasChildrenData ? 300000 : 0,
       law: "152-ФЗ; КоАП РФ, ст. 13.11",
-      evidence: hasChildrenData ? "Есть признаки работы с детьми или несовершеннолетними" : "Признаки особой категории не найдены",
-      fix: "Проверить отдельные согласия, возрастные сценарии и состав собираемых данных"
+      evidence: hasChildrenData ? "Есть признаки работы с детьми или несовершеннолетними" : "Признаки работы с детьми или особыми категориями данных не найдены",
+      fix: "Проверить возрастные сценарии, отдельные согласия и состав собираемых данных"
     }),
     makeCheck({
       id: "payment-docs",
@@ -444,7 +444,7 @@ function analyzeHtml({ html, robots, sitemap, targetUrl, profile, timing }) {
       severity: isCommerce ? "medium" : "low",
       fineMax: isCommerce ? 30000 : 0,
       law: "54-ФЗ; ЗоЗПП",
-      evidence: hasPaymentTerms ? "Найдены признаки оплаты или чеков" : "Платёжные условия не найдены",
+      evidence: hasPaymentTerms ? "Найдены признаки оплаты, кассы или чеков" : "Пользователь не видит понятные условия оплаты и выдачи чека",
       fix: "Добавить условия оплаты, выдачи чека и порядок подтверждения заказа"
     }),
     makeCheck({
@@ -453,8 +453,8 @@ function analyzeHtml({ html, robots, sitemap, targetUrl, profile, timing }) {
       title: "Title страницы",
       passed: title.length >= 20 && title.length <= 70,
       severity: "medium",
-      evidence: title ? `${title.length} символов` : "Title не найден",
-      fix: "Сделать title 45-65 символов с главным запросом и брендом"
+      evidence: title ? `Title есть, длина ${title.length} символов` : "Title не найден",
+      fix: "Сделать title на 45-65 символов: основной запрос, польза для клиента и название бренда"
     }),
     makeCheck({
       id: "description",
@@ -462,8 +462,8 @@ function analyzeHtml({ html, robots, sitemap, targetUrl, profile, timing }) {
       title: "Meta description",
       passed: description.length >= 70 && description.length <= 170,
       severity: "medium",
-      evidence: description ? `${description.length} символов` : "Description не найден",
-      fix: "Добавить description с оффером, нишей и причиной перейти на сайт"
+      evidence: description ? `Description есть, длина ${description.length} символов` : "Description не найден",
+      fix: "Добавить description с понятным оффером, нишей и причиной перейти на сайт"
     }),
     makeCheck({
       id: "h1",
@@ -471,8 +471,8 @@ function analyzeHtml({ html, robots, sitemap, targetUrl, profile, timing }) {
       title: "Один основной H1",
       passed: h1Count === 1,
       severity: "medium",
-      evidence: `Найдено H1: ${h1Count}`,
-      fix: "Оставить один H1, остальные крупные заголовки перевести в H2/H3"
+      evidence: `Основных заголовков H1 найдено: ${h1Count}`,
+      fix: "Оставить один главный H1, остальные крупные заголовки перевести в H2 или H3"
     }),
     makeCheck({
       id: "headings",
@@ -480,8 +480,8 @@ function analyzeHtml({ html, robots, sitemap, targetUrl, profile, timing }) {
       title: "Структура заголовков H2",
       passed: h2Count > 0,
       severity: "low",
-      evidence: `Найдено H2: ${h2Count}`,
-      fix: "Добавить H2 для смысловых блоков, чтобы страница лучше читалась поиском"
+      evidence: `Подзаголовков H2 найдено: ${h2Count}`,
+      fix: "Добавить H2 для смысловых блоков, чтобы страницу было легче читать людям и поиску"
     }),
     makeCheck({
       id: "image-alt",
@@ -489,8 +489,8 @@ function analyzeHtml({ html, robots, sitemap, targetUrl, profile, timing }) {
       title: "Alt-тексты изображений",
       passed: imageCount === 0 || imageAltCount / imageCount >= 0.65,
       severity: "low",
-      evidence: `Alt есть у ${imageAltCount} из ${imageCount} изображений`,
-      fix: "Добавить описательные alt для продуктов, кейсов и важных изображений"
+      evidence: `Alt-текст есть у ${imageAltCount} из ${imageCount} изображений`,
+      fix: "Добавить короткие описательные alt для продуктов, кейсов и важных изображений"
     }),
     makeCheck({
       id: "canonical",
@@ -535,7 +535,7 @@ function analyzeHtml({ html, robots, sitemap, targetUrl, profile, timing }) {
       passed: timing.responseMs <= 1800 && htmlKb <= 450,
       severity: timing.responseMs > 3000 ? "high" : "medium",
       evidence: `${timing.responseMs} мс, ${htmlKb} КБ HTML`,
-      fix: "Оптимизировать серверный ответ, критический CSS, изображения и сторонние скрипты"
+      fix: "Проверить тяжёлые скрипты, изображения, критический CSS и скорость ответа сервера"
     }),
     makeCheck({
       id: "viewport",
