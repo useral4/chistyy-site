@@ -3,278 +3,327 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Чистый сайт — проверка сайта на штрафы и SEO</title>
+    <title>Kinava Pro — проверка сайта на юридические риски и SEO</title>
     <meta
       name="description"
-      content="Сервис проверки сайта на юридические риски, документы, рекламу, персональные данные и SEO-ошибки."
+      content="Kinava Pro проверяет сайт на юридические риски, документы, формы, рекламу, персональные данные и SEO-ошибки."
     />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
+    <div class="ambient ambient-one" aria-hidden="true"></div>
+    <div class="ambient ambient-two" aria-hidden="true"></div>
+
     <header class="topbar">
-      <a class="brand" href="#audit" aria-label="Чистый сайт">
-        <span class="brand-mark">ЧС</span>
-        <span>
-          <strong>Чистый сайт</strong>
-          <small>юридическая и SEO-проверка</small>
-        </span>
+      <a class="brand" href="#audit" aria-label="Kinava Pro">
+        <strong>Kinava Pro</strong>
+        <span>by kinava</span>
       </a>
 
       <nav class="nav" aria-label="Основная навигация">
-        <a href="#audit">Проверка</a>
-        <a href="#scope">Направления</a>
-        <a href="#report">Результат</a>
-        <a href="#services">Решение</a>
+        <a href="#legal">Юридическая проверка</a>
+        <a href="#seo">SEO-проверка</a>
+        <a href="#process">Как проверяем?</a>
+        <a href="#important">Важно для вас</a>
+        <a href="#faq">FAQ</a>
       </nav>
 
-      <button class="ghost-button" data-open-lead>Бесплатная консультация</button>
+      <button class="soft-button" type="button" data-open-lead>Связаться с нами</button>
     </header>
 
     <main>
       <section class="hero" id="audit">
-        <div class="hero-bg" data-parallax></div>
-        <div class="hero-copy reveal">
-          <p class="eyebrow">Бесплатная первичная проверка сайта</p>
-          <h1>Чистый сайт</h1>
-          <p class="lead">
-            Покажем, что мешает сайту работать спокойно: юридические риски, проблемы с формами, рекламой, персональными данными или базовые ошибки SEO. После проверки можно оставить заявку на короткий разбор с понятным планом исправлений.
+        <div class="hero-orbit" aria-hidden="true">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+
+        <p class="eyebrow reveal">Бесплатная первичная диагностика сайта</p>
+        <h1 class="reveal">Знаем про ваш сайт всё</h1>
+        <p class="hero-lead reveal">
+          Проверьте сайт до того, как это сделает Роскомнадзор, рекламная площадка или поисковая система.
+        </p>
+
+        <form class="scan-card reveal" id="scanForm">
+          <div class="mode-tabs" role="radiogroup" aria-label="Что проверить">
+            <label>
+              <input type="radio" name="mode" value="legal" checked />
+              <span>
+                <strong>Юридические риски</strong>
+                <small>риски, штрафы, нарушения</small>
+              </span>
+            </label>
+            <label>
+              <input type="radio" name="mode" value="seo" />
+              <span>
+                <strong>SEO-проверка</strong>
+                <small>трафик, позиции, заявки</small>
+              </span>
+            </label>
+          </div>
+
+          <label class="url-label" for="urlInput">Введите ссылку сайта</label>
+          <div class="url-row">
+            <input
+              id="urlInput"
+              name="url"
+              type="text"
+              inputmode="url"
+              placeholder="https://example.ru/"
+              value="https://viarse.ru/"
+              autocomplete="url"
+              required
+            />
+            <input type="hidden" name="profile" value="lead" />
+            <button class="primary-button" type="submit">
+              <span>Проверить нарушения</span>
+            </button>
+          </div>
+        </form>
+
+        <div class="diagnostic-preview reveal" aria-hidden="true">
+          <div class="scan-line"></div>
+          <div class="preview-top">
+            <span>LIVE CHECK</span>
+            <strong id="previewScore">0%</strong>
+          </div>
+          <div class="preview-grid">
+            <span></span><span></span><span></span><span></span>
+            <span></span><span></span><span></span><span></span>
+            <span></span><span></span><span></span><span></span>
+          </div>
+          <div class="preview-log" id="diagnosticLog">Ожидаем ссылку сайта...</div>
+        </div>
+      </section>
+
+      <section class="split-section" id="legal">
+        <div class="section-title reveal">
+          <h2>Два типа проблем —<br />две отдельные проверки</h2>
+          <div class="pill-switch" role="tablist" aria-label="Быстрый выбор проверки">
+            <button class="active" type="button" data-select-mode="legal">Юридическая проверка</button>
+            <button type="button" data-select-mode="seo">SEO-проверка</button>
+          </div>
+        </div>
+
+        <div class="problem-layout">
+          <div class="problem-copy reveal">
+            <span class="danger-pill">Штрафы от 50 000 до 500 000 ₽</span>
+            <h3>Покажем, где сайт нарушает закон, во сколько это обойдётся и как исправить</h3>
+            <p>
+              Многие владельцы сайтов даже не знают, что нарушают закон прямо сейчас. Роскомнадзор, ФАС и налоговая штрафуют не только крупный бизнес.
+            </p>
+            <button class="primary-button" type="button" data-scroll-audit>Проверить сайт бесплатно</button>
+            <small>Бесплатная онлайн-проверка за 1 минуту</small>
+          </div>
+
+          <div class="problem-cards">
+            <article class="mini-card reveal">
+              <h4>Документы</h4>
+              <p>Политика данных, оферта, реквизиты</p>
+            </article>
+            <article class="mini-card reveal">
+              <h4>Формы и согласия</h4>
+              <p>Галочки, согласие на обработку данных</p>
+            </article>
+            <article class="mini-card reveal">
+              <h4>Cookie-баннер</h4>
+              <p>Есть ли, правильно ли оформлен</p>
+            </article>
+            <article class="mini-card reveal">
+              <h4>Маркировка рекламы</h4>
+              <p>ERID, пометка «реклама»</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="seo-strip" id="seo">
+        <div class="seo-card-large reveal">
+          <span class="neutral-pill">SEO-проверка</span>
+          <h2>Что мешает сайту получать больше заявок?</h2>
+          <p>
+            Проверяем метатеги, заголовки, изображения, robots.txt, sitemap.xml, скорость ответа и базовые технические сигналы.
           </p>
-
-          <div class="audit-choice" role="radiogroup" aria-label="Что проверить">
-            <label>
-              <input type="radio" name="mode" value="legal" form="scanForm" checked />
-              <span>
-                <strong>Проверить юридические риски</strong>
-                <small>документы, формы, cookie, реклама, штрафы</small>
-              </span>
-            </label>
-            <label>
-              <input type="radio" name="mode" value="seo" form="scanForm" />
-              <span>
-                <strong>Проверить SEO</strong>
-                <small>метатеги, заголовки, индексация, скорость</small>
-              </span>
-            </label>
-          </div>
-
-          <form class="scan-form" id="scanForm">
-            <label for="urlInput">Адрес сайта</label>
-            <div class="url-row">
-              <input
-                id="urlInput"
-                name="url"
-                type="text"
-                inputmode="url"
-                placeholder="example.ru"
-                value="chistyisait.ru"
-                autocomplete="url"
-                required
-              />
-              <button class="primary-button" type="submit">
-                <span>Запустить проверку</span>
-              </button>
-            </div>
-
-            <div class="segmented" role="radiogroup" aria-label="Тип сайта">
-              <label>
-                <input type="radio" name="profile" value="lead" checked />
-                <span>Услуги</span>
-              </label>
-              <label>
-                <input type="radio" name="profile" value="shop" />
-                <span>Магазин</span>
-              </label>
-              <label>
-                <input type="radio" name="profile" value="media" />
-                <span>Медиа</span>
-              </label>
-              <label>
-                <input type="radio" name="profile" value="b2b" />
-                <span>B2B</span>
-              </label>
-            </div>
-          </form>
-
-          <div class="hero-points">
-            <span>Документы и формы</span>
-            <span>Реклама и ERID</span>
-            <span>SEO и техника</span>
-          </div>
+          <button class="dark-button" type="button" data-select-mode="seo" data-scroll-audit>Проверить SEO</button>
         </div>
-
-        <aside class="summary-panel reveal" aria-live="polite">
-          <div class="orbit" aria-hidden="true">
-            <span></span>
-            <span></span>
-            <span></span>
-          </div>
-          <div class="status-card">
-            <div>
-              <p class="muted-label">Итог проверки</p>
-              <strong id="riskLabel">Готов к проверке</strong>
-            </div>
-            <div class="score-ring" id="scoreRing" style="--score: 0">
-              <span id="scoreValue">—</span>
-            </div>
-          </div>
-
-          <div class="money-card">
-            <p class="muted-label">Потенциальные штрафы</p>
-            <strong id="fineValue">—</strong>
-            <span id="fineHint">Оценка появится после проверки</span>
-          </div>
-
-          <div class="mini-grid">
-            <div>
-              <span id="legalCount">—</span>
-              <small>юридических рисков</small>
-            </div>
-            <div>
-              <span id="seoCount">—</span>
-              <small>SEO-задач</small>
-            </div>
-            <div>
-              <span id="totalCount">—</span>
-              <small>что можно улучшить</small>
-            </div>
-          </div>
-        </aside>
+        <div class="seo-metrics reveal" aria-hidden="true">
+          <div><span>Title</span><strong>45-65</strong></div>
+          <div><span>H1/H2</span><strong>структура</strong></div>
+          <div><span>robots</span><strong>индекс</strong></div>
+          <div><span>speed</span><strong>&lt; 1.8s</strong></div>
+        </div>
       </section>
 
-      <section class="scope-band" id="scope">
-        <div class="section-heading reveal">
-          <div>
-            <p class="eyebrow">Два понятных входа</p>
-            <h2>Разделяем юридические риски и SEO, чтобы не смешивать разные задачи</h2>
-          </div>
+      <section class="process-section" id="process">
+        <div class="section-title reveal">
+          <h2>Как мы проводим проверку?</h2>
         </div>
-
-        <div class="direction-grid">
-          <article class="direction-card legal-card reveal" id="legal-direction">
-            <span class="tag">Юридическая проверка</span>
-            <h3>Показываем, где сайт может получить претензии</h3>
-            <p>Проверяем политику персональных данных, согласия у форм, cookie, реквизиты, оферту, оплату, возврат и маркировку рекламы.</p>
-            <a class="text-link" href="#audit" data-select-mode="legal">Проверить юридические риски</a>
+        <div class="steps-grid">
+          <article class="step-card reveal">
+            <span>шаг 1</span>
+            <h3>Считываем страницу</h3>
+            <p>Загружаем HTML, robots.txt, sitemap.xml и базовые данные ответа сайта.</p>
           </article>
-          <article class="direction-card seo-card reveal" id="seo-direction">
-            <span class="tag">SEO-проверка</span>
-            <h3>Показываем, что мешает сайту получать больше заявок</h3>
-            <p>Смотрим title, description, H1/H2, alt у изображений, robots.txt, sitemap.xml, canonical, Open Graph, скорость и мобильную базу.</p>
-            <a class="text-link" href="#audit" data-select-mode="seo">Проверить SEO</a>
+          <article class="step-card reveal">
+            <span>шаг 2</span>
+            <h3>Ищем юридические риски</h3>
+            <p>Проверяем формы, документы, реквизиты, рекламу, cookie и признаки обработки ПДн.</p>
           </article>
-        </div>
-
-        <div class="scope-grid">
-          <article class="scope-card reveal">
-            <span>01</span>
-            <h3>Находим проблему</h3>
-            <p>Пишем простым языком, что именно обнаружено на странице и почему это важно.</p>
+          <article class="step-card reveal">
+            <span>шаг 3</span>
+            <h3>Проверяем SEO</h3>
+            <p>Смотрим техническую базу: title, description, H1, alt, canonical, скорость и индексацию.</p>
           </article>
-          <article class="scope-card reveal">
-            <span>02</span>
-            <h3>Показываем риск</h3>
-            <p>Для юридических пунктов отдельно выводим возможную сумму штрафа, чтобы приоритет был виден сразу.</p>
-          </article>
-          <article class="scope-card reveal">
-            <span>03</span>
-            <h3>Даём следующий шаг</h3>
-            <p>Под каждым пунктом есть короткое объяснение, что нужно сделать для исправления.</p>
-          </article>
-          <article class="scope-card reveal">
-            <span>04</span>
-            <h3>Ведём на консультацию</h3>
-            <p>Человек может оставить контакты без выбора тарифа, а стоимость обсуждается после разбора.</p>
+          <article class="step-card reveal">
+            <span>шаг 4</span>
+            <h3>Собираем результат</h3>
+            <p>Показываем понятные пункты: что видно, что проверить, что исправить первым.</p>
           </article>
         </div>
       </section>
 
-      <section class="report-band" id="report">
-        <div class="section-heading reveal">
-          <div>
-            <p class="eyebrow">Результат</p>
-            <h2 id="reportTitle">Сначала выберите направление и запустите проверку</h2>
-            <p class="section-note" id="reportIntro">На экране появятся только те пункты, которые относятся к выбранной проверке. Остальные детали останутся ниже, чтобы не перегружать первый результат.</p>
-          </div>
-          <button class="ghost-button compact" id="copySummary" type="button">
-            Скопировать вывод
-          </button>
+      <section class="report-section" id="report">
+        <div class="section-title reveal">
+          <span class="neutral-pill">Диагностика</span>
+          <h2 id="reportTitle">Запустите проверку, чтобы увидеть результат</h2>
+          <p id="reportIntro">Бесплатно покажем основную часть результата. Последние 10 пунктов расширенной диагностики открываются за 179 ₽.</p>
         </div>
 
-        <div class="result-strip reveal">
+        <div class="result-dashboard reveal">
           <div>
             <span>Статус</span>
-            <strong id="resultStory">Проверка ещё не запускалась</strong>
+            <strong id="resultStory">Ожидаем проверку</strong>
           </div>
           <div>
-            <span>Деньги</span>
-            <strong id="resultFine">—</strong>
+            <span>Штрафы</span>
+            <strong id="fineValue">—</strong>
           </div>
           <div>
-            <span>Следующий шаг</span>
-            <strong id="resultNext">Оставить заявку на разбор</strong>
+            <span>Проверено</span>
+            <strong id="totalCount">—</strong>
+          </div>
+          <div>
+            <span>Доступ</span>
+            <strong id="accessState">Бесплатный</strong>
           </div>
         </div>
 
         <div class="notice" id="notice" hidden></div>
 
-        <div class="report-switch" role="tablist" aria-label="Раздел результата">
-          <button class="active" type="button" data-report-mode="legal">Юридические риски</button>
-          <button type="button" data-report-mode="seo">SEO-проверка</button>
+        <div class="report-toolbar reveal">
+          <div class="report-switch" role="tablist" aria-label="Раздел результата">
+            <button class="active" type="button" data-report-mode="legal">Сначала юридическое</button>
+            <button type="button" data-report-mode="seo">Сначала SEO</button>
+          </div>
+          <button class="soft-button" id="copySummary" type="button">Скопировать вывод</button>
         </div>
 
         <div class="report-layout">
           <article class="report-column reveal">
             <div class="column-head" id="activeReportHead">
               <span class="dot legal"></span>
-              <h3>Юридические риски</h3>
+              <h3>Результат проверки</h3>
             </div>
             <div class="check-list" id="activeChecks">
-              <div class="empty-state">Запустите проверку, чтобы увидеть понятный список найденных проблем.</div>
+              <div class="empty-state">Введите ссылку сайта и запустите проверку.</div>
             </div>
           </article>
 
-          <aside class="consult-card reveal">
-            <span class="tag">Низкий порог входа</span>
-            <h3>Не нужно сразу выбирать тариф</h3>
-            <p>Оставьте контакты, и мы разберём найденные пункты: что критично, что можно отложить, сколько будет стоить исправление.</p>
-            <button class="primary-button compact" type="button" data-open-lead>Получить консультацию</button>
+          <aside class="unlock-card reveal">
+            <div class="unlock-coin" aria-hidden="true">179</div>
+            <span class="neutral-pill">Полный доступ</span>
+            <h3>Последние 10 пунктов закрыты</h3>
+            <p>Откройте расширенную диагностику: скрытые SEO-пункты, технические детали и рекомендации по исправлению.</p>
+            <button class="primary-button" type="button" id="openPayDialog">Открыть за 179 ₽</button>
+            <small>В прототипе оплата открывает доступ сразу. Реальную оплату подключим через ЮKassa.</small>
           </aside>
         </div>
       </section>
 
-      <section class="services-band" id="services">
-        <div class="section-heading reveal">
-          <div>
-            <p class="eyebrow">После консультации</p>
-            <h2>Пакеты остаются как понятный ориентир, но не мешают оставить заявку</h2>
-            <p class="section-note">Сначала человек видит проблему и получает разбор. Если задача подходит под один из форматов, можно быстро перейти к составу работ.</p>
-          </div>
-          <button class="primary-button compact" data-open-lead>Оставить заявку</button>
+      <section class="services-section" id="services">
+        <div class="section-title reveal">
+          <h2>Нашли проблемы —<br />поможем исправить</h2>
+          <p>Проверка показывает, что сломано. Мы берём на себя быструю починку. Только то, что вам нужно.</p>
         </div>
 
         <div class="service-grid" id="serviceGrid"></div>
       </section>
 
-      <section class="process-band" id="process">
-        <div class="process-copy reveal">
-          <p class="eyebrow">Как работаем</p>
-          <h2>От проверки к исправлениям без лишней сложности</h2>
+      <section class="contact-band">
+        <div class="contact-card reveal">
+          <h2>Просто отправьте нам ссылку на сайт, мы оценим работы и отправим смету</h2>
+          <p>Без рекламных рассылок, звонков и SMS.</p>
+          <div class="contact-actions">
+            <button class="primary-button" type="button" data-open-lead>Связаться в Telegram</button>
+            <button class="soft-button" type="button" data-open-lead>Связаться в MAX</button>
+          </div>
         </div>
+      </section>
 
-        <div class="process-list">
-          <div class="reveal">
-            <strong>01</strong>
-            <span>Проверяем сайт в выбранном направлении</span>
+      <section class="important-section" id="important">
+        <div class="section-title reveal">
+          <h2>Обязательно для вас</h2>
+        </div>
+        <div class="important-grid">
+          <article class="mini-card reveal">
+            <h3>Интернет-магазин</h3>
+            <p>Оферта, возврат, оплата, cookie. Одно нарушение — штраф или блокировка рекламного кабинета.</p>
+          </article>
+          <article class="mini-card reveal">
+            <h3>Агентство или личный сайт</h3>
+            <p>Проверяете свой сайт или сайт клиента перед запуском и сдачей проекта.</p>
+          </article>
+          <article class="mini-card reveal">
+            <h3>B2B-сервис</h3>
+            <p>Публичная оферта, политика данных, корректность реквизитов для юрлиц.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="about-section">
+        <div class="about-card reveal">
+          <span class="neutral-pill">Кто мы?</span>
+          <h2>Kinava делает цифровые продукты для бизнеса</h2>
+          <p>
+            Kinava Pro — внутренний инструмент команды Kinava, который превращает аудит сайта в понятный список действий. Мы не уводим внимание от продукта: сначала диагностика, потом консультация и только затем работа по исправлениям.
+          </p>
+        </div>
+      </section>
+
+      <section class="final-cta">
+        <div class="section-title reveal">
+          <h2>Узнайте, что мешает вашему сайту</h2>
+          <p>Разберём результат проверки и скажем, что исправить срочно и в первую очередь. Бесплатно.</p>
+          <div class="contact-actions">
+            <button class="primary-button" type="button" data-scroll-audit>Проверить сайт</button>
+            <button class="soft-button" type="button" data-open-lead>Связаться с нами</button>
           </div>
-          <div class="reveal">
-            <strong>02</strong>
-            <span>Объясняем найденные проблемы простым языком</span>
-          </div>
-          <div class="reveal">
-            <strong>03</strong>
-            <span>Предлагаем персональный план исправлений</span>
-          </div>
+        </div>
+      </section>
+
+      <section class="faq-section" id="faq">
+        <div class="section-title reveal">
+          <h2>FAQ</h2>
+        </div>
+        <div class="faq-list">
+          <details class="reveal" open>
+            <summary>Сколько времени занимает проверка?</summary>
+            <p>Первичная проверка занимает около минуты. Результат появляется сразу на экране.</p>
+          </details>
+          <details class="reveal">
+            <summary>Проверка действительно бесплатная?</summary>
+            <p>Да. Бесплатно открывается основная часть результата, а расширенные 10 пунктов можно открыть за 179 ₽.</p>
+          </details>
+          <details class="reveal">
+            <summary>Вы проверяете только российские сайты?</summary>
+            <p>Юридическая проверка ориентирована на российское законодательство. SEO-проверка универсальная.</p>
+          </details>
+          <details class="reveal">
+            <summary>Что, если я хочу исправить проблемы сам?</summary>
+            <p>Можно. В каждом пункте есть объяснение, что видно и что сделать. Консультация нужна, если хотите разобраться быстрее.</p>
+          </details>
         </div>
       </section>
     </main>
@@ -284,7 +333,7 @@
         <button class="icon-button" value="cancel" aria-label="Закрыть">×</button>
         <p class="eyebrow">Заявка</p>
         <h2 id="leadTitle">Разберём сайт и предложим план исправлений</h2>
-        <div class="lead-package" id="leadPackage">Можно оставить заявку без выбора тарифа. Мы посмотрим результат проверки и подскажем следующий шаг.</div>
+        <div class="lead-package" id="leadPackage">Отправьте ссылку на сайт, а мы посмотрим результат проверки и подскажем следующий шаг.</div>
         <div class="lead-fields">
           <label>
             Имя
@@ -300,6 +349,16 @@
           </label>
         </div>
         <button class="primary-button" value="default">Отправить заявку</button>
+      </form>
+    </dialog>
+
+    <dialog class="lead-dialog" id="payDialog">
+      <form method="dialog" class="lead-card pay-card">
+        <button class="icon-button" value="cancel" aria-label="Закрыть">×</button>
+        <p class="eyebrow">Расширенная диагностика</p>
+        <h2>Открыть последние 10 пунктов за 179 ₽</h2>
+        <p>В демо-версии доступ откроется сразу после нажатия. Для продакшена подключим ЮKassa и будем открывать отчёт после успешной оплаты.</p>
+        <button class="primary-button" id="unlockPaid" value="default">Оплатить 179 ₽</button>
       </form>
     </dialog>
 

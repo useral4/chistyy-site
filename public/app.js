@@ -1,13 +1,5 @@
 const form = document.querySelector("#scanForm");
 const urlInput = document.querySelector("#urlInput");
-const riskLabel = document.querySelector("#riskLabel");
-const scoreRing = document.querySelector("#scoreRing");
-const scoreValue = document.querySelector("#scoreValue");
-const fineValue = document.querySelector("#fineValue");
-const fineHint = document.querySelector("#fineHint");
-const legalCount = document.querySelector("#legalCount");
-const seoCount = document.querySelector("#seoCount");
-const totalCount = document.querySelector("#totalCount");
 const modeInputs = document.querySelectorAll('input[name="mode"]');
 const activeChecks = document.querySelector("#activeChecks");
 const activeReportHead = document.querySelector("#activeReportHead");
@@ -15,8 +7,9 @@ const reportTitle = document.querySelector("#reportTitle");
 const reportIntro = document.querySelector("#reportIntro");
 const reportModeButtons = document.querySelectorAll("[data-report-mode]");
 const resultStory = document.querySelector("#resultStory");
-const resultFine = document.querySelector("#resultFine");
-const resultNext = document.querySelector("#resultNext");
+const fineValue = document.querySelector("#fineValue");
+const totalCount = document.querySelector("#totalCount");
+const accessState = document.querySelector("#accessState");
 const serviceGrid = document.querySelector("#serviceGrid");
 const notice = document.querySelector("#notice");
 const copySummary = document.querySelector("#copySummary");
@@ -24,17 +17,24 @@ const leadDialog = document.querySelector("#leadDialog");
 const leadPackage = document.querySelector("#leadPackage");
 const leadComment = document.querySelector("#leadComment");
 const leadTitle = document.querySelector("#leadTitle");
-const parallaxLayer = document.querySelector("[data-parallax]");
+const payDialog = document.querySelector("#payDialog");
+const openPayDialog = document.querySelector("#openPayDialog");
+const unlockPaid = document.querySelector("#unlockPaid");
+const diagnosticLog = document.querySelector("#diagnosticLog");
+const previewScore = document.querySelector("#previewScore");
+
+const LOCKED_COUNT = 10;
 
 let lastAudit = null;
 let selectedPackage = null;
 let selectedMode = "legal";
+let paidUnlocked = false;
+let progressTimer = null;
 
-const riskLabels = {
-  low: "Низкий",
-  medium: "Средний",
-  high: "Высокий",
-  critical: "Критичный"
+const statusLabels = {
+  passed: "ОК",
+  failed: "Риск",
+  review: "Проверить"
 };
 
 const severityLabels = {
@@ -43,71 +43,41 @@ const severityLabels = {
   high: "важный"
 };
 
-const statusLabels = {
-  passed: "ОК",
-  failed: "Риск",
-  review: "Проверить"
-};
+const diagnosticMessages = [
+  "Подключаемся к сайту...",
+  "Считываем HTML и служебные файлы...",
+  "Проверяем документы и формы...",
+  "Смотрим рекламные и cookie-сценарии...",
+  "Проверяем SEO-базу...",
+  "Собираем понятный отчёт..."
+];
 
 const defaultServices = [
   {
-    id: "legal",
-    title: "Правовой порядок",
-    price: "от 29 000 ₽",
-    tag: "документы",
-    description: "ПДн, согласия, cookie, реквизиты, оферта и повторная проверка.",
-    items: [
-      "Политика обработки персональных данных",
-      "Согласия у всех форм",
-      "Cookie-уведомление",
-      "Реквизиты и базовые документы",
-      "Повторная проверка после внедрения"
-    ],
+    id: "consult",
+    title: "Поможем разобраться",
+    price: "бесплатно",
+    tag: "консультация",
+    description: "Спишемся в мессенджере, обсудим нарушения и подскажем, что можно сделать самостоятельно.",
+    items: ["Разбор результата", "Приоритеты исправлений", "Ответы на вопросы", "План следующих действий"],
     active: true
   },
   {
-    id: "ads",
-    title: "Реклама без риска",
-    price: "от 17 000 ₽",
-    tag: "реклама",
-    description: "Маркировка рекламы, рекламодатель, ERID и чек-лист размещений.",
-    items: [
-      "Проверка рекламных блоков",
-      "Пометки «Реклама»",
-      "Рекламодатель и ERID",
-      "Чек-лист для подрядчиков",
-      "Рекомендации по спорным местам"
-    ],
+    id: "audit",
+    title: "Технический аудит сайта",
+    price: "от 10 000 ₽",
+    tag: "документы",
+    description: "Исправляем нарушения: документы, формы, cookie, реквизиты и технические ошибки.",
+    items: ["Политика ПДн", "Согласия у форм", "Cookie-сценарии", "Реквизиты", "Повторная проверка"],
     active: false
   },
   {
     id: "seo",
-    title: "SEO-основа",
-    price: "от 35 000 ₽",
-    tag: "поиск",
-    description: "Метатеги, H1/H2, alt, robots, sitemap, schema и скорость.",
-    items: [
-      "Title и description",
-      "H1/H2 и структура страницы",
-      "Alt-тексты изображений",
-      "robots.txt и sitemap.xml",
-      "Schema.org, Open Graph и скорость"
-    ],
-    active: true
-  },
-  {
-    id: "full",
-    title: "Полный порядок",
-    price: "от 69 000 ₽",
-    tag: "под ключ",
-    description: "Документы, SEO-правки, отчёт и повторная проверка через 14 дней.",
-    items: [
-      "Все правовые исправления",
-      "SEO и техническая база",
-      "Приоритетный список задач",
-      "Отчёт для команды",
-      "Повторный аудит через 14 дней"
-    ],
+    title: "SEO-оптимизация сайта",
+    price: "от 10 000 ₽",
+    tag: "SEO",
+    description: "Исправляем всё, что мешает сайту получать больше клиентов из поиска.",
+    items: ["Title и description", "Структура H1/H2", "Alt изображений", "robots и sitemap", "Скорость"],
     active: false
   }
 ];
@@ -128,61 +98,192 @@ function escapeHtml(value) {
     .replaceAll("'", "&#039;");
 }
 
+function getSelectedMode() {
+  return document.querySelector('input[name="mode"]:checked')?.value || selectedMode;
+}
+
+function setSelectedMode(mode) {
+  selectedMode = mode === "seo" ? "seo" : "legal";
+
+  document.querySelectorAll(`[name="mode"][value="${selectedMode}"]`).forEach((input) => {
+    input.checked = true;
+  });
+
+  document.querySelectorAll("[data-select-mode]").forEach((button) => {
+    button.classList.toggle("active", button.dataset.selectMode === selectedMode);
+  });
+
+  reportModeButtons.forEach((button) => {
+    button.classList.toggle("active", button.dataset.reportMode === selectedMode);
+  });
+
+  renderActiveReport();
+}
+
+function modeTitle(mode) {
+  return mode === "seo" ? "SEO-проверка" : "Юридическая проверка";
+}
+
+function sortedChecks() {
+  if (!lastAudit) return [];
+  return [...lastAudit.checks].sort((a, b) => {
+    if (a.group === selectedMode && b.group !== selectedMode) return -1;
+    if (a.group !== selectedMode && b.group === selectedMode) return 1;
+    if (a.status === "failed" && b.status !== "failed") return -1;
+    if (a.status !== "failed" && b.status === "failed") return 1;
+    if (a.status === "review" && b.status === "passed") return -1;
+    if (a.status === "passed" && b.status === "review") return 1;
+    return 0;
+  });
+}
+
 function setLoading(isLoading) {
   const button = form.querySelector("button[type='submit']");
   button.disabled = isLoading;
-  button.querySelector("span").textContent = isLoading ? "Проверяем..." : "Запустить проверку";
+  button.querySelector("span").textContent = isLoading ? "Проверяем..." : "Проверить нарушения";
 }
 
-function renderCheck(check) {
+function startDiagnosticAnimation() {
+  clearInterval(progressTimer);
+  let step = 0;
+  previewScore.textContent = "0%";
+  diagnosticLog.textContent = diagnosticMessages[0];
+
+  progressTimer = setInterval(() => {
+    step = Math.min(step + 1, diagnosticMessages.length - 1);
+    const value = Math.round((step / (diagnosticMessages.length - 1)) * 96);
+    previewScore.textContent = `${value}%`;
+    diagnosticLog.textContent = diagnosticMessages[step];
+    if (step >= diagnosticMessages.length - 1) clearInterval(progressTimer);
+  }, 420);
+}
+
+function finishDiagnosticAnimation() {
+  clearInterval(progressTimer);
+  previewScore.textContent = "100%";
+  diagnosticLog.textContent = "Готово: отчёт собран.";
+}
+
+function renderCheck(check, index) {
   const passed = check.status === "passed";
   const review = check.status === "review";
-  const meta = [`приоритет: ${severityLabels[check.severity] || check.severity}`];
-
+  const group = check.group === "seo" ? "SEO" : "Право";
+  const meta = [`${group}`, `приоритет: ${severityLabels[check.severity] || check.severity}`];
   if (check.law) meta.push(check.law);
 
   return `
-    <div class="check-item ${passed ? "passed" : review ? "review" : "failed"}">
-      <div class="check-top">
-        <strong>${escapeHtml(check.title)}</strong>
-        <span class="status-pill ${passed ? "passed" : review ? "review" : "failed"}">
-          ${statusLabels[check.status] || "Риск"}
-        </span>
+    <article class="check-item ${passed ? "passed" : review ? "review" : "failed"}">
+      <div class="check-index">${String(index + 1).padStart(2, "0")}</div>
+      <div class="check-body">
+        <div class="check-top">
+          <strong>${escapeHtml(check.title)}</strong>
+          <span class="status-pill ${passed ? "passed" : review ? "review" : "failed"}">
+            ${statusLabels[check.status] || "Риск"}
+          </span>
+        </div>
+        <p><b>Что видно:</b> ${escapeHtml(check.evidence)}</p>
+        ${
+          check.fineMax
+            ? `<div class="fine-badge">Возможный риск до ${formatRub(check.fineMax)}</div>`
+            : ""
+        }
+        ${passed ? "" : `<p class="fix-line"><b>${review ? "Что проверить" : "Что сделать"}:</b> ${escapeHtml(check.fix)}</p>`}
+        <div class="check-meta">
+          ${meta.map((item) => `<span>${escapeHtml(item)}</span>`).join("")}
+        </div>
       </div>
-      <p><b>Что видно:</b> ${escapeHtml(check.evidence)}</p>
-      ${
-        check.fineMax
-          ? `<div class="fine-badge">Возможный риск до ${formatRub(check.fineMax)}</div>`
-          : ""
-      }
-      ${passed ? "" : `<p class="fix-line"><b>${review ? "Что проверить" : "Что сделать"}:</b> ${escapeHtml(check.fix)}</p>`}
-      <div class="check-meta">
-        ${meta.map((item) => `<span>${escapeHtml(item)}</span>`).join("")}
-      </div>
-    </div>
+    </article>
   `;
 }
 
-function renderServices(services) {
+function renderLockedCheck(check, index) {
+  return `
+    <article class="check-item locked-check">
+      <div class="check-index">${String(index + 1).padStart(2, "0")}</div>
+      <div class="check-body">
+        <div class="check-top">
+          <strong>${escapeHtml(check.title)}</strong>
+          <span class="status-pill locked">закрыто</span>
+        </div>
+        <p>Этот пункт входит в расширенную диагностику. Откройте доступ, чтобы увидеть детали и рекомендацию.</p>
+      </div>
+    </article>
+  `;
+}
+
+function renderActiveReport() {
+  const title = modeTitle(selectedMode);
+  activeReportHead.innerHTML = `<span class="dot ${selectedMode}"></span><h3>${title}: результат</h3>`;
+
+  if (!lastAudit) {
+    reportTitle.textContent = "Запустите проверку, чтобы увидеть результат";
+    reportIntro.textContent =
+      "Бесплатно покажем основную часть результата. Последние 10 пунктов расширенной диагностики открываются за 179 ₽.";
+    resultStory.textContent = "Ожидаем проверку";
+    fineValue.textContent = "—";
+    totalCount.textContent = "—";
+    accessState.textContent = "Бесплатный";
+    activeChecks.innerHTML = `<div class="empty-state">Введите ссылку сайта и запустите проверку.</div>`;
+    return;
+  }
+
+  const checks = sortedChecks();
+  const freeCount = Math.max(checks.length - LOCKED_COUNT, 0);
+  const visibleChecks = paidUnlocked ? checks : checks.slice(0, freeCount);
+  const lockedChecks = paidUnlocked ? [] : checks.slice(freeCount);
+  const failed = checks.filter((check) => check.status === "failed");
+  const review = checks.filter((check) => check.status === "review");
+  const fine = failed.reduce((sum, check) => sum + (check.fineMax || 0), 0);
+
+  reportTitle.textContent = `${title}: нашли ${failed.length + review.length} пунктов для внимания`;
+  reportIntro.textContent = paidUnlocked
+    ? "Полный доступ открыт. Ниже все пункты диагностики с объяснениями и рекомендациями."
+    : `Бесплатно открыто ${visibleChecks.length} пунктов. Последние ${lockedChecks.length} пунктов можно открыть за 179 ₽.`;
+  resultStory.textContent = failed.length
+    ? `Найдено ${failed.length} рисков`
+    : review.length
+      ? `Нужно проверить ${review.length} пункта`
+      : "Критичных проблем не найдено";
+  fineValue.textContent = fine ? `до ${formatRub(fine)}` : "0 ₽";
+  totalCount.textContent = `${visibleChecks.length}/${checks.length}`;
+  accessState.textContent = paidUnlocked ? "Полный" : "Бесплатный";
+
+  activeChecks.innerHTML = [
+    ...visibleChecks.map(renderCheck),
+    ...lockedChecks.map(renderLockedCheck),
+    lockedChecks.length
+      ? `<div class="locked-banner">
+          <strong>Осталось ${lockedChecks.length} закрытых пунктов</strong>
+          <span>Расширенная диагностика стоит 179 ₽ и открывается сразу.</span>
+          <button class="dark-button" type="button" data-open-payment>Открыть полный отчёт</button>
+        </div>`
+      : ""
+  ].join("");
+
+  activeChecks.querySelectorAll("[data-open-payment]").forEach((button) => {
+    button.addEventListener("click", () => payDialog.showModal());
+  });
+}
+
+function renderServices(services = defaultServices) {
   serviceGrid.innerHTML = services
+    .slice(0, 3)
     .map(
       (service) => `
-        <article class="service-card reveal ${service.active ? "active" : ""}" data-service-card="${escapeHtml(service.id)}">
-          <div>
-            <span class="tag">${escapeHtml(service.tag)}</span>
-            <h3>${escapeHtml(service.title)}</h3>
-            <p>${escapeHtml(service.description)}</p>
-            <details>
-              <summary>Что входит</summary>
-              <ul>
-                ${(service.items || []).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
-              </ul>
-            </details>
-          </div>
+        <article class="service-card reveal ${service.active ? "active" : ""}">
+          <span class="neutral-pill">${escapeHtml(service.tag)}</span>
+          <h3>${escapeHtml(service.title)}</h3>
+          <p>${escapeHtml(service.description)}</p>
+          <details>
+            <summary>Показать подробнее</summary>
+            <ul>
+              ${(service.items || []).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
+            </ul>
+          </details>
           <div class="service-bottom">
             <strong>${escapeHtml(service.price)}</strong>
-            <button class="primary-button compact" type="button" data-package="${escapeHtml(service.id)}">
-              Обсудить на консультации
+            <button class="soft-button" type="button" data-package="${escapeHtml(service.id)}">
+              Узнать точную стоимость
             </button>
           </div>
         </article>
@@ -192,7 +293,7 @@ function renderServices(services) {
 
   serviceGrid.querySelectorAll("[data-package]").forEach((button) => {
     button.addEventListener("click", () => {
-      const service = services.find((item) => item.id === button.dataset.package);
+      const service = services.find((item) => item.id === button.dataset.package) || null;
       openLead(service);
     });
   });
@@ -200,99 +301,11 @@ function renderServices(services) {
   observeReveals();
 }
 
-function getSelectedMode() {
-  return document.querySelector('input[name="mode"]:checked')?.value || selectedMode;
-}
-
-function setSelectedMode(mode) {
-  selectedMode = mode === "seo" ? "seo" : "legal";
-  const input = document.querySelector(`input[name="mode"][value="${selectedMode}"]`);
-  if (input) input.checked = true;
-
-  reportModeButtons.forEach((button) => {
-    button.classList.toggle("active", button.dataset.reportMode === selectedMode);
-  });
-
-  renderActiveReport();
-}
-
-function getModeCopy(mode) {
-  if (mode === "seo") {
-    return {
-      title: "SEO-проверка сайта",
-      intro: "Собрали технические и контентные пункты, которые могут мешать индексации, сниппетам и заявкам из поиска.",
-      head: "SEO и техническая база",
-      empty: "Запустите SEO-проверку, чтобы увидеть задачи по поиску и технической базе.",
-      next: "Разобрать SEO-задачи на консультации",
-      countLabel: "SEO-задач"
-    };
-  }
-
-  return {
-    title: "Юридические риски сайта",
-    intro: "Показываем документы, формы, рекламу и персональные данные отдельно от SEO, чтобы результат читался спокойно.",
-    head: "Штрафы, документы и формы",
-    empty: "Запустите проверку юридических рисков, чтобы увидеть документы и штрафные зоны.",
-    next: "Разобрать риски на консультации",
-    countLabel: "юридических рисков"
-  };
-}
-
-function renderActiveReport() {
-  const copy = getModeCopy(selectedMode);
-  const checks = lastAudit
-    ? lastAudit.checks.filter((check) => check.group === selectedMode)
-    : [];
-  const failed = checks.filter((check) => check.status === "failed");
-
-  reportTitle.textContent = lastAudit ? copy.title : "Сначала выберите направление и запустите проверку";
-  reportIntro.textContent = lastAudit
-    ? copy.intro
-    : "На экране появятся только те пункты, которые относятся к выбранной проверке. Остальные детали останутся ниже, чтобы не перегружать первый результат.";
-  activeReportHead.innerHTML = `<span class="dot ${selectedMode}"></span><h3>${copy.head}</h3>`;
-  activeChecks.innerHTML = checks.length
-    ? checks.map(renderCheck).join("")
-    : `<div class="empty-state">${copy.empty}</div>`;
-
-  if (!lastAudit) {
-    resultStory.textContent = "Проверка ещё не запускалась";
-    resultFine.textContent = "—";
-    resultNext.textContent = "Оставить заявку на разбор";
-    return;
-  }
-
-  const focusedFine = failed.reduce((sum, check) => sum + (check.fineMax || 0), 0);
-  resultStory.textContent = failed.length
-    ? `Найдено ${failed.length} ${copy.countLabel}`
-    : "Критичных проблем в этом направлении не найдено";
-  resultFine.textContent =
-    selectedMode === "legal"
-      ? focusedFine
-        ? `до ${formatRub(focusedFine)}`
-        : "0 ₽"
-      : "не считаем как штраф";
-  resultNext.textContent = copy.next;
-}
-
 function renderAudit(audit) {
   lastAudit = audit;
-
-  const summary = audit.summary;
-  const score = summary.score ?? 0;
-
-  riskLabel.textContent = riskLabels[summary.riskLevel] || "Средний";
-  scoreRing.style.setProperty("--score", score);
-  scoreValue.textContent = score;
-  fineValue.textContent = summary.fineMax ? `до ${formatRub(summary.fineMax)}` : "0 ₽";
-  fineHint.textContent = summary.fineMax
-    ? "Верхняя граница риска по найденным признакам"
-    : "Критичных штрафных признаков не найдено";
-  legalCount.textContent = summary.legalIssues;
-  seoCount.textContent = summary.seoIssues;
-  totalCount.textContent = summary.totalIssues;
-
+  paidUnlocked = false;
   renderActiveReport();
-  renderServices(audit.services);
+  renderServices(defaultServices);
 
   if (audit.warning) {
     notice.hidden = false;
@@ -311,14 +324,14 @@ function renderError(message) {
 async function runAudit(event) {
   event?.preventDefault();
   selectedMode = getSelectedMode();
+  paidUnlocked = false;
+  setSelectedMode(selectedMode);
   setLoading(true);
-  renderError(
-    selectedMode === "seo"
-      ? "Загружаем сайт и проверяем SEO-базу..."
-      : "Загружаем сайт и проверяем юридические риски..."
-  );
+  startDiagnosticAnimation();
+  renderError("Проверяем сайт и собираем диагностику...");
 
-  const profile = new FormData(form).get("profile");
+  const formData = new FormData(form);
+  const profile = formData.get("profile") || "lead";
   const url = urlInput.value.trim();
 
   try {
@@ -329,10 +342,12 @@ async function runAudit(event) {
 
     if (!response.ok) throw new Error(payload.error || "Не удалось проверить сайт");
 
+    finishDiagnosticAnimation();
     renderAudit(payload);
     document.querySelector("#report").scrollIntoView({ behavior: "smooth", block: "start" });
   } catch (error) {
     renderError(error.message);
+    diagnosticLog.textContent = "Не удалось завершить проверку.";
   } finally {
     setLoading(false);
   }
@@ -344,23 +359,18 @@ function copyCurrentSummary() {
     return;
   }
 
-  const failed = lastAudit.checks.filter(
-    (check) => check.status === "failed" && check.group === selectedMode
-  );
-  const copy = getModeCopy(selectedMode);
+  const checks = sortedChecks();
+  const failed = checks.filter((check) => check.status === "failed");
   const lines = [
-    `Чистый сайт: ${lastAudit.url}`,
-    `Раздел: ${copy.head}`,
-    selectedMode === "legal"
-      ? `Потенциальные штрафы: ${formatRub(
-          failed.reduce((sum, check) => sum + (check.fineMax || 0), 0)
-        )}`
-      : `SEO-задачи: ${failed.length}`,
+    `Kinava Pro: ${lastAudit.url}`,
+    `Режим: ${modeTitle(selectedMode)}`,
+    `Доступ: ${paidUnlocked ? "полный" : "бесплатный"}`,
+    `Потенциальные штрафы: ${formatRub(failed.reduce((sum, check) => sum + (check.fineMax || 0), 0))}`,
     "",
     "Что исправить:",
     ...(failed.length
       ? failed.map((check) => `- ${check.title}: ${check.fix}`)
-      : ["- Критичных проблем в выбранном разделе не найдено"])
+      : ["- Критичных проблем не найдено"])
   ];
 
   navigator.clipboard
@@ -377,14 +387,14 @@ function copyCurrentSummary() {
 function openLead(service = null) {
   selectedPackage = service;
   leadTitle.textContent = service
-    ? `Заявка на пакет «${service.title}»`
+    ? `Заявка: ${service.title}`
     : "Разберём сайт и предложим план исправлений";
   leadPackage.textContent = service
     ? `${service.title}: ${service.price}. ${service.description}`
-    : "Можно оставить заявку без выбора тарифа. Мы посмотрим результат проверки и подскажем следующий шаг.";
+    : "Отправьте ссылку на сайт, а мы посмотрим результат проверки и подскажем следующий шаг.";
   leadComment.value = service
-    ? `Интересует пакет «${service.title}» для сайта ${urlInput.value.trim() || "..."}.`
-    : `Нужна консультация по ${selectedMode === "seo" ? "SEO-проверке" : "юридическим рискам"} для сайта ${urlInput.value.trim() || "..."}.`;
+    ? `Интересует «${service.title}» для сайта ${urlInput.value.trim() || "..."}.`
+    : `Нужна консультация по ${modeTitle(selectedMode).toLowerCase()} для сайта ${urlInput.value.trim() || "..."}.`;
   leadDialog.showModal();
 }
 
@@ -399,7 +409,7 @@ function observeReveals() {
         }
       });
     },
-    { threshold: 0.16 }
+    { threshold: 0.12 }
   );
 
   reveals.forEach((element) => {
@@ -417,6 +427,16 @@ document.querySelectorAll("[data-open-lead]").forEach((button) => {
   button.addEventListener("click", () => openLead());
 });
 
+document.querySelectorAll("[data-scroll-audit]").forEach((button) => {
+  button.addEventListener("click", () => {
+    document.querySelector("#audit").scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+});
+
+document.querySelectorAll("[data-select-mode]").forEach((button) => {
+  button.addEventListener("click", () => setSelectedMode(button.dataset.selectMode));
+});
+
 modeInputs.forEach((input) => {
   input.addEventListener("change", () => setSelectedMode(input.value));
 });
@@ -425,18 +445,20 @@ reportModeButtons.forEach((button) => {
   button.addEventListener("click", () => setSelectedMode(button.dataset.reportMode));
 });
 
-document.querySelectorAll("[data-select-mode]").forEach((link) => {
-  link.addEventListener("click", () => setSelectedMode(link.dataset.selectMode));
-});
-
 form.addEventListener("submit", runAudit);
 copySummary.addEventListener("click", copyCurrentSummary);
+openPayDialog.addEventListener("click", () => payDialog.showModal());
+unlockPaid.addEventListener("click", () => {
+  paidUnlocked = true;
+  renderActiveReport();
+  payDialog.close();
+});
 
 window.addEventListener("pointermove", (event) => {
-  if (!parallaxLayer) return;
   const x = (event.clientX / window.innerWidth - 0.5) * 18;
   const y = (event.clientY / window.innerHeight - 0.5) * 18;
-  parallaxLayer.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+  document.documentElement.style.setProperty("--mx", `${x}px`);
+  document.documentElement.style.setProperty("--my", `${y}px`);
 });
 
 renderServices(defaultServices);

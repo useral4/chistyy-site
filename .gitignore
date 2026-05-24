@@ -7,3 +7,5 @@ Thumbs.db
 server.log
 server.err.log
 qa-*.png
+backups/
+prototype-renders/
