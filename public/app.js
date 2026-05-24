@@ -144,6 +144,7 @@ function setLoading(isLoading) {
 }
 
 function startDiagnosticAnimation() {
+  if (!previewScore || !diagnosticLog) return;
   clearInterval(progressTimer);
   let step = 0;
   previewScore.textContent = "0%";
@@ -159,6 +160,7 @@ function startDiagnosticAnimation() {
 }
 
 function finishDiagnosticAnimation() {
+  if (!previewScore || !diagnosticLog) return;
   clearInterval(progressTimer);
   previewScore.textContent = "100%";
   diagnosticLog.textContent = "Готово: отчёт собран.";
@@ -266,30 +268,42 @@ function renderActiveReport() {
 }
 
 function renderServices(services = defaultServices) {
-  serviceGrid.innerHTML = services
-    .slice(0, 3)
-    .map(
-      (service) => `
-        <article class="service-card reveal ${service.active ? "active" : ""}">
-          <span class="neutral-pill">${escapeHtml(service.tag)}</span>
-          <h3>${escapeHtml(service.title)}</h3>
-          <p>${escapeHtml(service.description)}</p>
-          <details>
-            <summary>Показать подробнее</summary>
-            <ul>
-              ${(service.items || []).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
-            </ul>
-          </details>
-          <div class="service-bottom">
-            <strong>${escapeHtml(service.price)}</strong>
-            <button class="soft-button" type="button" data-package="${escapeHtml(service.id)}">
-              Узнать точную стоимость
-            </button>
-          </div>
-        </article>
-      `
-    )
-    .join("");
+  const [consult, audit, seo] = services.slice(0, 3);
+  serviceGrid.innerHTML = `
+    <article class="service-card consult-service reveal">
+      <h3>${escapeHtml(consult.title)}</h3>
+      <p>${escapeHtml(consult.description)}</p>
+      <div class="messenger-actions">
+        <button class="primary-button" type="button" data-package="${escapeHtml(consult.id)}">Связаться в Telegram</button>
+        <button class="primary-button" type="button" data-package="${escapeHtml(consult.id)}">Связаться в MAX</button>
+      </div>
+    </article>
+    ${[audit, seo]
+      .map(
+        (service) => `
+          <article class="service-card reveal">
+            <h3>${escapeHtml(service.title)}</h3>
+            <p>${escapeHtml(service.description)}</p>
+            <details>
+              <summary>Показать подробнее</summary>
+              <ul>
+                ${(service.items || []).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
+              </ul>
+            </details>
+            <div class="service-bottom">
+              <strong>${escapeHtml(service.price).replace("₽", "р")}</strong>
+              <small>Стоимость зависит от объёма ошибок на сайте</small>
+              <button class="soft-button" type="button" data-package="${escapeHtml(service.id)}">
+                Узнать точную стоимость
+              </button>
+              <p>Просто отправьте нам ссылку на сайт, мы оценим работы и отправим смету</p>
+              <p>Без рекламных рассылок, звонков и смс</p>
+            </div>
+          </article>
+        `
+      )
+      .join("")}
+  `;
 
   serviceGrid.querySelectorAll("[data-package]").forEach((button) => {
     button.addEventListener("click", () => {
@@ -347,7 +361,7 @@ async function runAudit(event) {
     document.querySelector("#report").scrollIntoView({ behavior: "smooth", block: "start" });
   } catch (error) {
     renderError(error.message);
-    diagnosticLog.textContent = "Не удалось завершить проверку.";
+    if (diagnosticLog) diagnosticLog.textContent = "Не удалось завершить проверку.";
   } finally {
     setLoading(false);
   }
