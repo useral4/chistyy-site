@@ -58,17 +58,17 @@ const defaultServices = [
     title: "Поможем разобраться",
     price: "бесплатно",
     tag: "консультация",
-    description: "Спишемся в мессенджере, обсудим нарушения и подскажем, что можно сделать самостоятельно.",
-    items: ["Разбор результата", "Приоритеты исправлений", "Ответы на вопросы", "План следующих действий"],
+    description: "Разберём ваши нарушения, объясним, что можно исправить самостоятельно, без специалистов. Никаких продаж, только помощь по вашим вопросам.",
+    items: ["Разбор результата проверки", "Что исправить самостоятельно", "Приоритеты без лишних работ", "Ответы на вопросы"],
     active: true
   },
   {
     id: "audit",
     title: "Технический аудит сайта",
     price: "от 10 000 ₽",
-    tag: "документы",
-    description: "Исправляем нарушения: документы, формы, cookie, реквизиты и технические ошибки.",
-    items: ["Политика ПДн", "Согласия у форм", "Cookie-сценарии", "Реквизиты", "Повторная проверка"],
+    tag: "юридическое + техника",
+    description: "Исправляем юридические и технические нарушения: документы, формы, cookie-баннер, реквизиты и SEO-ошибки. Стоимость — по факту ошибок, не больше.",
+    items: ["Политика конфиденциальности и оферта", "Cookie-баннер и согласия у форм", "Маркировка рекламы и ERID", "Исправление SEO-ошибок", "Отчёт о выполненных работах"],
     active: false
   },
   {
@@ -76,8 +76,8 @@ const defaultServices = [
     title: "SEO-оптимизация сайта",
     price: "от 10 000 ₽",
     tag: "SEO",
-    description: "Исправляем всё, что мешает сайту получать больше клиентов из поиска.",
-    items: ["Title и description", "Структура H1/H2", "Alt изображений", "robots и sitemap", "Скорость"],
+    description: "Исправляем всё, что мешает занять высокие позиции: технические ошибки, метатеги, скорость и структура сайта.",
+    items: ["Технический SEO-аудит", "Оптимизация title, H1, description", "Работа со скоростью и Core Web Vitals", "Sitemap.xml и robots.txt", "Отчёт с прогнозом по позициям"],
     active: false
   }
 ];
@@ -140,7 +140,7 @@ function sortedChecks() {
 function setLoading(isLoading) {
   const button = form.querySelector("button[type='submit']");
   button.disabled = isLoading;
-  button.querySelector("span").textContent = isLoading ? "Проверяем..." : "Проверить нарушения";
+  button.querySelector("span").textContent = isLoading ? "Проверяем..." : "Проверить сайт";
 }
 
 function startDiagnosticAnimation() {
@@ -296,8 +296,6 @@ function renderServices(services = defaultServices) {
               <button class="soft-button" type="button" data-package="${escapeHtml(service.id)}">
                 Узнать точную стоимость
               </button>
-              <p>Просто отправьте нам ссылку на сайт, мы оценим работы и отправим смету</p>
-              <p>Без рекламных рассылок, звонков и смс</p>
             </div>
           </article>
         `
