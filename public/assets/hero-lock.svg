@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 900" role="img" aria-label="3D lock illustration">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#eef6ff"/>
+      <stop offset="1" stop-color="#f8fbff"/>
+    </linearGradient>
+    <linearGradient id="blue" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#8bbcff"/>
+      <stop offset=".55" stop-color="#3f7df1"/>
+      <stop offset="1" stop-color="#1148b8"/>
+    </linearGradient>
+    <linearGradient id="metal" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset=".42" stop-color="#cfd8e3"/>
+      <stop offset="1" stop-color="#6b7280"/>
+    </linearGradient>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="26" stdDeviation="34" flood-color="#1d4ed8" flood-opacity=".16"/>
+    </filter>
+  </defs>
+  <rect width="900" height="900" fill="url(#bg)"/>
+  <g filter="url(#soft)">
+    <path d="M318 380c0-122 79-220 176-220s176 98 176 220" fill="none" stroke="url(#metal)" stroke-width="70" stroke-linecap="round"/>
+    <rect x="244" y="326" width="430" height="390" rx="56" fill="url(#blue)"/>
+    <path d="M244 650h430v66c0 31-25 56-56 56H300c-31 0-56-25-56-56v-66z" fill="#173f9c" opacity=".85"/>
+    <rect x="382" y="434" width="155" height="165" rx="22" fill="url(#metal)"/>
+    <circle cx="459" cy="505" r="24" fill="#061837"/>
+    <path d="M459 518l-30 62h60l-30-62z" fill="#061837"/>
+    <g fill="url(#metal)" stroke="#758196" stroke-width="6">
+      <path d="M190 302l33 62 62-33 35 65-66 29 33 62-65 35-29-66-62 33-35-65 66-29-33-62z"/>
+      <path d="M650 315l25 48 48-25 27 51-51 23 25 48-51 27-23-51-48 25-27-51 51-23-25-48z"/>
+      <path d="M614 548l57 107 107-57 61 114-114 51 57 107-114 61-51-114-107 57-61-114 114-51-57-107z"/>
+      <path d="M184 626l23 43 43-23 25 46-46 21 23 43-46 25-21-46-43 23-25-46 46-21-23-43z"/>
+    </g>
+  </g>
+</svg>

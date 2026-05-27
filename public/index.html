@@ -91,22 +91,12 @@
         </div>
 
         <div class="hero-visual" aria-hidden="true">
-          <canvas id="heroScene"></canvas>
-          <div class="floating-card card-risk">
-            <span>Риск</span>
-            <strong>до 500 000 ₽</strong>
-            <small>маркировка рекламы</small>
-          </div>
-          <div class="floating-card card-ok">
-            <span>ОК</span>
-            <strong>политика найдена</strong>
-            <small>базовая защита</small>
-          </div>
-          <div class="floating-card card-seo">
-            <span>SEO</span>
-            <strong>23 сигнала</strong>
-            <small>title, H1, скорость</small>
-          </div>
+          <img
+            class="hero-asset asset-float"
+            src="/assets/hero-lock.png"
+            alt=""
+            onerror="this.onerror=null;this.src='/assets/hero-lock.svg';"
+          />
         </div>
       </section>
 
@@ -219,6 +209,14 @@
             <p>
               За рекламу, которая покрывает трафик, который вы могли бы получать бесплатно. SEO-ошибки не видны глазу, но алгоритмы их замечают.
             </p>
+          </div>
+          <div class="section-visual seo-picture reveal" aria-hidden="true">
+            <img
+              class="asset-float"
+              src="/assets/seo-analytics.png"
+              alt=""
+              onerror="this.onerror=null;this.src='/assets/seo-analytics.svg';"
+            />
           </div>
           <div class="seo-stats-grid">
             <article class="seo-stat-card reveal"><strong>75%</strong><span>кликов забирают сайты в ТОП-3 поиска</span></article>
@@ -348,7 +346,12 @@
           </article>
 
           <aside class="unlock-card reveal">
-            <div class="unlock-coin" aria-hidden="true">179</div>
+            <img
+              class="unlock-visual asset-float"
+              src="/assets/security-card.png"
+              alt=""
+              onerror="this.onerror=null;this.src='/assets/security-card.svg';"
+            />
             <span class="neutral-pill">Полный доступ</span>
             <h3>Последние 10 пунктов закрыты</h3>
             <p>Откройте расширенную диагностику: скрытые SEO-пункты, технические детали и рекомендации по исправлению.</p>
@@ -528,7 +531,6 @@
       </form>
     </dialog>
 
-    <script type="module" src="/scene.js"></script>
     <script src="/app.js" defer></script>
   </body>
 </html>
