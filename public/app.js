@@ -215,12 +215,12 @@ function renderLockedCheck(check, index) {
 
 function renderActiveReport() {
   const title = modeTitle(selectedMode);
-  activeReportHead.innerHTML = `<span class="dot ${selectedMode}"></span><h3>${title}: результат</h3>`;
+  activeReportHead.innerHTML = `<span class="dot ${selectedMode}"></span><h3>${title}</h3>`;
 
   if (!lastAudit) {
     reportTitle.textContent = "Запустите проверку, чтобы увидеть результат";
     reportIntro.textContent =
-      "Бесплатно покажем основную часть результата. Последние 10 пунктов расширенной диагностики открываются за 179 ₽.";
+      "Сначала покажем понятную выжимку: что важно, что проверить вручную и какие пункты уже в порядке.";
     resultStory.textContent = "Ожидаем проверку";
     fineValue.textContent = "—";
     totalCount.textContent = "—";
@@ -237,10 +237,11 @@ function renderActiveReport() {
   const review = checks.filter((check) => check.status === "review");
   const fine = failed.reduce((sum, check) => sum + (check.fineMax || 0), 0);
 
-  reportTitle.textContent = `${title}: нашли ${failed.length + review.length} пунктов для внимания`;
+  const attentionCount = failed.length + review.length;
+  reportTitle.textContent = `${title} сайта`;
   reportIntro.textContent = paidUnlocked
-    ? "Полный доступ открыт. Ниже все пункты диагностики с объяснениями и рекомендациями."
-    : `Бесплатно открыто ${visibleChecks.length} пунктов. Последние ${lockedChecks.length} пунктов можно открыть за 179 ₽.`;
+    ? `Проверили ${checks.length} пунктов. Ниже полный отчёт с объяснениями и рекомендациями.`
+    : `Нашли ${attentionCount} ${attentionCount === 1 ? "пункт" : attentionCount < 5 ? "пункта" : "пунктов"} для внимания. Бесплатно показали главное, а ${lockedChecks.length} расширенных пунктов можно открыть за 179 ₽.`;
   resultStory.textContent = failed.length
     ? `Найдено ${failed.length} рисков`
     : review.length
@@ -250,13 +251,34 @@ function renderActiveReport() {
   totalCount.textContent = `${visibleChecks.length}/${checks.length}`;
   accessState.textContent = paidUnlocked ? "Полный" : "Бесплатный";
 
+  const visibleFailed = visibleChecks.filter((check) => check.status === "failed");
+  const visibleReview = visibleChecks.filter((check) => check.status === "review");
+  const visiblePassed = visibleChecks.filter((check) => check.status === "passed");
+  const groupMarkup = (label, text, items, variant) =>
+    items.length
+      ? `<section class="check-group ${variant}">
+          <div class="check-group-head">
+            <span>${label}</span>
+            <p>${text}</p>
+          </div>
+          <div class="check-group-list">${items.map(renderCheck).join("")}</div>
+        </section>`
+      : "";
+
   activeChecks.innerHTML = [
-    ...visibleChecks.map(renderCheck),
-    ...lockedChecks.map(renderLockedCheck),
+    `<div class="report-summary-card">
+      <strong>${attentionCount ? `Есть ${attentionCount} ${attentionCount === 1 ? "замечание" : attentionCount < 5 ? "замечания" : "замечаний"}` : "Критичных замечаний не видно"}</strong>
+      <p>Сначала смотрите красный и жёлтый блоки. Зелёные пункты можно пролистать: они подтверждают, что часть сайта уже оформлена нормально.</p>
+    </div>`,
+    groupMarkup("Сначала исправить", "Пункты, где риск понятен по открытой странице сайта.", visibleFailed, "failed-group"),
+    groupMarkup("Проверить вручную", "Сайт не даёт полного ответа. Тут нужен быстрый ручной контроль документов, настроек или кабинетов.", visibleReview, "review-group"),
+    groupMarkup("Уже выглядит нормально", "Эти пункты не требуют срочного вмешательства по данным автоматической проверки.", visiblePassed, "passed-group"),
     lockedChecks.length
       ? `<div class="locked-banner">
-          <strong>Осталось ${lockedChecks.length} закрытых пунктов</strong>
-          <span>Расширенная диагностика стоит 179 ₽ и открывается сразу.</span>
+          <div>
+            <strong>${lockedChecks.length} расширенных пунктов закрыты</strong>
+            <span>Внутри технические детали, дополнительные SEO-проверки и точные рекомендации. Доступ открывается сразу после оплаты 179 ₽.</span>
+          </div>
           <button class="dark-button" type="button" data-open-payment>Открыть полный отчёт</button>
         </div>`
       : ""
