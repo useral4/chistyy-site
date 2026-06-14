@@ -1,536 +1,209 @@
 <!doctype html>
 <html lang="ru">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Kinava Pro — проверка сайта на штрафы и SEO</title>
-    <meta
-      name="description"
-      content="Kinava Pro проверяет сайт на юридические риски, документы, формы, рекламу, персональные данные и SEO-ошибки."
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KinavaPro</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
     />
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
-    <div class="ambient ambient-one" aria-hidden="true"></div>
-    <div class="ambient ambient-two" aria-hidden="true"></div>
+    <main class="site">
+      <section class="dark-stage">
+        <img class="decor decor-coin-left" src="/assets/coin-left.png" alt="" />
+        <img class="decor decor-coin-mid" src="/assets/coin-mid.png" alt="" />
+        <img class="decor decor-arrow" src="/assets/red-arrow.png" alt="" />
+        <img class="decor decor-warning" src="/assets/warning.png" alt="" />
+        <img class="decor decor-ring" src="/assets/red-ring.png" alt="" />
 
-    <header class="topbar">
-      <a class="brand" href="#audit" aria-label="Kinava Pro">
-        <strong>Kinava Pro</strong>
-        <span>by kinava</span>
-      </a>
+        <header class="topbar">
+          <a class="logo" href="#" aria-label="KinavaPro">
+            <span>Kinava</span><strong>Pro</strong>
+          </a>
+          <nav class="nav" aria-label="Основная навигация">
+            <a href="#legal">Юридическая проверка</a>
+            <a href="#seo">SEO-проверка</a>
+            <a href="#about">Кто мы ?</a>
+            <a href="#clients">Результаты клиентов</a>
+            <a href="#faq">FAQ</a>
+          </nav>
+          <div class="socials" aria-label="Социальные сети">
+            <a href="#" aria-label="Telegram">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M20.8 4.6 17.9 19c-.2 1-1.2 1.2-2 .7l-4.5-3.3-2.1 2c-.2.3-.4.5-.9.5l.3-4.7 8.6-7.8c.4-.3-.1-.5-.6-.2L6.1 13 1.5 11.5c-1-.3-1-1 .2-1.5l18-6.9c.8-.3 1.5.2 1.1 1.5Z" />
+              </svg>
+            </a>
+            <a href="#" aria-label="Сообщение">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 3.5c5 0 9 3.4 9 7.7s-4 7.7-9 7.7c-1.1 0-2.2-.2-3.2-.5L4 21l1.4-4.2C4 15.4 3 13.4 3 11.2c0-4.3 4-7.7 9-7.7Zm0 4.9a2.8 2.8 0 1 0 0 5.6 2.8 2.8 0 0 0 0-5.6Z" />
+              </svg>
+            </a>
+          </div>
+        </header>
 
-      <nav class="nav" aria-label="Основная навигация">
-        <a href="#legal">Юридическая проверка</a>
-        <a href="#seo">SEO-проверка</a>
-        <a href="#process">Как проверяем?</a>
-        <a href="#who">Для кого</a>
-        <a href="#faq">FAQ</a>
-      </nav>
-
-      <button class="soft-button" type="button" data-open-lead>Связаться с нами</button>
-    </header>
-
-    <main>
-      <section class="hero" id="audit">
-        <div class="hero-copy">
-          <p class="eyebrow reveal">Обновлено под новые штрафы с 30 мая 2025</p>
-          <h1 class="reveal hero-title">Знаем про вас всё</h1>
-          <p class="hero-lead reveal">
-            Проверьте сайт на штрафы раньше, чем это сделает РКН, и узнайте, как зарабатывать с сайта в 2 раза больше.
+        <div class="hero">
+          <div class="eyebrow">Информация подтверждена РБК на 2026 год</div>
+          <h1>95% сайтов нарушают<br />закон. Ваш тоже?</h1>
+          <p class="hero-subtitle">
+            Проверим сайт по 40+ критериям и покажем,<br />
+            что нарушено за 60 секунд. Бесплатно, без регистрации
           </p>
 
-          <form class="scan-card reveal" id="scanForm">
-            <div class="mode-tabs" role="radiogroup" aria-label="Что проверить">
-              <label>
-                <input type="radio" name="mode" value="legal" checked />
-                <span>
-                  <strong>Юридические риски</strong>
-                  <small>штрафы, документы, формы</small>
-                </span>
-              </label>
-              <label>
-                <input type="radio" name="mode" value="seo" />
-                <span>
-                  <strong>SEO-проверка</strong>
-                  <small>техника, трафик, заявки</small>
-                </span>
-              </label>
-            </div>
-
-            <label class="url-label" for="urlInput">Введите ссылку сайта</label>
-            <div class="url-row">
-              <input
-                id="urlInput"
-                name="url"
-                type="text"
-                inputmode="url"
-                placeholder="https://example.ru/"
-                value="https://viarse.ru/"
-                autocomplete="url"
-                required
-              />
-              <input type="hidden" name="profile" value="lead" />
-              <button class="primary-button" type="submit">
-                <span>Проверить сайт</span>
+          <form class="check-form">
+            <label for="site-url">Вставьте ссылку на сайт</label>
+            <div class="form-row">
+              <input id="site-url" type="url" placeholder="https://вашсайт.ru" />
+              <button type="submit">
+                Проверить нарушения
+                <span aria-hidden="true">→</span>
               </button>
             </div>
+            <label class="policy">
+              <input type="checkbox" />
+              <span>Отправляя форму, Вы принимаете политику конфиденциальности</span>
+            </label>
           </form>
-
-          <div class="hero-proof reveal" aria-label="Ключевые цифры">
-            <div>
-              <strong>до 15 млн ₽</strong>
-              <span>максимальный штраф за утечку данных</span>
-            </div>
-            <div>
-              <strong>75%</strong>
-              <span>кликов забирают сайты в ТОП-3 поиска</span>
-            </div>
-          </div>
         </div>
 
-        <div class="hero-visual" aria-hidden="true">
-          <img
-            class="hero-asset asset-float"
-            src="/assets/hero-lock.png"
-            alt=""
-            onerror="this.onerror=null;this.src='/assets/hero-lock.jpg';"
-          />
-        </div>
-      </section>
+        <section class="stats" aria-label="Статистика штрафов">
+          <article>
+            <strong>-500 млн ₽</strong>
+            <span>максимальный штраф за утечку<br />данных по новым нормам с мая 2025</span>
+          </article>
+          <article>
+            <strong>73 000 ₽</strong>
+            <span>средний штраф ФАС за одно нарушение<br />рекламного законодательства в 2024 году</span>
+          </article>
+          <article>
+            <strong>2 202</strong>
+            <span>средний штраф ФАС за одно нарушение<br />рекламного законодательства в 2024 году</span>
+          </article>
+        </section>
 
-      <section class="split-section" id="legal">
-        <div class="section-title reveal">
-          <h2>Два типа проблем —<br />две отдельные проверки</h2>
-          <div class="pill-switch" role="tablist" aria-label="Быстрый выбор проверки">
-            <button class="active" type="button" data-select-mode="legal">Юридическая проверка</button>
-            <button type="button" data-select-mode="seo">SEO-проверка</button>
-          </div>
-        </div>
-
-        <div class="threat-banner reveal">
-          <div class="icon-3d danger">152</div>
-          <div>
-            <h3>С 30 мая 2025 года штрафы выросли в 60 раз</h3>
-            <p>
-              Роскомнадзор получил новые полномочия: поправки к 152-ФЗ радикально увеличили санкции. Штраф за неуведомление о начале обработки персональных данных вырос с 5 000 до 300 000 рублей для организаций. Штраф за утечку данных — до 3 млн рублей. Незаконная передача данных третьим лицам — до 15 млн рублей.
-            </p>
-          </div>
-        </div>
-
-        <div class="problem-layout legal-intro">
-          <div class="problem-copy reveal">
-            <span class="danger-pill">Юридическая проверка</span>
-            <h3><span>Покажем, где сайт нарушает закон,</span><br /><span>во сколько это обойдётся и как исправить</span></h3>
-            <p>
-              Многие владельцы сайтов даже не знают, что нарушают закон прямо сейчас. Мы показываем не страшилки, а конкретные пункты: что видно на сайте, почему это риск и что нужно исправить первым.
-            </p>
-          </div>
-
-          <div class="problem-cards">
-            <article class="mini-card reveal">
-              <div class="icon-3d">DOC</div>
-              <h4>Документы</h4>
-              <p>Политика данных, оферта, реквизиты</p>
-            </article>
-            <article class="mini-card reveal">
-              <div class="icon-3d violet">OK</div>
-              <h4>Формы и согласия</h4>
-              <p>Галочки, согласие на обработку данных</p>
-            </article>
-            <article class="mini-card reveal">
-              <div class="icon-3d green">CK</div>
-              <h4>Cookie-баннер</h4>
-              <p>Есть ли, правильно ли оформлен</p>
-            </article>
-            <article class="mini-card reveal">
-              <div class="icon-3d danger">AD</div>
-              <h4>Маркировка рекламы</h4>
-              <p>ERID, пометка «реклама»</p>
-            </article>
-          </div>
-        </div>
-
-        <div class="fine-grid">
-          <article class="fine-card reveal">
-            <span class="fine-sum">до 300 000 ₽</span>
-            <small>152-ФЗ · ст. 13.11 КоАП</small>
-            <h3>Отсутствие политики конфиденциальности</h3>
-            <p>Если сайт собирает имя, телефон, email или заявку, нужна политика и корректная обработка персональных данных.</p>
-          </article>
-          <article class="fine-card reveal">
-            <span class="fine-sum">до 300 000 ₽</span>
-            <small>152-ФЗ · поправки 2025</small>
-            <h3>Неправильный cookie-баннер</h3>
-            <p>Cookie могут считаться персональными данными, если позволяют идентифицировать пользователя. Баннер должен появляться до загрузки лишних cookie.</p>
-          </article>
-          <article class="fine-card reveal">
-            <span class="fine-sum">до 500 000 ₽</span>
-            <small>ФЗ «О рекламе» · ФАС</small>
-            <h3>Нет маркировки рекламы и ERID</h3>
-            <p>Рекламный пост, баннер или интеграция без пометки «реклама» и кода ERID — риск штрафа и претензий от ФАС.</p>
-          </article>
-          <article class="fine-card reveal">
-            <span class="fine-sum">до 50 000 ₽ + убытки</span>
-            <small>ЗоЗПП № 2300-1 · ГК РФ</small>
-            <h3>Нет публичной оферты при продажах</h3>
-            <p>Интернет-магазин без оферты юридически слабее: клиент может оспорить сделку, возврат или условия покупки.</p>
-          </article>
-          <article class="fine-card reveal">
-            <span class="fine-sum">до 3 млн ₽</span>
-            <small>152-ФЗ · поправки 2025</small>
-            <h3>Нет согласия на рекламные рассылки</h3>
-            <p>Email, SMS и push-уведомления требуют отдельного согласия. Предзаполненные галочки и скрытые согласия лучше исправить сразу.</p>
-          </article>
-          <article class="fine-card reveal">
-            <span class="fine-sum">до 1 000 000 ₽</span>
-            <small>152-ФЗ · локализация данных</small>
-            <h3>Данные хранятся за рубежом</h3>
-            <p>Персональные данные граждан РФ должны обрабатываться с учётом требований локализации. Это важно для форм, CRM и рассылок.</p>
-          </article>
-        </div>
-
-        <div class="source-badge reveal">
-          Данные: Федеральный закон № 420-ФЗ от 30.11.2024, КоАП РФ ст. 13.11, требования Роскомнадзора и ФАС.
-        </div>
-
-        <div class="split-cta reveal">
-          <button class="primary-button" type="button" data-scroll-audit>Проверить сайт бесплатно</button>
-          <p>Бесплатная онлайн-проверка за 1 минуту</p>
-        </div>
-      </section>
-
-      <section class="seo-section" id="seo">
-        <div class="seo-layout">
-          <div class="seo-copy reveal">
-            <span class="neutral-pill">SEO-проверка</span>
-            <h2>Пока сайт<br />не в ТОП-3 —<br /><span>вы платите дважды</span></h2>
-            <p>
-              За рекламу, которая покрывает трафик, который вы могли бы получать бесплатно. SEO-ошибки не видны глазу, но алгоритмы их замечают.
-            </p>
-          </div>
-          <div class="section-visual seo-picture reveal" aria-hidden="true">
-            <img
-              class="asset-float"
-              src="/assets/seo-analytics.png"
-              alt=""
-              onerror="this.onerror=null;this.src='/assets/seo-analytics.jpg';"
-            />
-          </div>
-          <div class="seo-stats-grid">
-            <article class="seo-stat-card reveal"><strong>75%</strong><span>кликов забирают сайты в ТОП-3 поиска</span></article>
-            <article class="seo-stat-card reveal"><strong>0.78%</strong><span>пользователей идут на 2-ю страницу</span></article>
-            <article class="seo-stat-card reveal"><strong>+8.4%</strong><span>к конверсии даёт ускорение на 0.1 сек</span></article>
-            <article class="seo-stat-card reveal"><strong>+25%</strong><span>трафика от правильно оформленного FAQ-блока</span></article>
-          </div>
-        </div>
-
-        <h3 class="block-heading reveal">Что именно мы проверяем</h3>
-        <div class="seo-checks-grid">
-          <article class="seo-check-card reveal">
-            <div class="icon-3d">T</div>
-            <h4>Title и Description</h4>
-            <p>Мета-теги — первое, что видит поисковик и пользователь. Уникальные описания помогают получать больше кликов.</p>
-            <span class="impact">Прямое влияние на CTR</span>
-          </article>
-          <article class="seo-check-card reveal">
-            <div class="icon-3d violet">H1</div>
-            <h4>Заголовки H1-H3</h4>
-            <p>Правильная иерархия помогает поисковику понять структуру страницы. Отсутствие H1 или несколько H1 — критичная ошибка.</p>
-            <span class="impact">Индексация и релевантность</span>
-          </article>
-          <article class="seo-check-card reveal">
-            <div class="icon-3d green">ALT</div>
-            <h4>Alt-теги изображений</h4>
-            <p>Изображения без alt хуже индексируются и теряют дополнительный трафик из поиска по картинкам.</p>
-            <span class="impact">Трафик из поиска по изображениям</span>
-          </article>
-          <article class="seo-check-card reveal">
-            <div class="icon-3d danger">SPD</div>
-            <h4>Скорость загрузки</h4>
-            <p>Каждая лишняя секунда снижает конверсию. Core Web Vitals влияет на пользовательский опыт и позиции.</p>
-            <span class="impact">Конверсия и мобильная выдача</span>
-          </article>
-          <article class="seo-check-card reveal">
-            <div class="icon-3d">CAN</div>
-            <h4>Canonical и индексация</h4>
-            <p>Дубли без canonical разбавляют вес страниц. Robots.txt может случайно закрыть важные разделы от индексации.</p>
-            <span class="impact">Устранение дублей контента</span>
-          </article>
-          <article class="seo-check-card reveal">
-            <div class="icon-3d violet">MAP</div>
-            <h4>Sitemap.xml и robots.txt</h4>
-            <p>Без корректной карты сайта поисковик медленнее обходит страницы. Это особенно важно после запуска и редизайна.</p>
-            <span class="impact">Быстрое попадание в индекс</span>
-          </article>
-        </div>
-        <div class="source-badge reveal">Цифры подтверждены исследованиями Deloitte, Backlinko и FirstPageSage.</div>
-      </section>
-
-      <section class="process-section" id="process">
-        <div class="section-title reveal">
-          <span class="neutral-pill">Процесс</span>
-          <h2 class="one-line-title">Как мы проводим проверку?</h2>
-          <p>Достоверные результаты за 30 секунд без регистрации</p>
-        </div>
-        <div class="steps-grid">
-          <article class="step-card reveal">
-            <span>ШАГ 1</span>
-            <h3>Считываем страницу</h3>
-            <p>Загружаем HTML, robots.txt, sitemap.xml и базовые данные ответа сайта. Доступ к CMS и хостингу не нужен.</p>
-          </article>
-          <article class="step-card reveal">
-            <span>ШАГ 2</span>
-            <h3>Ищем юридические риски</h3>
-            <p>Проверяем формы, документы, реквизиты, рекламу, cookie и признаки обработки персональных данных.</p>
-          </article>
-          <article class="step-card reveal">
-            <span>ШАГ 3</span>
-            <h3>Анализируем SEO</h3>
-            <p>Проверяем техническую базу: title, description, H1, alt-теги, canonical, скорость и индексацию.</p>
-          </article>
-          <article class="step-card reveal">
-            <span>ШАГ 4</span>
-            <h3>Показываем результат</h3>
-            <p>Показываем понятные пункты: что найдено, что проверить вручную и что исправить первым.</p>
-          </article>
-        </div>
-      </section>
-
-      <section class="report-section" id="report">
-        <div class="section-title reveal">
-          <span class="neutral-pill">Диагностика</span>
-          <h2 id="reportTitle">Запустите проверку, чтобы увидеть результат</h2>
-          <p id="reportIntro">Бесплатно покажем основную часть результата. Последние 10 пунктов расширенной диагностики открываются за 179 ₽.</p>
-        </div>
-
-        <div class="result-dashboard reveal">
-          <div>
-            <span>Статус</span>
-            <strong id="resultStory">Ожидаем проверку</strong>
-          </div>
-          <div>
-            <span>Штрафы</span>
-            <strong id="fineValue">—</strong>
-          </div>
-          <div>
-            <span>Проверено</span>
-            <strong id="totalCount">—</strong>
-          </div>
-          <div>
-            <span>Доступ</span>
-            <strong id="accessState">Бесплатный</strong>
-          </div>
-        </div>
-
-        <div class="notice" id="notice" hidden></div>
-
-        <div class="report-toolbar reveal">
-          <div class="report-switch" role="tablist" aria-label="Раздел результата">
-            <button class="active" type="button" data-report-mode="legal">Сначала юридическое</button>
-            <button type="button" data-report-mode="seo">Сначала SEO</button>
-          </div>
-          <button class="soft-button" id="copySummary" type="button">Скопировать вывод</button>
-        </div>
-
-        <div class="report-layout">
-          <article class="report-column reveal">
-            <div class="column-head" id="activeReportHead">
-              <span class="dot legal"></span>
-              <h3>Результат проверки</h3>
-            </div>
-            <div class="check-list" id="activeChecks">
-              <div class="empty-state">Введите ссылку сайта и запустите проверку.</div>
-            </div>
-          </article>
-
-          <aside class="unlock-card reveal">
-            <img
-              class="unlock-visual asset-float"
-              src="/assets/security-card.png"
-              alt=""
-              onerror="this.onerror=null;this.src='/assets/security-card.jpg';"
-            />
-            <span class="neutral-pill">Полный доступ</span>
-            <h3>Последние 10 пунктов закрыты</h3>
-            <p>Откройте расширенную диагностику: скрытые SEO-пункты, технические детали и рекомендации по исправлению.</p>
-            <button class="primary-button" type="button" id="openPayDialog">Открыть за 179 ₽</button>
-            <small>В прототипе оплата открывает доступ сразу. Реальную оплату подключим через ЮKassa.</small>
-          </aside>
-        </div>
-      </section>
-
-      <section class="services-section" id="services">
-        <div class="section-title reveal">
-          <h2>Нашли проблемы —<br />поможем исправить</h2>
-          <p>Проверка показывает что сломано. Мы берём на себя<br />быструю починку. Только то, что Вам нужно.</p>
-        </div>
-
-        <div class="service-grid" id="serviceGrid"></div>
-      </section>
-
-      <section class="audience-section" id="who">
-        <div class="section-title reveal">
-          <span class="neutral-pill">Для кого</span>
-          <h2>Какому сайту<br />нужна проверка</h2>
-          <p>Нарушения закона не зависят от размера бизнеса. Малый бизнес и ИП получают штрафы так же, как крупные компании.</p>
-        </div>
-        <div class="audience-grid">
-          <article class="audience-card reveal">
-            <div class="icon-3d danger">SHOP</div>
-            <h3>Интернет-магазин</h3>
-            <p>Самый рискованный тип сайта: оплата, доставка, возвраты, персональные данные и рассылки в одном сценарии.</p>
-            <ul>
-              <li>оферта, возвраты и условия покупки</li>
-              <li>cookie, политика и согласия</li>
-              <li>реквизиты и рекламные рассылки</li>
-            </ul>
-            <span>Риск блокировки рекламных кабинетов</span>
-          </article>
-          <article class="audience-card reveal">
-            <div class="icon-3d">B2B</div>
-            <h3>B2B-сервис и SaaS</h3>
-            <p>Даже если вы работаете с юрлицами, сайт обрабатывает данные контактных лиц и сотрудников клиента.</p>
-            <ul>
-              <li>публичная оферта и реквизиты</li>
-              <li>политика обработки данных</li>
-              <li>cookie и рекламные материалы</li>
-            </ul>
-            <span>Риск штрафа от ФАС и РКН</span>
-          </article>
-          <article class="audience-card reveal">
-            <div class="icon-3d green">MED</div>
-            <h3>Медицина и здоровье</h3>
-            <p>Медицинские данные — специальная категория ПДн. Требования к согласию и документам выше.</p>
-            <ul>
-              <li>усиленная политика для медданных</li>
-              <li>согласие у формы записи</li>
-              <li>маркировка рекламы и дисклеймеры</li>
-            </ul>
-            <span>Штраф до 15 млн ₽</span>
-          </article>
-          <article class="audience-card reveal">
-            <div class="icon-3d violet">EDU</div>
-            <h3>Образование и онлайн-курсы</h3>
-            <p>Курсы часто собирают заявки, запускают прогревы и продают через лендинги. Значит, важны оферта и согласия.</p>
-            <ul>
-              <li>оферта и правила оплаты</li>
-              <li>согласие на рассылки</li>
-              <li>маркировка промо-материалов</li>
-            </ul>
-            <span>Риск блокировки Яндекс.Директ</span>
-          </article>
-          <article class="audience-card reveal">
-            <div class="icon-3d">FIN</div>
-            <h3>Недвижимость и финансы</h3>
-            <p>Здесь выше чувствительность данных и больше внимания от регуляторов, особенно при рекламе и заявках.</p>
-            <ul>
-              <li>данные клиента и CRM</li>
-              <li>условия консультации и оферта</li>
-              <li>маркировка рекламы</li>
-            </ul>
-            <span>Двойной регуляторный контроль</span>
-          </article>
-        </div>
-      </section>
-
-      <section class="about-section">
-        <div class="about-card reveal">
-          <span class="neutral-pill">Кто мы?</span>
-          <h2>Kinava делает<br />цифровые продукты<br />для бизнеса</h2>
-          <p>
-            Kinava Pro — внутренний инструмент команды Kinava, который предотвращает риски и помогает повышать конверсию и востребованность сайтов. Мы не уводим внимание от продукта: сначала диагностика, потом консультация и только затем работа по исправлениям.
+        <section class="violations" id="legal">
+          <h2>Штрафуют не только крупный бизнес</h2>
+          <p class="section-lead">
+            6 нарушений, которые чаще всего находят на сайтах малого и среднего<br />
+            бизнеса. Каждое — отдельный штраф.
           </p>
-          <a class="soft-button about-link" href="https://kinava.ru/" target="_blank" rel="noreferrer">Перейти на сайт Kinava</a>
-        </div>
+
+          <div class="violation-grid">
+            <article class="violation-card">
+              <div class="risk"><span>!</span> Риск до 50 000 ₽</div>
+              <h3>Нет публичной оферты при продажах</h3>
+              <p>Интернет-магазин без оферты юридически слабее: клиент может оспорить сделку, возврат или условия покупки. Реальный штраф: 30–40 тыс. ₽ для ООО.</p>
+              <small>Источник: Дело Модульбанк, АС УФО</small>
+            </article>
+            <article class="violation-card">
+              <div class="risk"><span>!</span> Риск до 50 000 ₽</div>
+              <h3>Нет согласия на рекламные рассылки</h3>
+              <p>Email, SMS и push-уведомления требуют отдельного согласия. Персональные галочки — нарушение. Средний реальный штраф ФАС в 2024 году — 73 000 ₽.</p>
+              <small>Источник: официальная статистика ФАС 2024</small>
+            </article>
+            <article class="violation-card">
+              <div class="risk"><span>!</span> Риск до 50 000 ₽</div>
+              <h3>Данные хранятся за рубежом</h3>
+              <p>Google Analytics, Mailchimp, Tilda с зарубежными интеграциями — всё это передача данных на иностранные серверы. Штрафы получают и за аналогичные нарушения.</p>
+              <small>Реальный кейс: Spotify, Таганский суд, штраф 6 млн ₽</small>
+            </article>
+            <article class="violation-card">
+              <div class="risk"><span>!</span> Риск до 50 000 ₽</div>
+              <h3>Отсутствие политики конфиденциальности</h3>
+              <p>Если сайт собирает имя, телефон, email или заявку — нужна политика. Скопированный шаблон с чужого сайта не защищает.</p>
+              <small>Источник: InfoWatch, отчёт 2025</small>
+            </article>
+            <article class="violation-card">
+              <div class="risk"><span>!</span> Риск до 50 000 ₽</div>
+              <h3>Cookie-баннер отсутствует или неправильный</h3>
+              <p>Cookie с трекерами — это персональные данные. Баннер должен появляться до загрузки лишних файлов и давать реальный выбор.</p>
+              <small>Средний штраф: 60 000–300 000 ₽</small>
+            </article>
+            <article class="violation-card">
+              <div class="risk"><span>!</span> Риск до 50 000 ₽</div>
+              <h3>Нет маркировки рекламы и ERID</h3>
+              <p>Рекламный баннер, партнёрский блок или акция без пометки «Реклама» и кода ERID — основание для штрафа.</p>
+              <small>Средний штраф: 100 000–200 000 ₽</small>
+            </article>
+          </div>
+
+          <p class="legal-note">
+            Данные достоверны и взяты из Федерального закона № 420-ФЗ от 30.11.2024, КоАП РФ ст. 13.11,
+            официальной статистики ФАС и решений арбитражных судов
+          </p>
+          <a class="primary-cta" href="#site-url">Проверить мой сайт бесплатно <span>→</span></a>
+        </section>
       </section>
 
-      <section class="final-cta">
-        <div class="section-title reveal">
-          <h2>Узнайте, что мешает<br />вашему сайту</h2>
-          <p>Разберём результат проверки и скажем, что исправить срочно и в первую очередь. Бесплатно.</p>
-          <div class="contact-actions">
-            <button class="primary-button" type="button" data-scroll-audit>Проверить сайт</button>
-            <button class="soft-button" type="button" data-open-lead>Связаться с нами</button>
+      <section class="light-stage" id="seo">
+        <div class="solutions">
+          <h2>Нашли проблемы — поможем исправить</h2>
+          <p class="light-lead">
+            Проверка показывает что сломано. Мы берём на<br />
+            себя быструю починку. Только то, что Вам нужно
+          </p>
+
+          <div class="service-grid">
+            <article class="service-card">
+              <img src="/assets/service-chat.png" alt="" />
+              <h3>Поможем<br />разобраться</h3>
+              <p>Спишемся в мессенджере, обсудим Ваши нарушения и подскажем что можно сделать без специалистов</p>
+              <strong>Бесплатно</strong>
+              <span>Без глубоких проверок и рекламы,<br />только помощь по Вашим вопросам</span>
+              <div class="messengers">
+                <a class="telegram" href="#">Telegram <span>↗</span></a>
+                <a class="max" href="#">MAX <span>○</span></a>
+              </div>
+            </article>
+            <article class="service-card featured">
+              <img src="/assets/service-wallet.png" alt="" />
+              <h3>Устраним любые<br />нарушения</h3>
+              <p>Исправляем всё, что может привести к штрафам от РКН</p>
+              <button class="details" type="button">Показать подробнее⌄</button>
+              <strong>от 5 000р</strong>
+              <span>Стоимость зависит от объёма<br />ошибок на сайте</span>
+              <a class="dark-btn" href="#">Узнать точную стоимость</a>
+            </article>
+            <article class="service-card">
+              <img src="/assets/service-seo.png" alt="" />
+              <h3>Выведем сайт<br />в ТОП поиска</h3>
+              <p>Исправляем всё, что мешает Вам получать больше клиентов</p>
+              <button class="details" type="button">Показать подробнее⌄</button>
+              <strong>от 15 000р</strong>
+              <span>Стоимость зависит от<br />количества страниц на сайте</span>
+              <a class="dark-btn" href="#">Узнать точную стоимость</a>
+            </article>
           </div>
         </div>
-      </section>
 
-      <section class="faq-section" id="faq">
-        <div class="section-title reveal">
-          <span class="neutral-pill">Вопросы</span>
-          <h2>FAQ</h2>
-        </div>
-        <div class="faq-list">
-          <details class="reveal" open>
-            <summary>Проверка действительно бесплатная?</summary>
-            <p>Да, полностью. Первичная проверка занимает до 30 секунд и не требует регистрации. Результат появляется сразу на экране. Платная работа начинается только после консультации, если вы сами решаете двигаться дальше.</p>
-          </details>
-          <details class="reveal">
-            <summary>Нужно ли давать доступ к сайту или CMS?</summary>
-            <p>Нет. Мы анализируем только то, что доступно публично: HTML-код страницы, robots.txt и sitemap.xml. Пароли, доступ к хостингу или админ-панель не нужны.</p>
-          </details>
-          <details class="reveal">
-            <summary>Вы проверяете только российские сайты?</summary>
-            <p>Юридическая проверка ориентирована на российское законодательство: 152-ФЗ, ФЗ о рекламе и ЗоЗПП. SEO-проверка универсальна и работает для любого сайта.</p>
-          </details>
-          <details class="reveal">
-            <summary>Что, если я хочу исправить проблемы сам?</summary>
-            <p>Можно. Каждый пункт отчёта содержит объяснение нарушения и инструкцию, что именно нужно сделать. Консультация нужна только если хотите разобраться быстрее или делегировать работу.</p>
-          </details>
-          <details class="reveal">
-            <summary>Меня точно могут оштрафовать? Я маленький бизнес</summary>
-            <p>Да, риск есть. Роскомнадзор и ФАС не делают исключений по размеру компании: требования касаются ООО, ИП и самозанятых, если сайт собирает данные, продаёт услуги или размещает рекламу.</p>
-          </details>
-          <details class="reveal">
-            <summary>Как быстро даёт результат SEO-оптимизация?</summary>
-            <p>Технические SEO-правки обычно отражаются на позициях в течение 2-6 недель после переиндексации. Скорость зависит от сайта, конкуренции и объёма правок.</p>
-          </details>
-        </div>
+        <section class="about" id="about">
+          <span>Кто мы?</span>
+          <h2>Kinava делает цифровые<br />продукты для бизнеса</h2>
+          <p>
+            Kinava Pro — внутренний инструмент команды Kinava,<br />
+            который предотвращает риски и помогает повышать<br />
+            конверсию и востребованность сайтов
+          </p>
+          <a href="#" class="dark-link">Перейти на сайт команды Kinava</a>
+        </section>
+
+        <section class="results" id="clients">
+          <a class="outline-pill" href="#">Результаты наших клиентов</a>
+          <img src="/assets/shield.png" alt="" />
+          <h2>0 нарушений</h2>
+          <p>
+            26 сайтов GMA-детейлинг приведены в соответствие<br />
+            с требованиями 152-ФЗ и ФЗ «О рекламе».<br />
+            Ни один домен не содержит нарушений, которые могут<br />
+            стать основанием для предписания или штрафа РКН.
+          </p>
+        </section>
       </section>
     </main>
-
-    <footer class="footer">
-      <strong>Kinava Pro</strong>
-      <span>© 2026 Kinava Pro — продукт команды Kinava</span>
-      <button class="soft-button" type="button" data-scroll-audit>Проверить сайт</button>
-    </footer>
-
-    <dialog class="lead-dialog" id="leadDialog">
-      <form method="dialog" class="lead-card">
-        <button class="icon-button" value="cancel" aria-label="Закрыть">×</button>
-        <p class="eyebrow">Заявка</p>
-        <h2 id="leadTitle">Разберём сайт и предложим план исправлений</h2>
-        <div class="lead-package" id="leadPackage">Отправьте ссылку на сайт, а мы посмотрим результат проверки и подскажем следующий шаг.</div>
-        <div class="lead-fields">
-          <label>
-            Имя
-            <input type="text" placeholder="Екатерина" />
-          </label>
-          <label>
-            Telegram или email
-            <input type="text" placeholder="@username или mail@example.ru" />
-          </label>
-          <label>
-            Комментарий
-            <textarea id="leadComment" rows="3" placeholder="Что важно проверить в первую очередь?"></textarea>
-          </label>
-        </div>
-        <button class="primary-button" value="default">Отправить заявку</button>
-      </form>
-    </dialog>
-
-    <dialog class="lead-dialog" id="payDialog">
-      <form method="dialog" class="lead-card pay-card">
-        <button class="icon-button" value="cancel" aria-label="Закрыть">×</button>
-        <p class="eyebrow">Расширенная диагностика</p>
-        <h2>Открыть последние 10 пунктов за 179 ₽</h2>
-        <p>В демо-версии доступ откроется сразу после нажатия. Для продакшена подключим ЮKassa и будем открывать отчёт после успешной оплаты.</p>
-        <button class="primary-button" id="unlockPaid" value="default">Оплатить 179 ₽</button>
-      </form>
-    </dialog>
-
     <script src="/app.js" defer></script>
   </body>
 </html>
