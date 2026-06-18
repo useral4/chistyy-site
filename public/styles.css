@@ -64,14 +64,14 @@ input {
 
 .dark-stage {
   position: relative;
-  z-index: 0;
+  z-index: 2;
   min-height: 2948px;
   padding: 17px 32px 205px;
 }
 
 .dark-stage::after {
   position: absolute;
-  z-index: -1;
+  z-index: 1;
   right: -12vw;
   bottom: -190px;
   left: -12vw;
@@ -79,11 +79,12 @@ input {
   border-radius: 0 0 50% 50% / 0 0 100% 100%;
   background: var(--dark);
   content: "";
+  pointer-events: none;
 }
 
 .topbar {
   position: relative;
-  z-index: 5;
+  z-index: 3;
   display: flex;
   align-items: center;
   width: min(1596px, calc(100vw - 80px));
@@ -184,7 +185,7 @@ input {
 
 .hero {
   position: relative;
-  z-index: 2;
+  z-index: 3;
   width: min(1170px, 100%);
   margin: 101px auto 0;
   text-align: center;
@@ -323,7 +324,7 @@ input {
 
 .stats {
   position: relative;
-  z-index: 2;
+  z-index: 3;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   align-items: start;
@@ -391,7 +392,7 @@ input {
 
 .violations {
   position: relative;
-  z-index: 2;
+  z-index: 3;
   width: min(1596px, 100%);
   margin: 220px auto 0;
   text-align: center;
@@ -840,6 +841,7 @@ input {
 
 .bottom-cta::before {
   position: absolute;
+  z-index: 0;
   top: -300px;
   left: 50%;
   width: 2140px;
@@ -848,10 +850,12 @@ input {
   background: var(--white);
   content: "";
   transform: translateX(-50%);
+  pointer-events: none;
 }
 
 .bottom-cta h2 {
   position: relative;
+  z-index: 1;
   margin: 0 0 33px;
   font-size: 92px;
   font-weight: 900;
@@ -860,9 +864,15 @@ input {
 
 .bottom-cta p {
   position: relative;
+  z-index: 1;
   margin: 0 0 37px;
   font-size: 32px;
   line-height: 1.16;
+}
+
+.bottom-cta .primary-cta {
+  position: relative;
+  z-index: 1;
 }
 
 .loading-view,
@@ -1517,6 +1527,7 @@ input {
 
   .results {
     width: min(1470px, 76.5625vw);
+    margin-top: min(198px, 10.3125vw);
     padding-bottom: min(320px, 16.6667vw);
   }
 
@@ -1555,6 +1566,7 @@ input {
   }
 
   .bottom-cta {
+    margin-top: min(198px, 10.3125vw);
     min-height: min(940px, 48.9583vw);
     padding-top: min(283px, 14.7396vw);
   }
@@ -1737,6 +1749,11 @@ input {
   .client-cases {
     gap: 96px;
   }
+
+  .results,
+  .bottom-cta {
+    margin-top: 120px;
+  }
 }
 
 @media (max-width: 720px) {
@@ -1750,6 +1767,8 @@ input {
 
   .topbar {
     width: 100%;
+    flex-direction: column;
+    gap: 14px;
   }
 
   .logo {
@@ -1759,42 +1778,33 @@ input {
   }
 
   .socials {
-    order: 2;
+    order: 3;
+    gap: 10px;
   }
 
   .nav {
+    order: 2;
+    justify-content: center;
+    gap: 10px 18px;
     font-size: 14px;
+    line-height: 1.2;
+    text-align: center;
   }
 
   .decor {
-    opacity: 0.68;
+    opacity: 0.5;
   }
 
   .decor-coin-left,
+  .decor-coin-mid,
+  .decor-arrow,
+  .decor-warning,
   .decor-ring {
     display: none;
   }
 
-  .decor-coin-mid {
-    top: 300px;
-    left: -54px;
-    width: 130px;
-  }
-
-  .decor-arrow {
-    top: 410px;
-    left: -62px;
-    width: 120px;
-  }
-
-  .decor-warning {
-    top: 390px;
-    right: -58px;
-    width: 130px;
-  }
-
   .hero {
-    margin-top: 58px;
+    margin-top: 42px;
   }
 
   .eyebrow {
@@ -1805,7 +1815,7 @@ input {
   }
 
   .hero h1 {
-    font-size: clamp(38px, 11vw, 56px);
+    font-size: clamp(34px, 10vw, 48px);
   }
 
   .hero-subtitle,
@@ -1820,6 +1830,10 @@ input {
 
   .check-form > label:first-child {
     font-size: 18px;
+  }
+
+  .check-form {
+    margin-top: 46px;
   }
 
   .form-row input,
@@ -1877,24 +1891,111 @@ input {
     font-size: 18px;
   }
 
+  .stats {
+    gap: 54px;
+    margin-top: 110px;
+  }
+
+  .violations {
+    margin-top: 88px;
+  }
+
+  .violation-grid {
+    gap: 16px;
+  }
+
   .light-stage {
-    padding-top: 120px;
+    padding-top: 96px;
   }
 
   .light-lead {
-    margin-bottom: 150px;
+    margin-bottom: 96px;
+  }
+
+  .service-grid {
+    gap: 112px;
   }
 
   .service-card {
     min-height: 0;
-    padding: 176px 24px 26px;
+    padding: 150px 24px 26px;
   }
 
   .service-card > img,
   .service-card.featured > img {
-    top: -90px;
-    width: 250px;
-    height: 220px;
+    top: -72px;
+    width: 228px;
+    height: 202px;
+  }
+
+  .service-card.featured > img {
+    top: -104px;
+    width: 218px;
+    height: 292px;
+  }
+
+  .service-card:nth-child(3) > img {
+    top: -74px;
+    width: 230px;
+    height: 230px;
+  }
+
+  .chat-visual {
+    top: -78px;
+    width: 300px;
+    height: 230px;
+  }
+
+  .chat-visual img {
+    transform: none;
+  }
+
+  .chat-arrow {
+    left: 16px;
+    bottom: 24px;
+    width: 70px;
+    height: 70px;
+  }
+
+  .chat-bubble {
+    right: 10px;
+    top: 24px;
+    width: 70px;
+    height: 70px;
+  }
+
+  .chat-avatars {
+    top: 32px;
+    width: 142px;
+    height: 142px;
+  }
+
+  .chat-avatars img,
+  .chat-avatars span {
+    width: 54px;
+    height: 54px;
+    border-width: 4px;
+  }
+
+  .chat-avatars img:nth-of-type(1) {
+    left: 16px;
+    top: 52px;
+  }
+
+  .chat-avatars img:nth-of-type(2) {
+    left: 52px;
+    top: 16px;
+  }
+
+  .chat-avatars img:nth-of-type(3) {
+    left: 52px;
+    top: 82px;
+  }
+
+  .chat-avatars span {
+    right: 7px;
+    top: 49px;
+    font-size: 20px;
   }
 
   .service-card h3,
@@ -1908,13 +2009,25 @@ input {
     font-size: 18px;
   }
 
+  .service-card strong {
+    margin-top: 30px;
+  }
+
+  .details {
+    margin: 24px 0 38px;
+  }
+
+  .messengers {
+    margin-top: 32px;
+  }
+
   .messengers {
     grid-template-columns: 1fr;
   }
 
   .about {
     min-height: auto;
-    margin-top: 120px;
+    margin-top: 96px;
   }
 
   .about h2 {
@@ -1930,7 +2043,8 @@ input {
   }
 
   .results {
-    padding-bottom: 150px;
+    margin-top: 96px;
+    padding-bottom: 110px;
   }
 
   .outline-pill {
@@ -1940,26 +2054,29 @@ input {
   }
 
   .client-cases {
-    margin-top: 110px;
+    gap: 72px;
+    margin-top: 78px;
   }
 
   .bottom-cta {
-    min-height: 620px;
-    padding-top: 180px;
+    margin-top: 96px;
+    min-height: 560px;
+    padding-top: 166px;
+    padding-bottom: 96px;
   }
 
   .bottom-cta::before {
-    top: -230px;
-    width: 1000px;
-    height: 360px;
+    top: -210px;
+    width: 940px;
+    height: 350px;
   }
 
   .bottom-cta h2 {
-    font-size: 44px;
+    font-size: 38px;
   }
 
   .bottom-cta p {
-    font-size: 20px;
+    font-size: 18px;
   }
 
   .loading-center {
