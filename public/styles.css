@@ -1550,7 +1550,6 @@ input {
 
   .results {
     width: min(1470px, 76.5625vw);
-    margin-top: min(198px, 10.3125vw);
     padding-bottom: min(320px, 16.6667vw);
   }
 
@@ -1589,7 +1588,6 @@ input {
   }
 
   .bottom-cta {
-    margin-top: min(198px, 10.3125vw);
     min-height: min(940px, 48.9583vw);
     padding-top: min(283px, 14.7396vw);
   }
@@ -1773,10 +1771,6 @@ input {
     gap: 96px;
   }
 
-  .results,
-  .bottom-cta {
-    margin-top: 120px;
-  }
 }
 
 @media (max-width: 720px) {
@@ -2070,7 +2064,6 @@ input {
   }
 
   .results {
-    margin-top: 96px;
     padding-bottom: 110px;
   }
 
@@ -2086,7 +2079,6 @@ input {
   }
 
   .bottom-cta {
-    margin-top: 96px;
     min-height: 560px;
     padding-top: 166px;
     padding-bottom: 96px;
