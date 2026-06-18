@@ -4,23 +4,235 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>KinavaPro</title>
+    <meta
+      name="description"
+      content="Бесплатная юридическая и SEO-проверка сайта по 40+ критериям KinavaPro."
+    />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
-    <main class="site">
-      <section class="dark-stage">
-        <img class="decor decor-coin-left" src="/assets/coin-left.png" alt="" />
-        <img class="decor decor-coin-mid" src="/assets/coin-mid.png" alt="" />
-        <img class="decor decor-arrow" src="/assets/red-arrow.png" alt="" />
-        <img class="decor decor-warning" src="/assets/warning.png" alt="" />
-        <img class="decor decor-ring" src="/assets/red-ring.png" alt="" />
+    <main class="site" data-view="home">
+      <section class="page-view home-view" data-screen="home">
+        <section class="dark-stage">
+          <img class="decor decor-coin-left" src="/assets/coin-left.png" alt="" />
+          <img class="decor decor-coin-mid" src="/assets/coin-mid.png" alt="" />
+          <img class="decor decor-arrow" src="/assets/red-arrow.png" alt="" />
+          <img class="decor decor-warning" src="/assets/warning.png" alt="" />
+          <img class="decor decor-ring" src="/assets/red-ring.png" alt="" />
 
+          <header class="topbar">
+            <a class="logo" href="#" aria-label="KinavaPro">
+              <span>Kinava</span><strong>Pro</strong>
+            </a>
+            <nav class="nav" aria-label="Основная навигация">
+              <a href="#legal">Юридическая проверка</a>
+              <a href="#seo">SEO-проверка</a>
+              <a href="#about">Кто мы ?</a>
+              <a href="#clients">Результаты клиентов</a>
+              <a href="#faq">FAQ</a>
+            </nav>
+            <div class="socials" aria-label="Социальные сети">
+              <a href="#" aria-label="Telegram">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M20.8 4.6 17.9 19c-.2 1-1.2 1.2-2 .7l-4.5-3.3-2.1 2c-.2.3-.4.5-.9.5l.3-4.7 8.6-7.8c.4-.3-.1-.5-.6-.2L6.1 13 1.5 11.5c-1-.3-1-1 .2-1.5l18-6.9c.8-.3 1.5.2 1.1 1.5Z" />
+                </svg>
+              </a>
+              <a href="#" aria-label="MAX">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 3.5c5 0 9 3.4 9 7.7s-4 7.7-9 7.7c-1.1 0-2.2-.2-3.2-.5L4 21l1.4-4.2C4 15.4 3 13.4 3 11.2c0-4.3 4-7.7 9-7.7Zm0 4.9a2.8 2.8 0 1 0 0 5.6 2.8 2.8 0 0 0 0-5.6Z" />
+                </svg>
+              </a>
+            </div>
+          </header>
+
+          <div class="hero">
+            <div class="eyebrow">Информация подтверждена РБК на 2026 год</div>
+            <h1>95% сайтов нарушают<br />закон. Ваш тоже?</h1>
+            <p class="hero-subtitle">
+              Проверим сайт по 40+ критериям и покажем,<br />
+              что нарушено за 60 секунд. Бесплатно, без регистрации
+            </p>
+
+            <form class="check-form">
+              <label for="site-url">Вставьте ссылку на сайт</label>
+              <div class="form-row">
+                <input id="site-url" type="url" placeholder="https://вашсайт.ru" />
+                <button type="submit">
+                  Проверить нарушения
+                  <span aria-hidden="true">→</span>
+                </button>
+              </div>
+              <label class="policy">
+                <input type="checkbox" />
+                <span>Отправляя форму, Вы принимаете политику конфиденциальности</span>
+              </label>
+            </form>
+          </div>
+
+          <section class="stats" aria-label="Статистика штрафов">
+            <article class="stat stat-left">
+              <img src="/assets/warning.png" alt="" />
+              <strong>-500 млн ₽</strong>
+              <span>максимальный штраф за утечку<br />данных по новым нормам с мая 2025</span>
+            </article>
+            <article class="stat stat-center">
+              <img src="/assets/red-arrow.png" alt="" />
+              <strong>73 000 ₽</strong>
+              <span>средний штраф ФАС<br />за одно нарушение</span>
+            </article>
+            <article class="stat stat-right">
+              <img src="/assets/coin-left.png" alt="" />
+              <strong>2 202</strong>
+              <span>штрафа за нарушения на сайтах назначено<br />ФАС за 2024 год на 161,3 млн рублей</span>
+            </article>
+          </section>
+
+          <section class="violations" id="legal">
+            <h2>Штрафуют не только крупный бизнес</h2>
+            <p class="section-lead">
+              6 нарушений, которые чаще всего находят на сайтах малого и среднего<br />
+              бизнеса. Каждое - отдельный штраф.
+            </p>
+
+            <div class="violation-grid">
+              <article class="violation-card">
+                <div class="risk"><span>!</span> Риск до 50 000 ₽ + убытки</div>
+                <h3>Нет публичной оферты при продажах</h3>
+                <p>Интернет-магазин без оферты юридически слабее: клиент может оспорить сделку, возврат или условия покупки. Реальный штраф: 30-40 тыс. ₽ для ООО.</p>
+                <small>Источник: Дело Модульбанк, АС УФО</small>
+              </article>
+              <article class="violation-card">
+                <div class="risk"><span>!</span> Риск до 3 млн ₽</div>
+                <h3>Нет согласия на рекламные рассылки</h3>
+                <p>Email, SMS и push-уведомления требуют отдельного согласия. Предзаполненные галочки - нарушение. Средний реальный штраф ФАС в 2024 году - 73 000 ₽ за одно нарушение.</p>
+                <small>Источник: официальная статистика ФАС 2024</small>
+              </article>
+              <article class="violation-card">
+                <div class="risk"><span>!</span> Риск до 6 млн ₽</div>
+                <h3>Данные хранятся за рубежом</h3>
+                <p>Google Analytics, Mailchimp, Tilda с зарубежными интеграциями - всё это передача данных на иностранные серверы. Spotify получил 6 млн ₽ за аналогичное нарушение.</p>
+                <small>Реальный кейс: Spotify, Таганский суд, дело № 5-1179/422/2023</small>
+              </article>
+              <article class="violation-card">
+                <div class="risk"><span>!</span> Риск до 300 000 ₽</div>
+                <h3>Отсутствие политики конфиденциальности</h3>
+                <p>Если сайт собирает имя, телефон, email или заявку - нужна политика. Скопированный шаблон с чужого сайта не защищает, РЖД и «Почта России» заплатили по 150 тыс. ₽ каждый.</p>
+                <small>Источник: InfoWatch, отчет 2025</small>
+              </article>
+              <article class="violation-card">
+                <div class="risk"><span>!</span> Риск до 300 000 ₽</div>
+                <h3>Cookie-баннер отсутствует или неправильный</h3>
+                <p>Cookie с трекерами - это персональные данные. Баннер должен появляться до загрузки лишних файлов и давать реальный выбор, а не просто информировать.</p>
+                <small>Средний штраф: 60 000-300 000 ₽</small>
+              </article>
+              <article class="violation-card">
+                <div class="risk"><span>!</span> Риск до 500 000 ₽</div>
+                <h3>Нет маркировки рекламы и ERID</h3>
+                <p>Рекламный баннер, партнёрский блок или акция без пометки «Реклама» и кода ERID. За январь-октябрь 2024 года - уже 334 постановления.</p>
+                <small>Средний штраф: 100 000-200 000 ₽. Дело А76-18744/2024</small>
+              </article>
+            </div>
+
+            <p class="legal-note">
+              Данные достоверны и взяты из Федерального закона № 420-ФЗ от 30.11.2024,
+              КоАП РФ ст. 13.11, официальной статистики ФАС и решений арбитражных судов
+            </p>
+            <a class="primary-cta" href="#site-url">Проверить мой сайт бесплатно <span>→</span></a>
+          </section>
+        </section>
+
+        <section class="light-stage" id="seo">
+          <div class="solutions">
+            <h2>Нашли проблемы - поможем исправить</h2>
+            <p class="light-lead">
+              Проверка показывает что сломано. Мы берём на<br />
+              себя быструю починку. Только то, что Вам нужно
+            </p>
+
+            <div class="service-grid">
+              <article class="service-card">
+                <img src="/assets/service-chat.png" alt="" />
+                <h3>Поможем<br />разобраться</h3>
+                <p>Спишемся в мессенджере, обсудим Ваши нарушения и подскажем что можно сделать без специалистов</p>
+                <strong>Бесплатно</strong>
+                <span>Без прямых продаж и рекламы,<br />только помощь по Вашим вопросам</span>
+                <div class="messengers">
+                  <a class="telegram" href="#">Telegram <span>↗</span></a>
+                  <a class="max" href="#">MAX <span>●</span></a>
+                </div>
+              </article>
+              <article class="service-card featured">
+                <img src="/assets/service-wallet.png" alt="" />
+                <h3>Устраним любые<br />нарушения</h3>
+                <p>Исправляем всё, что может привести к штрафам от РКН</p>
+                <button class="details" type="button">Показать подробнее⌄</button>
+                <strong>от 5 000р</strong>
+                <span>Стоимость зависит от объёма<br />ошибок на сайте</span>
+                <a class="dark-btn" href="#">Узнать точную стоимость</a>
+              </article>
+              <article class="service-card">
+                <img src="/assets/service-seo.png" alt="" />
+                <h3>Выведем сайт<br />в ТОП поиска</h3>
+                <p>Исправляем всё, что мешает Вам получать больше клиентов</p>
+                <button class="details" type="button">Показать подробнее⌄</button>
+                <strong>от 15 000р</strong>
+                <span>Стоимость зависит от<br />количества страниц на сайте</span>
+                <a class="dark-btn" href="#">Узнать точную стоимость</a>
+              </article>
+            </div>
+          </div>
+
+          <section class="about" id="about">
+            <span>Кто мы?</span>
+            <h2>Kinava делает цифровые<br />продукты для бизнеса</h2>
+            <p>
+              Kinava Pro - внутренний инструмент команды Kinava,<br />
+              который предотвращает риски и помогает повышать<br />
+              конверсию и востребованность сайтов
+            </p>
+            <a href="#" class="dark-link">Перейти на сайт команды Kinava</a>
+          </section>
+
+          <section class="results" id="clients">
+            <a class="outline-pill" href="#">Результаты наших клиентов</a>
+            <img src="/assets/shield.png" alt="" />
+            <h2>0 нарушений</h2>
+            <p>
+              26 сайтов GMA-детейлинг приведены в соответствие<br />
+              с требованиями 152-ФЗ и ФЗ «О рекламе».<br />
+              Ни один домен не содержит нарушений, которые могут<br />
+              стать основанием для предписания или штрафа РКН.
+            </p>
+
+            <div class="client-cases">
+              <article>
+                <span>1</span>
+                <h3>ТОП 1 в поиске</h3>
+                <p>Сайт gmads.ru/polishing-glass-5-0 занял 1 место в поиске по обучению полировки стёкл. Были устранены более 100 ошибок по SEO от Tilda.</p>
+              </article>
+              <article>
+                <span>2</span>
+                <h3>ТОП 2 в поиске</h3>
+                <p>Сайты mishka-spb.ru и kykols-show.ru заняли 1-2 место в нужном регионе после SEO-оптимизации по ключевым запросам.</p>
+              </article>
+            </div>
+          </section>
+        </section>
+
+        <section class="bottom-cta" id="faq">
+          <h2>Узнайте, что мешает<br />вашему сайту</h2>
+          <p>Разберём результат проверки и скажем, что исправить<br />срочно и в первую очередь. Бесплатно.</p>
+          <a class="primary-cta" href="#site-url">Проверить сайт <span>→</span></a>
+        </section>
+      </section>
+
+      <section class="page-view loading-view" data-screen="loading" aria-live="polite">
         <header class="topbar">
           <a class="logo" href="#" aria-label="KinavaPro">
             <span>Kinava</span><strong>Pro</strong>
@@ -33,175 +245,85 @@
             <a href="#faq">FAQ</a>
           </nav>
           <div class="socials" aria-label="Социальные сети">
-            <a href="#" aria-label="Telegram">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M20.8 4.6 17.9 19c-.2 1-1.2 1.2-2 .7l-4.5-3.3-2.1 2c-.2.3-.4.5-.9.5l.3-4.7 8.6-7.8c.4-.3-.1-.5-.6-.2L6.1 13 1.5 11.5c-1-.3-1-1 .2-1.5l18-6.9c.8-.3 1.5.2 1.1 1.5Z" />
-              </svg>
-            </a>
-            <a href="#" aria-label="Сообщение">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M12 3.5c5 0 9 3.4 9 7.7s-4 7.7-9 7.7c-1.1 0-2.2-.2-3.2-.5L4 21l1.4-4.2C4 15.4 3 13.4 3 11.2c0-4.3 4-7.7 9-7.7Zm0 4.9a2.8 2.8 0 1 0 0 5.6 2.8 2.8 0 0 0 0-5.6Z" />
-              </svg>
-            </a>
+            <a href="#" aria-label="Telegram"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6 17.9 19c-.2 1-1.2 1.2-2 .7l-4.5-3.3-2.1 2c-.2.3-.4.5-.9.5l.3-4.7 8.6-7.8c.4-.3-.1-.5-.6-.2L6.1 13 1.5 11.5c-1-.3-1-1 .2-1.5l18-6.9c.8-.3 1.5.2 1.1 1.5Z" /></svg></a>
+            <a href="#" aria-label="MAX"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5c5 0 9 3.4 9 7.7s-4 7.7-9 7.7c-1.1 0-2.2-.2-3.2-.5L4 21l1.4-4.2C4 15.4 3 13.4 3 11.2c0-4.3 4-7.7 9-7.7Zm0 4.9a2.8 2.8 0 1 0 0 5.6 2.8 2.8 0 0 0 0-5.6Z" /></svg></a>
+          </div>
+        </header>
+        <div class="loading-center">
+          <div class="spinner" aria-hidden="true"></div>
+          <h1>Проверяем сайт</h1>
+          <p>Изучаем 40+ критериев и показываем,<br />что нарушено за 60 секунд. Бесплатно, без регистрации</p>
+        </div>
+      </section>
+
+      <section class="page-view result-view" data-screen="result">
+        <header class="topbar">
+          <a class="logo js-home" href="#" aria-label="KinavaPro">
+            <span>Kinava</span><strong>Pro</strong>
+          </a>
+          <nav class="nav" aria-label="Основная навигация">
+            <a href="#legal">Юридическая проверка</a>
+            <a href="#seo">SEO-проверка</a>
+            <a href="#about">Кто мы ?</a>
+            <a href="#clients">Результаты клиентов</a>
+            <a href="#faq">FAQ</a>
+          </nav>
+          <div class="socials" aria-label="Социальные сети">
+            <a href="#" aria-label="Telegram"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6 17.9 19c-.2 1-1.2 1.2-2 .7l-4.5-3.3-2.1 2c-.2.3-.4.5-.9.5l.3-4.7 8.6-7.8c.4-.3-.1-.5-.6-.2L6.1 13 1.5 11.5c-1-.3-1-1 .2-1.5l18-6.9c.8-.3 1.5.2 1.1 1.5Z" /></svg></a>
+            <a href="#" aria-label="MAX"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5c5 0 9 3.4 9 7.7s-4 7.7-9 7.7c-1.1 0-2.2-.2-3.2-.5L4 21l1.4-4.2C4 15.4 3 13.4 3 11.2c0-4.3 4-7.7 9-7.7Zm0 4.9a2.8 2.8 0 1 0 0 5.6 2.8 2.8 0 0 0 0-5.6Z" /></svg></a>
           </div>
         </header>
 
-        <div class="hero">
-          <div class="eyebrow">Информация подтверждена РБК на 2026 год</div>
-          <h1>95% сайтов нарушают<br />закон. Ваш тоже?</h1>
-          <p class="hero-subtitle">
-            Проверим сайт по 40+ критериям и покажем,<br />
-            что нарушено за 60 секунд. Бесплатно, без регистрации
-          </p>
-
-          <form class="check-form">
-            <label for="site-url">Вставьте ссылку на сайт</label>
-            <div class="form-row">
-              <input id="site-url" type="url" placeholder="https://вашсайт.ru" />
-              <button type="submit">
-                Проверить нарушения
-                <span aria-hidden="true">→</span>
-              </button>
-            </div>
-            <label class="policy">
-              <input type="checkbox" />
-              <span>Отправляя форму, Вы принимаете политику конфиденциальности</span>
-            </label>
-          </form>
+        <div class="result-hero">
+          <a class="checked-url js-home" href="#"><span>←</span> <b>https://вашсайт.ru</b></a>
+          <h1>Найдено 7 нарушений</h1>
+          <div class="risk-total">
+            <span>Общий риск штрафов:</span>
+            <strong>150 000 ₽ - 200 000 ₽</strong>
+          </div>
         </div>
 
-        <section class="stats" aria-label="Статистика штрафов">
-          <article>
-            <strong>-500 млн ₽</strong>
-            <span>максимальный штраф за утечку<br />данных по новым нормам с мая 2025</span>
-          </article>
-          <article>
-            <strong>73 000 ₽</strong>
-            <span>средний штраф ФАС за одно нарушение<br />рекламного законодательства в 2024 году</span>
-          </article>
-          <article>
-            <strong>2 202</strong>
-            <span>средний штраф ФАС за одно нарушение<br />рекламного законодательства в 2024 году</span>
-          </article>
-        </section>
-
-        <section class="violations" id="legal">
-          <h2>Штрафуют не только крупный бизнес</h2>
-          <p class="section-lead">
-            6 нарушений, которые чаще всего находят на сайтах малого и среднего<br />
-            бизнеса. Каждое — отдельный штраф.
-          </p>
-
-          <div class="violation-grid">
-            <article class="violation-card">
-              <div class="risk"><span>!</span> Риск до 50 000 ₽</div>
-              <h3>Нет публичной оферты при продажах</h3>
-              <p>Интернет-магазин без оферты юридически слабее: клиент может оспорить сделку, возврат или условия покупки. Реальный штраф: 30–40 тыс. ₽ для ООО.</p>
-              <small>Источник: Дело Модульбанк, АС УФО</small>
-            </article>
-            <article class="violation-card">
-              <div class="risk"><span>!</span> Риск до 50 000 ₽</div>
-              <h3>Нет согласия на рекламные рассылки</h3>
-              <p>Email, SMS и push-уведомления требуют отдельного согласия. Персональные галочки — нарушение. Средний реальный штраф ФАС в 2024 году — 73 000 ₽.</p>
-              <small>Источник: официальная статистика ФАС 2024</small>
-            </article>
-            <article class="violation-card">
-              <div class="risk"><span>!</span> Риск до 50 000 ₽</div>
-              <h3>Данные хранятся за рубежом</h3>
-              <p>Google Analytics, Mailchimp, Tilda с зарубежными интеграциями — всё это передача данных на иностранные серверы. Штрафы получают и за аналогичные нарушения.</p>
-              <small>Реальный кейс: Spotify, Таганский суд, штраф 6 млн ₽</small>
-            </article>
-            <article class="violation-card">
-              <div class="risk"><span>!</span> Риск до 50 000 ₽</div>
-              <h3>Отсутствие политики конфиденциальности</h3>
-              <p>Если сайт собирает имя, телефон, email или заявку — нужна политика. Скопированный шаблон с чужого сайта не защищает.</p>
-              <small>Источник: InfoWatch, отчёт 2025</small>
-            </article>
-            <article class="violation-card">
-              <div class="risk"><span>!</span> Риск до 50 000 ₽</div>
-              <h3>Cookie-баннер отсутствует или неправильный</h3>
-              <p>Cookie с трекерами — это персональные данные. Баннер должен появляться до загрузки лишних файлов и давать реальный выбор.</p>
-              <small>Средний штраф: 60 000–300 000 ₽</small>
-            </article>
-            <article class="violation-card">
-              <div class="risk"><span>!</span> Риск до 50 000 ₽</div>
-              <h3>Нет маркировки рекламы и ERID</h3>
-              <p>Рекламный баннер, партнёрский блок или акция без пометки «Реклама» и кода ERID — основание для штрафа.</p>
-              <small>Средний штраф: 100 000–200 000 ₽</small>
-            </article>
+        <section class="result-panel">
+          <div class="tabs">
+            <button class="active" type="button">Штрафы</button>
+            <button type="button">Почему теряете клиентов?</button>
           </div>
 
-          <p class="legal-note">
-            Данные достоверны и взяты из Федерального закона № 420-ФЗ от 30.11.2024, КоАП РФ ст. 13.11,
-            официальной статистики ФАС и решений арбитражных судов
-          </p>
-          <a class="primary-cta" href="#site-url">Проверить мой сайт бесплатно <span>→</span></a>
-        </section>
-      </section>
-
-      <section class="light-stage" id="seo">
-        <div class="solutions">
-          <h2>Нашли проблемы — поможем исправить</h2>
-          <p class="light-lead">
-            Проверка показывает что сломано. Мы берём на<br />
-            себя быструю починку. Только то, что Вам нужно
-          </p>
-
-          <div class="service-grid">
-            <article class="service-card">
-              <img src="/assets/service-chat.png" alt="" />
-              <h3>Поможем<br />разобраться</h3>
-              <p>Спишемся в мессенджере, обсудим Ваши нарушения и подскажем что можно сделать без специалистов</p>
-              <strong>Бесплатно</strong>
-              <span>Без глубоких проверок и рекламы,<br />только помощь по Вашим вопросам</span>
-              <div class="messengers">
-                <a class="telegram" href="#">Telegram <span>↗</span></a>
-                <a class="max" href="#">MAX <span>○</span></a>
+          <div class="issue-list">
+            <article>
+              <div>
+                <h3>Нет публичной оферты</h3>
+                <p>форма #form118893762 - рядом с формой отсутствует ссылка на политику конфиденциальности.</p>
               </div>
+              <div class="risk"><span>!</span> Риск до 50 000 ₽</div>
             </article>
-            <article class="service-card featured">
-              <img src="/assets/service-wallet.png" alt="" />
-              <h3>Устраним любые<br />нарушения</h3>
-              <p>Исправляем всё, что может привести к штрафам от РКН</p>
-              <button class="details" type="button">Показать подробнее⌄</button>
-              <strong>от 5 000р</strong>
-              <span>Стоимость зависит от объёма<br />ошибок на сайте</span>
-              <a class="dark-btn" href="#">Узнать точную стоимость</a>
+            <article>
+              <div>
+                <h3>Нет публичной оферты</h3>
+                <p>форма #form118893762 - рядом с формой отсутствует ссылка на политику конфиденциальности.</p>
+              </div>
+              <div class="risk"><span>!</span> Риск до 50 000 ₽</div>
             </article>
-            <article class="service-card">
-              <img src="/assets/service-seo.png" alt="" />
-              <h3>Выведем сайт<br />в ТОП поиска</h3>
-              <p>Исправляем всё, что мешает Вам получать больше клиентов</p>
-              <button class="details" type="button">Показать подробнее⌄</button>
-              <strong>от 15 000р</strong>
-              <span>Стоимость зависит от<br />количества страниц на сайте</span>
-              <a class="dark-btn" href="#">Узнать точную стоимость</a>
+            <article>
+              <div>
+                <h3>Нет публичной оферты</h3>
+                <p>форма #form118893762 - рядом с формой отсутствует ссылка на политику конфиденциальности.</p>
+              </div>
+              <div class="risk"><span>!</span> Риск до 50 000 ₽</div>
             </article>
           </div>
-        </div>
 
-        <section class="about" id="about">
-          <span>Кто мы?</span>
-          <h2>Kinava делает цифровые<br />продукты для бизнеса</h2>
-          <p>
-            Kinava Pro — внутренний инструмент команды Kinava,<br />
-            который предотвращает риски и помогает повышать<br />
-            конверсию и востребованность сайтов
-          </p>
-          <a href="#" class="dark-link">Перейти на сайт команды Kinava</a>
+          <div class="locked-report">
+            <article></article>
+            <article></article>
+            <img src="/assets/warning.png" alt="" />
+            <h2>Ещё 4 нарушения требуют<br />вашего внимания</h2>
+            <p>Где именно и как исправить - в полном отчёте</p>
+            <a href="#">Получить полный отчёт за 179 ₽</a>
+            <small>Без привязки карты</small>
+          </div>
         </section>
-
-        <section class="results" id="clients">
-          <a class="outline-pill" href="#">Результаты наших клиентов</a>
-          <img src="/assets/shield.png" alt="" />
-          <h2>0 нарушений</h2>
-          <p>
-            26 сайтов GMA-детейлинг приведены в соответствие<br />
-            с требованиями 152-ФЗ и ФЗ «О рекламе».<br />
-            Ни один домен не содержит нарушений, которые могут<br />
-            стать основанием для предписания или штрафа РКН.
-          </p>
-        </section>
+        <a class="back-home js-home" href="#">← Вернуться на главную</a>
       </section>
     </main>
     <script src="/app.js" defer></script>

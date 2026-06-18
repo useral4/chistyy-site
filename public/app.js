@@ -1,33 +1,40 @@
+const site = document.querySelector(".site");
 const form = document.querySelector(".check-form");
 const input = document.querySelector("#site-url");
-const button = form?.querySelector("button[type='submit']");
+const resultUrl = document.querySelector(".checked-url b");
 
-function setButtonState(text, disabled = false) {
-  if (!button) return;
-  button.disabled = disabled;
-  button.innerHTML = `${text} <span aria-hidden="true">→</span>`;
+function showView(view) {
+  site?.setAttribute("data-view", view);
+  window.scrollTo({ top: 0, behavior: "instant" });
+}
+
+function normalizeUrl(value) {
+  const trimmed = value.trim();
+  if (!trimmed) return "https://вашсайт.ru";
+  return /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
 }
 
 form?.addEventListener("submit", async (event) => {
   event.preventDefault();
-
-  const url = input?.value.trim();
-  if (!url) {
+  const url = normalizeUrl(input?.value || "");
+  if (!input?.value.trim()) {
     input?.focus();
     return;
   }
 
-  const original = button?.textContent?.trim() || "Проверить нарушения";
-  setButtonState("Проверяем", true);
+  if (resultUrl) resultUrl.textContent = url;
+  showView("loading");
 
-  try {
-    await fetch(`/api/audit?url=${encodeURIComponent(url)}&profile=lead`, {
-      headers: { Accept: "application/json" }
-    });
-    setButtonState("Проверка готова", false);
-  } catch {
-    setButtonState("Попробовать ещё раз", false);
-  }
+  fetch(`/api/audit?url=${encodeURIComponent(url)}&profile=lead`, {
+    headers: { Accept: "application/json" }
+  }).catch(() => {});
 
-  window.setTimeout(() => setButtonState(original.replace("→", "").trim(), false), 2600);
+  window.setTimeout(() => showView("result"), 900);
+});
+
+document.querySelectorAll(".js-home, .back-home").forEach((link) => {
+  link.addEventListener("click", (event) => {
+    event.preventDefault();
+    showView("home");
+  });
 });
