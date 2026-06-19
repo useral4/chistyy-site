@@ -65,8 +65,8 @@ input {
 .dark-stage {
   position: relative;
   z-index: 2;
-  min-height: 2948px;
-  padding: 17px 32px 205px;
+  min-height: 2700px;
+  padding: 17px 32px 120px;
 }
 
 .dark-stage::after {
@@ -522,7 +522,7 @@ input {
 .light-stage {
   position: relative;
   z-index: 1;
-  padding: 192px 32px 0;
+  padding: 236px 32px 0;
   background: var(--white);
   color: var(--ink);
   text-align: center;
@@ -772,7 +772,7 @@ input {
 .results {
   width: min(1220px, 100%);
   margin: 0 auto;
-  padding: 0 0 320px;
+  padding: 0 0 120px;
 }
 
 .outline-pill {
@@ -852,8 +852,8 @@ input {
 
 .bottom-cta {
   position: relative;
-  min-height: 940px;
-  padding: 283px 32px 160px;
+  min-height: 720px;
+  padding: 260px 32px 120px;
   overflow: hidden;
   background:
     radial-gradient(circle at 50% 34%, rgba(148, 24, 28, 0.92) 0, rgba(83, 18, 22, 0.96) 28%, #191919 66%),
@@ -1204,8 +1204,8 @@ input {
   }
 
   .dark-stage {
-    min-height: min(2948px, 153.5417vw);
-    padding: min(90px, 4.6875vw) min(32px, 1.6667vw) min(205px, 10.6771vw);
+    min-height: min(2700px, 140.6250vw);
+    padding: min(90px, 4.6875vw) min(32px, 1.6667vw) min(120px, 6.2500vw);
   }
 
   .dark-stage::after {
@@ -1453,7 +1453,7 @@ input {
   }
 
   .light-stage {
-    padding: min(192px, 10.0000vw) min(32px, 1.6667vw) 0;
+    padding: min(236px, 12.2917vw) min(32px, 1.6667vw) 0;
   }
 
   .solutions {
@@ -1550,7 +1550,7 @@ input {
 
   .results {
     width: min(1470px, 76.5625vw);
-    padding-bottom: min(320px, 16.6667vw);
+    padding-bottom: min(120px, 6.2500vw);
   }
 
   .outline-pill {
@@ -1588,8 +1588,9 @@ input {
   }
 
   .bottom-cta {
-    min-height: min(940px, 48.9583vw);
-    padding-top: min(283px, 14.7396vw);
+    min-height: min(720px, 37.5000vw);
+    padding-top: min(260px, 13.5417vw);
+    padding-bottom: min(120px, 6.2500vw);
   }
 
   .bottom-cta h2 {
