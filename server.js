@@ -324,7 +324,7 @@ function analyzeHtml({ html, robots, sitemap, targetUrl, profile, timing }) {
     /(accept|agree|соглас|принять|ок)[^<]{0,140}cookie/i,
     /куки[^<]{0,140}(соглас|принять|ок)/i
   ]);
-  const hasAdPlacement = hasAny(lower, [
+  const hasAdPlacementSignal = hasAny(lower, [
     /erid\s*[:=]?\s*[a-zа-я0-9_-]{6,}/i,
     /advertisement/i,
     /sponsored/i,
@@ -340,7 +340,16 @@ function analyzeHtml({ html, robots, sitemap, targetUrl, profile, timing }) {
     /маркетинг/i,
     /рекламная рассылка/i
   ]);
+  const hasAdComplianceContext = hasAny(text, [
+    /маркировк[аи][^\.]{0,90}реклам/i,
+    /нет[^\.]{0,90}маркировк[аи][^\.]{0,90}реклам/i,
+    /риск[^\.]{0,90}(?:erid|реклам)/i,
+    /штраф[^\.]{0,90}(?:erid|реклам)/i,
+    /провер[а-яё]+[^\.]{0,90}(?:erid|реклам)/i
+  ]);
   const hasErid = /erid\s*[:=]?\s*[a-zа-я0-9_-]{6,}/i.test(lower);
+  const hasAdPlacement = hasAdPlacementSignal && !hasAdServiceContext && !hasAdComplianceContext;
+  const needsAdReview = hasAdPlacementSignal && !hasAdPlacement && !hasErid;
   const hasCompanyInfo = hasAny(text, [
     /инн\s*\d{10,12}/i,
     /огрн\s*\d{13,15}/i,
@@ -364,6 +373,13 @@ function analyzeHtml({ html, robots, sitemap, targetUrl, profile, timing }) {
   ]);
   const hasChildrenData = hasAny(text, [/детск/i, /реб[её]н/i, /несовершеннолет/i]);
   const hasPaymentTerms = hasAny(text, [/оплат/i, /эквайринг/i, /касс/i, /чек/i, /54[-\s]?фз/i]);
+  const commerceSignalCount = [
+    /корзин|checkout|cart|add to cart|добавить в корзину/i.test(text),
+    /оформить заказ|заказ оформлен|номер заказа/i.test(text),
+    /доставк|возврат|обмен товара/i.test(text),
+    /schema\.org\/(?:product|offer)|"@type"\s*:\s*"(?:product|offer)"/i.test(lower),
+    hasPaymentTerms
+  ].filter(Boolean).length;
   const hasCanonical = /<link[^>]+rel=["']canonical["']/i.test(html);
   const hasOpenGraph = /<meta[^>]+property=["']og:/i.test(html);
   const hasViewport = /<meta[^>]+name=["']viewport["']/i.test(html);
@@ -371,7 +387,7 @@ function analyzeHtml({ html, robots, sitemap, targetUrl, profile, timing }) {
   const hasFavicon = /<link[^>]+rel=["'][^"']*(icon|shortcut icon)[^"']*["']/i.test(html);
   const robotsFound = /user-agent|sitemap|disallow/i.test(robots || "");
   const sitemapFound = /<urlset|<sitemapindex|\blocation:/i.test(sitemap || "");
-  const isCommerce = profile === "shop";
+  const isCommerce = profile === "shop" || commerceSignalCount >= 2;
   const isHttps = /^https:\/\//i.test(finalUrl);
 
   const checks = [
@@ -424,12 +440,15 @@ function analyzeHtml({ html, robots, sitemap, targetUrl, profile, timing }) {
       id: "ad-marking",
       group: "legal",
       title: "Маркировка рекламы и ERID",
-      passed: !hasAdPlacement || hasErid,
-      severity: hasAdPlacement ? "high" : "low",
+      passed: !hasAdPlacementSignal || hasErid,
+      status: !hasAdPlacementSignal || hasErid ? "passed" : needsAdReview ? "review" : "failed",
+      severity: hasAdPlacementSignal ? "high" : "low",
       fineMax: hasAdPlacement && !hasErid ? 500000 : 0,
       law: "38-ФЗ «О рекламе», ст. 18.1; КоАП РФ, ст. 14.3",
       evidence: hasAdPlacement
         ? "Есть признаки рекламного размещения или ERID-блока"
+        : needsAdReview
+          ? "На странице есть текст про рекламу, партнёрские блоки или ERID, но по HTML нельзя честно отличить рекламный блок от описания услуги или примера"
         : hasAdServiceContext
           ? "Сайт говорит о рекламных услугах, но признаков чужого рекламного размещения на странице не найдено"
           : "Явные рекламные размещения не найдены",
@@ -440,10 +459,15 @@ function analyzeHtml({ html, robots, sitemap, targetUrl, profile, timing }) {
       group: "legal",
       title: "Реквизиты владельца сайта",
       passed: hasCompanyInfo,
+      status: hasCompanyInfo ? "passed" : isCommerce ? "failed" : "review",
       severity: "medium",
       fineMax: isCommerce ? 10000 : 0,
       law: "ЗоЗПП, ст. 8-10; КоАП РФ, ст. 14.8",
-      evidence: hasCompanyInfo ? "Найдены ИНН, ОГРН, ИП/ООО или реквизиты" : "Пользователь не видит, кто юридически отвечает за сайт",
+      evidence: hasCompanyInfo
+        ? "Найдены ИНН, ОГРН, ИП/ООО или реквизиты"
+        : isCommerce
+          ? "Для коммерческого сценария не видно реквизитов продавца или исполнителя"
+          : "По странице нельзя точно понять, обязаны ли здесь быть реквизиты владельца",
       fix: "Добавить реквизиты, юридический адрес, контакты и режим работы"
     }),
     makeCheck({
@@ -734,15 +758,51 @@ async function handleAudit(req, res) {
 
     sendJson(res, 200, audit);
   } catch (error) {
-    sendJson(
-      res,
-      200,
-      demoAudit(
-        raw,
-        profile,
-        `Не удалось загрузить сайт: ${error.message}. Показываем демонстрационный отчёт.`
-      )
-    );
+    const profileConfig = PROFILES[profile] || PROFILES.lead;
+    const message = `Не удалось загрузить сайт: ${error.message}. Автоматические выводы не сформированы.`;
+    const checks = [
+      makeCheck({
+        id: "fetch-error",
+        group: "legal",
+        title: "Сайт не удалось проверить автоматически",
+        status: "review",
+        severity: "high",
+        fineMax: 0,
+        evidence: message,
+        fix: "Проверьте адрес, доступность страницы и блокировки ботов, затем запустите проверку повторно"
+      })
+    ];
+
+    sendJson(res, 200, {
+      url: targetUrl.href,
+      profile,
+      profileLabel: profileConfig.label,
+      checkedAt: new Date().toISOString(),
+      warning: message,
+      summary: {
+        score: 0,
+        riskLevel: "review",
+        fineMax: 0,
+        legalIssues: 0,
+        seoIssues: 0,
+        totalIssues: 0
+      },
+      facts: {
+        title: "",
+        description: "",
+        h1Count: 0,
+        imageCount: 0,
+        imageAltCount: 0,
+        formCount: 0,
+        htmlKb: 0,
+        responseMs: 0,
+        status: 0,
+        finalUrl: targetUrl.href
+      },
+      checks,
+      services: recommendServices(checks, profile),
+      sources: LEGAL_SOURCES
+    });
   }
 }
 

@@ -59,10 +59,10 @@
               что нарушено за 60 секунд. Бесплатно, без регистрации
             </p>
 
-            <form class="check-form">
+            <form class="check-form" novalidate>
               <label for="site-url">Вставьте ссылку на сайт</label>
               <div class="form-row">
-                <input id="site-url" type="url" placeholder="https://вашсайт.ru" />
+                <input id="site-url" type="text" inputmode="url" placeholder="https://вашсайт.ru" />
                 <button type="submit">
                   Проверить нарушения
                   <span aria-hidden="true">→</span>
@@ -298,40 +298,25 @@
 
         <div class="result-hero">
           <a class="checked-url js-home" href="#"><span>←</span> <b>https://вашсайт.ru</b></a>
-          <h1>Найдено 7 нарушений</h1>
+          <h1 class="result-title">Найдено 7 нарушений</h1>
           <div class="risk-total">
-            <span>Общий риск штрафов:</span>
-            <strong>150 000 ₽ - 200 000 ₽</strong>
+            <span class="result-risk-label">Общий риск штрафов:</span>
+            <strong class="result-risk-value">150 000 ₽ - 200 000 ₽</strong>
           </div>
         </div>
 
         <section class="result-panel">
-          <div class="tabs">
-            <button class="active" type="button">Штрафы</button>
-            <button type="button">Почему теряете клиентов?</button>
+          <div class="tabs" role="tablist" aria-label="Разделы проверки">
+            <button class="active" type="button" data-result-tab="fines" role="tab" aria-selected="true">Штрафы</button>
+            <button type="button" data-result-tab="growth" role="tab" aria-selected="false">Почему теряете клиентов?</button>
           </div>
 
-          <div class="issue-list">
-            <article>
+          <div class="issue-list" aria-live="polite">
+            <article class="issue-empty">
               <div>
-                <h3>Нет публичной оферты</h3>
-                <p>форма #form118893762 - рядом с формой отсутствует ссылка на политику конфиденциальности.</p>
+                <h3>Запустите проверку сайта</h3>
+                <p>Здесь появятся только реальные найденные нарушения и пункты, которые требуют ручной проверки.</p>
               </div>
-              <div class="risk"><span>!</span> Риск до 50 000 ₽</div>
-            </article>
-            <article>
-              <div>
-                <h3>Нет публичной оферты</h3>
-                <p>форма #form118893762 - рядом с формой отсутствует ссылка на политику конфиденциальности.</p>
-              </div>
-              <div class="risk"><span>!</span> Риск до 50 000 ₽</div>
-            </article>
-            <article>
-              <div>
-                <h3>Нет публичной оферты</h3>
-                <p>форма #form118893762 - рядом с формой отсутствует ссылка на политику конфиденциальности.</p>
-              </div>
-              <div class="risk"><span>!</span> Риск до 50 000 ₽</div>
             </article>
           </div>
 
@@ -339,9 +324,9 @@
             <article></article>
             <article></article>
             <img src="/assets/warning.png" alt="" />
-            <h2>Ещё 4 нарушения требуют<br />вашего внимания</h2>
-            <p>Где именно и как исправить - в полном отчёте</p>
-            <a href="#">Получить полный отчёт за 179 ₽</a>
+            <h2 class="locked-report-title">Ещё 4 нарушения требуют<br />вашего внимания</h2>
+            <p class="locked-report-text">Где именно и как исправить - в полном отчёте</p>
+            <a class="locked-report-link" href="#">Получить полный отчёт за 179 ₽</a>
             <small>Без привязки карты</small>
           </div>
         </section>

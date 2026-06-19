@@ -1053,6 +1053,7 @@ input {
   grid-template-columns: 1fr auto;
   gap: 28px;
   align-items: start;
+  min-height: 85px;
 }
 
 .issue-list h3 {
@@ -1069,6 +1070,35 @@ input {
   line-height: 1.2;
 }
 
+.issue-list .risk {
+  min-width: 199px;
+  min-height: 44px;
+  justify-content: center;
+  padding: 0 16px;
+  background: #381a1c;
+  color: #de7979;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.issue-list .risk.is-review {
+  background: #333333;
+  color: #d6d6d6;
+}
+
+.issue-list .risk span {
+  width: 20px;
+  height: 20px;
+  margin-right: 8px;
+  background: #ffc1c3;
+  color: #812c31;
+  font-size: 13px;
+}
+
+.issue-empty {
+  grid-template-columns: 1fr;
+}
+
 .locked-report {
   position: relative;
   margin-top: 48px;
@@ -1076,18 +1106,23 @@ input {
   text-align: center;
 }
 
+.locked-report.is-hidden {
+  display: none;
+}
+
 .locked-report article {
   height: 129px;
   margin-bottom: 49px;
   border-radius: 24px;
-  background: rgba(107, 27, 30, 0.72);
-  filter: blur(3px);
-  opacity: 0.86;
+  background: rgba(255, 0, 9, 0.12);
+  box-shadow: 0 0 28px rgba(238, 27, 36, 0.24);
+  filter: blur(4px);
+  opacity: 0.95;
 }
 
 .locked-report img {
   position: absolute;
-  top: 96px;
+  top: 118px;
   left: 50%;
   z-index: 2;
   width: 166px;
@@ -2138,6 +2173,14 @@ input {
 
   .issue-list article {
     grid-template-columns: 1fr;
+  }
+
+  .issue-list .risk {
+    width: max-content;
+    min-width: 0;
+    max-width: 100%;
+    min-height: 38px;
+    font-size: 13px;
   }
 
   .issue-list p {
