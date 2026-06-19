@@ -8,6 +8,7 @@ const riskValue = document.querySelector(".result-risk-value");
 const issueList = document.querySelector(".issue-list");
 const tabs = document.querySelectorAll("[data-result-tab]");
 const lockedReport = document.querySelector(".locked-report");
+const lockedItems = document.querySelector(".locked-items");
 const lockedReportTitle = document.querySelector(".locked-report-title");
 const lockedReportText = document.querySelector(".locked-report-text");
 
@@ -140,10 +141,30 @@ function renderLockedReport(hiddenChecks) {
 
   if (hiddenCount <= 0) {
     lockedReport.classList.add("is-hidden");
+    if (lockedItems) lockedItems.innerHTML = "";
     return;
   }
 
   lockedReport.classList.remove("is-hidden");
+
+  if (lockedItems) {
+    lockedItems.innerHTML = checks
+      .slice(0, 3)
+      .map((check) => {
+        const riskClass = check.status === "review" ? "is-review" : "";
+
+        return `
+          <article class="locked-item">
+            <div>
+              <h3>${escapeHtml(check.title)}</h3>
+              <p>${escapeHtml(getIssueText(check))}</p>
+            </div>
+            <div class="risk ${riskClass}"><span>!</span> ${escapeHtml(getPillText(check))}</div>
+          </article>
+        `;
+      })
+      .join("");
+  }
 
   if (lockedReportTitle) {
     const useNeutralText = state.tab === "growth" || checks.some((check) => check.status === "review");
