@@ -719,6 +719,22 @@ input {
   font-weight: 500;
 }
 
+.messengers a {
+  gap: 12px;
+}
+
+.messengers img,
+.messengers svg {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  flex: 0 0 auto;
+}
+
+.messengers svg {
+  fill: currentColor;
+}
+
 .telegram {
   background: #35aadd;
 }
@@ -1617,6 +1633,16 @@ input {
     height: min(93px, 4.8438vw);
     border-radius: min(24px, 1.2500vw);
     font-size: min(24px, 1.2500vw);
+  }
+
+  .messengers a {
+    gap: min(12px, 0.6250vw);
+  }
+
+  .messengers img,
+  .messengers svg {
+    width: min(24px, 1.2500vw);
+    height: min(24px, 1.2500vw);
   }
 
   .about {
