@@ -11,11 +11,15 @@ const lockedReport = document.querySelector(".locked-report");
 const lockedItems = document.querySelector(".locked-items");
 const lockedReportTitle = document.querySelector(".locked-report-title");
 const lockedReportText = document.querySelector(".locked-report-text");
+const lockedReportLink = document.querySelector(".locked-report-link");
+const paymentModal = document.querySelector(".payment-modal");
+const paymentHint = document.querySelector("[data-payment-hint]");
 
 const state = {
   audit: null,
   tab: "fines",
-  checkedUrl: "https://вашсайт.ru"
+  checkedUrl: "https://вашсайт.ru",
+  reportUnlocked: false
 };
 
 const severityOrder = { high: 0, medium: 1, low: 2 };
@@ -24,6 +28,24 @@ const statusOrder = { failed: 0, review: 1, passed: 2 };
 function showView(view) {
   site?.setAttribute("data-view", view);
   window.scrollTo({ top: 0, behavior: "instant" });
+}
+
+function openPaymentModal() {
+  paymentHint && (paymentHint.textContent = "ЮKassa подключим на следующем шаге. Демо-доступ открывает отчёт без оплаты для теста.");
+  paymentModal?.classList.add("is-open");
+  paymentModal?.setAttribute("aria-hidden", "false");
+}
+
+function closePaymentModal() {
+  paymentModal?.classList.remove("is-open");
+  paymentModal?.setAttribute("aria-hidden", "true");
+}
+
+function unlockReportDemo() {
+  state.reportUnlocked = true;
+  closePaymentModal();
+  renderResult();
+  document.querySelector(".result-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function normalizeUrl(value) {
@@ -210,7 +232,7 @@ function renderIssueList() {
     return;
   }
 
-  const visibleChecks = checks.slice(0, 3);
+  const visibleChecks = state.reportUnlocked ? checks : checks.slice(0, 3);
   issueList.innerHTML = visibleChecks
     .map((check) => {
       const riskClass = check.status === "review" ? "is-review" : "";
@@ -227,7 +249,7 @@ function renderIssueList() {
     })
     .join("");
 
-  renderLockedReport(checks.slice(visibleChecks.length));
+  renderLockedReport(state.reportUnlocked ? [] : checks.slice(visibleChecks.length));
 }
 
 function renderResult() {
@@ -238,6 +260,7 @@ function renderResult() {
 
 function renderError(url, message) {
   state.checkedUrl = url;
+  state.reportUnlocked = false;
   state.audit = {
     warning: message,
     summary: { fineMax: 0 },
@@ -283,6 +306,7 @@ form?.addEventListener("submit", async (event) => {
 
     state.audit = audit;
     state.tab = "fines";
+    state.reportUnlocked = false;
     renderResult();
     showView("result");
   } catch (error) {
@@ -296,6 +320,27 @@ tabs.forEach((button) => {
     state.tab = button.dataset.resultTab || "fines";
     renderResult();
   });
+});
+
+lockedReportLink?.addEventListener("click", (event) => {
+  event.preventDefault();
+  openPaymentModal();
+});
+
+document.querySelectorAll("[data-payment-close]").forEach((button) => {
+  button.addEventListener("click", closePaymentModal);
+});
+
+document.querySelector("[data-demo-unlock]")?.addEventListener("click", unlockReportDemo);
+
+document.querySelector("[data-payment-buy]")?.addEventListener("click", () => {
+  if (paymentHint) {
+    paymentHint.textContent = "Тестовый режим: здесь будет переход на оплату ЮKassa после подключения магазина.";
+  }
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") closePaymentModal();
 });
 
 document.querySelectorAll(".js-home, .back-home").forEach((link) => {

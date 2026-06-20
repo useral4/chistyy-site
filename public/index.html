@@ -332,6 +332,18 @@
         <a class="back-home js-home" href="#">← Вернуться на главную</a>
       </section>
     </main>
+    <div class="payment-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="payment-modal-title">
+      <div class="payment-modal__backdrop" data-payment-close></div>
+      <div class="payment-modal__dialog">
+        <button class="payment-modal__close" type="button" data-payment-close aria-label="Закрыть">×</button>
+        <p class="payment-modal__eyebrow">Полный отчёт</p>
+        <h2 id="payment-modal-title">Откройте все найденные пункты</h2>
+        <p class="payment-modal__text">После оплаты здесь будет открываться полный отчёт с точными рекомендациями по каждому нарушению.</p>
+        <button class="payment-modal__buy" type="button" data-payment-buy>Купить за 179 ₽</button>
+        <button class="payment-modal__demo" type="button" data-demo-unlock>Посмотреть демо-доступ</button>
+        <small class="payment-modal__hint" data-payment-hint>ЮKassa подключим на следующем шаге. Демо-доступ открывает отчёт без оплаты для теста.</small>
+      </div>
+    </div>
     <script src="/app.js" defer></script>
   </body>
 </html>
