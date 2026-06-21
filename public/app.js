@@ -31,7 +31,7 @@ function showView(view) {
 }
 
 function openPaymentModal() {
-  paymentHint && (paymentHint.textContent = "ЮKassa подключим на следующем шаге. Демо-доступ открывает отчёт без оплаты для теста.");
+  paymentHint && (paymentHint.textContent = "Доступ к цифровому отчёту предоставляется после оплаты. До подключения магазина можно открыть демо-доступ для теста.");
   paymentModal?.classList.add("is-open");
   paymentModal?.setAttribute("aria-hidden", "false");
 }
@@ -335,8 +335,17 @@ document.querySelector("[data-demo-unlock]")?.addEventListener("click", unlockRe
 
 document.querySelector("[data-payment-buy]")?.addEventListener("click", () => {
   if (paymentHint) {
-    paymentHint.textContent = "Тестовый режим: здесь будет переход на оплату ЮKassa после подключения магазина.";
+    paymentHint.textContent = "Платёжный переход будет доступен после подключения магазина. Стоимость цифрового отчёта - 179 ₽.";
   }
+});
+
+document.querySelector("[data-payment-terms]")?.addEventListener("click", (event) => {
+  event.preventDefault();
+  closePaymentModal();
+  showView("home");
+  requestAnimationFrame(() => {
+    document.querySelector("#payment-terms")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
 });
 
 document.addEventListener("keydown", (event) => {
