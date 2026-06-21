@@ -872,7 +872,7 @@ input {
   padding: 260px 32px 120px;
   overflow: hidden;
   isolation: isolate;
-  background: transparent;
+  background: linear-gradient(180deg, rgba(25, 25, 25, 0) 0%, rgba(25, 25, 25, 0) 42%, var(--dark) 68%, var(--dark) 100%);
   color: var(--white);
   text-align: center;
 }
@@ -896,11 +896,11 @@ input {
 .bottom-cta::after {
   position: absolute;
   z-index: 1;
-  top: 520px;
+  top: 440px;
   right: 0;
   bottom: 0;
   left: 0;
-  background: linear-gradient(180deg, rgba(25, 25, 25, 0) 0%, rgba(25, 25, 25, 0.72) 34%, var(--dark) 72%);
+  background: linear-gradient(180deg, rgba(25, 25, 25, 0) 0%, rgba(25, 25, 25, 0.62) 28%, var(--dark) 70%);
   content: "";
   pointer-events: none;
 }
@@ -984,9 +984,9 @@ input {
 .payment-info article,
 .payment-info__details section {
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
+  border-radius: 24px;
+  background: #202020;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.18);
 }
 
 .payment-info article {
@@ -1012,7 +1012,7 @@ input {
   align-items: center;
   margin: 26px 0 18px;
   padding: 0 20px;
-  border-radius: 0;
+  border-radius: 999px;
   background: var(--white);
   color: #202020;
   font-size: 22px;
@@ -1039,9 +1039,9 @@ input {
   align-items: center;
   margin-top: 24px;
   padding: 0 20px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 0;
-  background: transparent;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.09);
   color: var(--white);
   font-size: 17px;
   font-weight: 800;
@@ -1056,10 +1056,9 @@ input {
 
 .payment-info__contacts div {
   min-height: 86px;
-  padding: 0 0 18px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 0;
-  background: transparent;
+  padding: 18px;
+  border-radius: 18px;
+  background: #181818;
 }
 
 .payment-info__contacts dt {
@@ -1076,7 +1075,7 @@ input {
 }
 
 .payment-info__note {
-  margin-top: 42px;
+  margin-top: 30px;
   color: #ffb4b8;
   font-size: 16px;
 }
@@ -1655,10 +1654,9 @@ input {
 
 .terms-doc__requisites div {
   min-height: 88px;
-  padding: 0 0 18px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 0;
-  background: transparent;
+  padding: 18px;
+  border-radius: 18px;
+  background: #202020;
 }
 
 .terms-doc__requisites dt {
@@ -1675,7 +1673,7 @@ input {
 }
 
 .terms-doc__warning {
-  margin-top: 36px;
+  margin-top: 30px;
   color: #ffb4b8;
   font-weight: 700;
 }
@@ -2141,7 +2139,7 @@ input {
   }
 
   .bottom-cta::after {
-    top: min(520px, 27.0833vw);
+    top: min(440px, 22.9167vw);
   }
 
   .bottom-cta h2 {
@@ -2677,7 +2675,7 @@ input {
   }
 
   .bottom-cta::after {
-    top: 232px;
+    top: 210px;
   }
 
   .bottom-cta h2 {
@@ -2712,7 +2710,7 @@ input {
   .payment-info article,
   .payment-info__details section {
     padding: 22px;
-    border-radius: 0;
+    border-radius: 20px;
   }
 
   .payment-info article strong {
