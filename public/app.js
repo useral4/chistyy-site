@@ -15,7 +15,7 @@ const lockedReportLink = document.querySelector(".locked-report-link");
 const paymentModal = document.querySelector(".payment-modal");
 const paymentHint = document.querySelector("[data-payment-hint]");
 const stats = document.querySelector(".stats");
-const statSlots = document.querySelectorAll(".stats .stat");
+const statCards = Array.from(document.querySelectorAll(".stats .stat"));
 
 const state = {
   audit: null,
@@ -26,50 +26,38 @@ const state = {
 
 const severityOrder = { high: 0, medium: 1, low: 2 };
 const statusOrder = { failed: 0, review: 1, passed: 2 };
-const statItems = [
-  {
-    value: "-500 млн ₽",
-    text: "максимальный штраф за утечку<br />данных по новым нормам с мая 2025"
-  },
-  {
-    value: "73 000 ₽",
-    text: "средний штраф ФАС<br />за одно нарушение"
-  },
-  {
-    value: "2 202",
-    text: "штрафа за нарушения на сайтах назначено<br />ФАС за 2024 год на 161,3 млн рублей"
-  }
-];
+const statPositions = ["stat-left", "stat-center", "stat-right"];
 
 function showView(view) {
   site?.setAttribute("data-view", view);
   window.scrollTo({ top: 0, behavior: "instant" });
 }
 
-function renderStats(rotation) {
-  statSlots.forEach((slot, index) => {
-    const item = statItems[(index - rotation + statItems.length) % statItems.length];
-    const value = slot.querySelector("strong");
-    const text = slot.querySelector("span");
+function getStatPosition(card) {
+  return statPositions.findIndex((position) => card.classList.contains(position));
+}
 
-    if (value) value.textContent = item.value;
-    if (text) text.innerHTML = item.text;
+function rotateStats() {
+  stats?.classList.add("is-sliding");
+
+  statCards.forEach((card) => {
+    const currentPosition = getStatPosition(card);
+    const nextPosition = currentPosition === statPositions.length - 1 ? 0 : currentPosition + 1;
+
+    card.classList.remove(...statPositions);
+    card.classList.add(statPositions[nextPosition]);
   });
+
+  window.setTimeout(() => {
+    stats?.classList.remove("is-sliding");
+  }, 760);
 }
 
 function initStatsSlider() {
-  if (!stats || statSlots.length !== statItems.length || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-
-  let rotation = 0;
+  if (!stats || statCards.length !== statPositions.length || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
   window.setInterval(() => {
-    stats.classList.add("is-changing");
-
-    window.setTimeout(() => {
-      rotation = (rotation + 1) % statItems.length;
-      renderStats(rotation);
-      stats.classList.remove("is-changing");
-    }, 260);
+    rotateStats();
   }, 4200);
 }
 

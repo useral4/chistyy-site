@@ -348,17 +348,42 @@ input {
 .stats {
   position: relative;
   z-index: 3;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  align-items: start;
+  display: block;
   width: min(1270px, 100%);
+  min-height: 310px;
   margin: 280px auto 0;
   text-align: center;
 }
 
 .stat {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 33.3333%;
+  min-height: 100%;
   min-width: 0;
+  padding: 0 24px;
   color: rgba(255, 255, 255, 0.28);
+  transition: transform 680ms cubic-bezier(0.22, 1, 0.36, 1), color 360ms ease;
+}
+
+.stat-left {
+  order: 1;
+  transform: translateX(0);
+}
+
+.stat-center {
+  order: 2;
+  transform: translateX(100%);
+}
+
+.stat-right {
+  order: 3;
+  transform: translateX(200%);
+}
+
+.stats.is-sliding .stat {
+  will-change: transform;
 }
 
 .stat img {
@@ -366,6 +391,12 @@ input {
   object-fit: contain;
   opacity: 0.58;
   filter: saturate(0.65);
+  transition:
+    width 680ms cubic-bezier(0.22, 1, 0.36, 1),
+    height 680ms cubic-bezier(0.22, 1, 0.36, 1),
+    margin 680ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 360ms ease,
+    filter 360ms ease;
 }
 
 .stat-left img {
@@ -411,13 +442,7 @@ input {
 
 .stat strong,
 .stat span {
-  transition: opacity 220ms ease, transform 220ms ease;
-}
-
-.stats.is-changing .stat strong,
-.stats.is-changing .stat span {
-  opacity: 0;
-  transform: translateY(8px);
+  transition: color 360ms ease;
 }
 
 .stat-center span {
@@ -1901,6 +1926,7 @@ input {
 
   .stats {
     width: min(1322px, 68.8542vw);
+    min-height: min(320px, 16.6667vw);
     margin-top: min(260px, 13.5417vw);
   }
 
@@ -2304,10 +2330,22 @@ input {
   }
 
   .stats {
+    display: grid;
     width: min(760px, 100%);
+    min-height: 0;
     grid-template-columns: 1fr;
     gap: 80px;
     margin-top: 220px;
+  }
+
+  .stat {
+    position: relative;
+    top: auto;
+    left: auto;
+    width: auto;
+    min-height: 0;
+    padding: 0;
+    transform: none !important;
   }
 
   .stat-center img {
