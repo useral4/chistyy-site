@@ -409,6 +409,17 @@ input {
   line-height: 1.2;
 }
 
+.stat strong,
+.stat span {
+  transition: opacity 220ms ease, transform 220ms ease;
+}
+
+.stats.is-changing .stat strong,
+.stats.is-changing .stat span {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
 .stat-center span {
   color: var(--white);
 }
@@ -1073,6 +1084,11 @@ input {
   color: #ffb4b8;
   font-size: 19px;
   font-weight: 800;
+}
+
+.payment-info__contacts a,
+.terms-doc__requisites a {
+  color: inherit;
 }
 
 .payment-info__note {
