@@ -186,6 +186,47 @@ function renderHero() {
   if (riskValue) riskValue.textContent = fineMax > 0 ? `до ${formatRub(fineMax)}` : "0 ₽";
 }
 
+function getSeoOverviewHtml(checks) {
+  if (state.tab !== "growth") return "";
+
+  const allChecks = Array.isArray(state.audit?.checks) ? state.audit.checks : [];
+  const seoChecks = allChecks.filter((check) => check.group === "seo");
+  const failed = seoChecks.filter((check) => check.status === "failed").length;
+  const review = seoChecks.filter((check) => check.status === "review").length;
+  const openedNow = Math.min(checks.length, state.reportUnlocked ? checks.length : 3);
+  const locked = Math.max(0, checks.length - openedNow);
+  const score = Math.max(0, 100 - failed * 9 - review * 4);
+
+  return `
+    <section class="seo-overview" aria-label="SEO-сводка">
+      <div class="seo-overview__head">
+        <div>
+          <span class="seo-overview__eyebrow">SEO-аудит</span>
+          <h3>Базовая проверка видимости сайта</h3>
+          <p>Показываем главные технические и контентные сигналы. Детальная диагностика, приоритеты и полный список правок открываются после оплаты отчёта.</p>
+        </div>
+        <div class="seo-overview__score">
+          <strong>${score}</strong>
+          <span>из 100</span>
+        </div>
+      </div>
+      <div class="seo-overview__cards">
+        <div><span>Проверено пунктов</span><strong>${seoChecks.length}</strong></div>
+        <div><span>Найдено проблем</span><strong>${failed + review}</strong></div>
+        <div><span>Открыто сейчас</span><strong>${openedNow}${locked ? ` / +${locked}` : ""}</strong></div>
+      </div>
+      <div class="seo-overview__chips" aria-label="Разделы SEO-проверки">
+        <span>Технические данные</span>
+        <span>Метатеги</span>
+        <span>Текстовые данные</span>
+        <span>Мобильность</span>
+        <span>Скорость</span>
+        <span>Рекомендации</span>
+      </div>
+    </section>
+  `;
+}
+
 function renderLockedReport(hiddenChecks) {
   if (!lockedReport) return;
 
@@ -240,6 +281,7 @@ function renderIssueList() {
   if (!issueList) return;
 
   const checks = getTabChecks();
+  const seoOverviewHtml = getSeoOverviewHtml(checks);
 
   if (!checks.length) {
     const title =
@@ -252,6 +294,7 @@ function renderIssueList() {
         : "Автоматическая проверка не нашла нарушений, которые можно честно подтвердить по странице.";
 
     issueList.innerHTML = `
+      ${seoOverviewHtml}
       <article class="issue-empty">
         <div>
           <h3>${title}</h3>
@@ -264,7 +307,9 @@ function renderIssueList() {
   }
 
   const visibleChecks = state.reportUnlocked ? checks : checks.slice(0, 3);
-  issueList.innerHTML = visibleChecks
+  issueList.innerHTML =
+    seoOverviewHtml +
+    visibleChecks
     .map((check) => {
       const riskClass = check.status === "review" ? "is-review" : "";
 

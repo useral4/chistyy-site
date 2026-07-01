@@ -284,6 +284,17 @@ function analyzeHtml({ html, robots, sitemap, targetUrl, profile, timing }) {
   const formCount =
     countMatches(html, /<form\b/gi) || countMatches(html, /<(input|textarea|select)\b/gi);
   const htmlKb = Math.round(Buffer.byteLength(html, "utf8") / 1024);
+  const visibleTextLength = stripTags(html).length;
+  const anchorMatches = Array.from(html.matchAll(/<a\b[^>]*href=["']([^"']+)["'][^>]*>/gi));
+  const internalLinkCount = anchorMatches.filter((match) => {
+    const href = String(match[1] || "").trim();
+    if (!href || /^(#|tel:|mailto:|javascript:)/i.test(href)) return false;
+    try {
+      return new URL(href, targetUrl.href).hostname.replace(/^www\./i, "") === targetUrl.hostname.replace(/^www\./i, "");
+    } catch {
+      return false;
+    }
+  }).length;
 
   const hasPrivacy = hasAny(lower, [
     /политик[аиуы][^<]{0,90}персональн/i,
@@ -385,6 +396,9 @@ function analyzeHtml({ html, robots, sitemap, targetUrl, profile, timing }) {
   const hasViewport = /<meta[^>]+name=["']viewport["']/i.test(html);
   const hasSchema = /application\/ld\+json|schema\.org/i.test(html);
   const hasFavicon = /<link[^>]+rel=["'][^"']*(icon|shortcut icon)[^"']*["']/i.test(html);
+  const hasHtmlLang = /<html[^>]+\blang=["'][a-z]{2}(?:-[a-z]{2})?["']/i.test(html);
+  const hasNoindex = /<meta[^>]+name=["']robots["'][^>]+content=["'][^"']*noindex/i.test(html);
+  const hasLazyImages = imageCount === 0 || /<img\b[^>]+loading=["']lazy["']/i.test(html);
   const robotsFound = /user-agent|sitemap|disallow/i.test(robots || "");
   const sitemapFound = /<urlset|<sitemapindex|\blocation:/i.test(sitemap || "");
   const isCommerce = profile === "shop" || commerceSignalCount >= 2;
@@ -599,6 +613,55 @@ function analyzeHtml({ html, robots, sitemap, targetUrl, profile, timing }) {
       severity: "low",
       evidence: sitemapFound ? "sitemap.xml найден" : "sitemap.xml не найден",
       fix: "Сгенерировать sitemap.xml и указать его в robots.txt"
+    }),
+    makeCheck({
+      id: "meta-robots-index",
+      group: "seo",
+      title: "Индексация страницы",
+      passed: !hasNoindex,
+      severity: "high",
+      evidence: hasNoindex ? "На странице найден meta robots с noindex" : "Запрета noindex в HTML не найдено",
+      fix: "Проверить, не закрыта ли важная посадочная страница от индексации"
+    }),
+    makeCheck({
+      id: "html-lang",
+      group: "seo",
+      title: "Язык HTML-документа",
+      passed: hasHtmlLang,
+      severity: "low",
+      evidence: hasHtmlLang ? "Атрибут lang у html найден" : "У html не найден корректный lang",
+      fix: "Добавить lang=\"ru\" или актуальный язык страницы, чтобы поиску и браузерам было проще интерпретировать контент"
+    }),
+    makeCheck({
+      id: "text-volume",
+      group: "seo",
+      title: "Объём полезного текста",
+      passed: visibleTextLength >= 1200,
+      severity: "medium",
+      evidence: `На странице примерно ${visibleTextLength} символов видимого текста`,
+      fix: "Добавить описания услуг, преимуществ, кейсов, FAQ и коммерческие блоки под реальные запросы аудитории"
+    }),
+    makeCheck({
+      id: "internal-links",
+      group: "seo",
+      title: "Внутренняя перелинковка",
+      passed: internalLinkCount >= 3,
+      severity: "low",
+      evidence: `Внутренних ссылок найдено: ${internalLinkCount}`,
+      fix: "Добавить ссылки на важные услуги, кейсы, контакты, политику и смежные страницы"
+    }),
+    makeCheck({
+      id: "image-loading",
+      group: "seo",
+      title: "Оптимизация загрузки изображений",
+      passed: hasLazyImages,
+      severity: "low",
+      evidence: imageCount === 0
+        ? "Изображения на странице не найдены"
+        : hasLazyImages
+          ? "У части изображений есть loading=\"lazy\""
+          : "Не видны признаки отложенной загрузки изображений",
+      fix: "Для изображений ниже первого экрана добавить loading=\"lazy\" и проверить размеры файлов"
     }),
     makeCheck({
       id: "speed",
