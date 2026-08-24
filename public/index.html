@@ -69,9 +69,10 @@
                 </button>
               </div>
               <label class="policy">
-                <input type="checkbox" />
+                <input type="checkbox" required aria-describedby="policy-error" />
                 <span>Отправляя форму, Вы принимаете политику конфиденциальности</span>
               </label>
+              <span class="policy-error" id="policy-error" role="alert" aria-live="polite"></span>
             </form>
           </div>
 

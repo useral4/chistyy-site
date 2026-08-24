@@ -1,6 +1,9 @@
 const site = document.querySelector(".site");
 const form = document.querySelector(".check-form");
 const input = document.querySelector("#site-url");
+const policyCheckbox = document.querySelector(".policy input");
+const policyLabel = document.querySelector(".policy");
+const policyError = document.querySelector(".policy-error");
 const resultUrl = document.querySelector(".checked-url b");
 const resultTitle = document.querySelector(".result-title");
 const riskLabel = document.querySelector(".result-risk-label");
@@ -366,6 +369,13 @@ form?.addEventListener("submit", async (event) => {
     return;
   }
 
+  if (!policyCheckbox?.checked) {
+    policyLabel?.classList.add("is-invalid");
+    if (policyError) policyError.textContent = "Подтвердите согласие с политикой конфиденциальности";
+    policyCheckbox?.focus();
+    return;
+  }
+
   state.checkedUrl = url;
   if (resultUrl) resultUrl.textContent = url;
   showView("loading");
@@ -389,6 +399,12 @@ form?.addEventListener("submit", async (event) => {
     renderError(url, error.message || "Проверка временно недоступна");
     showView("result");
   }
+});
+
+policyCheckbox?.addEventListener("change", () => {
+  if (!policyCheckbox.checked) return;
+  policyLabel?.classList.remove("is-invalid");
+  if (policyError) policyError.textContent = "";
 });
 
 tabs.forEach((button) => {
