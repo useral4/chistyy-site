@@ -169,6 +169,7 @@ input {
 }
 
 .decor {
+  height: auto;
   position: absolute;
   z-index: 1;
   display: block;
@@ -747,6 +748,10 @@ input {
 }
 
 .details {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3em;
   margin: 30px 0 76px;
   padding: 0;
   border: 0;
@@ -754,6 +759,12 @@ input {
   color: #6f6f6f;
   font-size: 25px;
   cursor: pointer;
+}
+
+.details svg {
+  width: 0.65em;
+  height: 0.65em;
+  flex: none;
 }
 
 .messengers {
@@ -933,7 +944,7 @@ input {
   padding: 260px 32px 120px;
   overflow: hidden;
   isolation: isolate;
-  background: linear-gradient(180deg, rgba(25, 25, 25, 0) 0%, rgba(25, 25, 25, 0) 42%, var(--dark) 68%, var(--dark) 100%);
+  background: transparent;
   color: var(--white);
   text-align: center;
 }
@@ -944,10 +955,10 @@ input {
   top: 0;
   left: 50%;
   width: 2198px;
-  height: 818px;
-  border-radius: 50%;
+  height: 100%;
+  border-radius: 50% 50% 0 0 / 240px 240px 0 0;
   background:
-    radial-gradient(ellipse at 50% 55%, rgba(148, 24, 28, 0.92) 0, rgba(83, 18, 22, 0.95) 32%, #191919 70%),
+    radial-gradient(ellipse 70% 65% at 50% 35%, rgba(148, 24, 28, 0.92) 0, rgba(83, 18, 22, 0.95) 32%, var(--dark) 70%),
     var(--dark);
   content: "";
   transform: translateX(-50%);
@@ -955,6 +966,7 @@ input {
 }
 
 .bottom-cta::after {
+  display: none;
   position: absolute;
   z-index: 1;
   top: 440px;
@@ -2337,7 +2349,7 @@ body:has(.request-modal[open]) { overflow: hidden; }
 
   .bottom-cta::before {
     width: min(2198px, 114.4792vw);
-    height: min(818px, 42.6042vw);
+    border-radius: 50% 50% 0 0 / min(240px, 12.5vw) min(240px, 12.5vw) 0 0;
   }
 
   .bottom-cta::after {
@@ -2894,15 +2906,15 @@ body:has(.request-modal[open]) { overflow: hidden; }
   .bottom-cta {
     min-height: 530px;
     padding: 142px 24px 84px;
-    background: var(--dark);
+    background: transparent;
   }
 
   .bottom-cta::before {
-    top: 18px;
+    top: 0;
     width: 148vw;
-    height: 470px;
-    border-radius: 50%;
-    background: radial-gradient(ellipse at 50% 38%, #96181d 0, #631216 31%, #2b191a 57%, #191919 78%);
+    height: 100%;
+    border-radius: 50% 50% 0 0 / 100px 100px 0 0;
+    background: radial-gradient(ellipse 70% 65% at 50% 38%, #96181d 0, #631216 31%, #2b191a 57%, var(--dark) 78%);
   }
 
   .bottom-cta::after {
