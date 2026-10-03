@@ -155,33 +155,31 @@ function renderHero() {
   if (resultUrl) resultUrl.textContent = state.checkedUrl;
 
   const checks = Array.isArray(state.audit?.checks) ? state.audit.checks : [];
-  const failed = checks.filter((check) => check.status === "failed");
-  const failedLegal = failed.filter((check) => check.group === "legal");
-  const failedSeo = failed.filter((check) => check.group === "seo");
-  const review = checks.filter((check) => check.status === "review");
+  const group = state.tab === "growth" ? "seo" : "legal";
+  const groupChecks = checks.filter(check=>check.group===group);
+  const count = group === "legal" ? (state.audit?.summary?.legalIssues ?? groupChecks.filter(c=>c.status==='failed').length) : (state.audit?.summary?.seoIssues ?? groupChecks.filter(c=>c.status==='failed').length);
+  const review = groupChecks.filter((check) => check.status === "review");
   const fineMax = Number(state.audit?.summary?.fineMax) || 0;
 
   if (resultTitle) {
-    if (state.audit?.warning && failed.length === 0) {
+    if (state.audit?.warning) {
       resultTitle.textContent = "Нужна ручная проверка";
-    } else if (failed.length > 0) {
-      const noun = plural(failed.length, ["проблема", "проблемы", "проблем"]);
-
-      const single = failed.length % 10 === 1 && failed.length % 100 !== 11;
-      resultTitle.textContent = `${single ? (noun === "проблема" ? "Найдена" : "Найдено") : "Найдено"} ${failed.length} ${noun}`;
-    } else if (review.length > 0) {
-      resultTitle.textContent = "Есть пункты для проверки";
+    } else if (count > 0) {
+      const noun = plural(count, ["проблема", "проблемы", "проблем"]);
+      const single = count % 10 === 1 && count % 100 !== 11;
+      resultTitle.textContent = `${single ? "Найдена" : "Найдено"} ${count} ${noun}${group === "seo" ? " SEO" : " по штрафам"}`;
     } else {
-      resultTitle.textContent = "Критичных нарушений не найдено";
+      resultTitle.textContent = group === "seo" ? "SEO-проблем не найдено" : "Явных проблем по штрафам не найдено";
     }
   }
 
   if (riskLabel) riskLabel.textContent = "Справочный сценарий санкций для юрлица:";
-  if (riskValue) riskValue.textContent = fineMax > 0 ? `до ${formatRub(fineMax)}` : "Не определён по странице";
+  if (riskValue) riskValue.textContent = fineMax > 0 ? `до ${formatRub(fineMax)}` : "";
+  if (riskValue?.parentElement) riskValue.parentElement.hidden = group !== "legal" || fineMax === 0;
   const summary = document.querySelector(".audit-summary");
-  if (summary) summary.textContent = `Проверено: ${checks.length}. Недостатки: ${failed.length} (юридические: ${failedLegal.length}, SEO: ${failedSeo.length}). Требуют проверки: ${review.length}. Успешно: ${checks.filter(c => c.status === "passed").length}.`;
+  if (summary) summary.textContent = `${group === "legal" ? "Юридическая проверка" : "SEO-проверка"}: ${groupChecks.length + (group === "legal" ? (state.audit?.access?.hiddenLegal || 0) : 0)} пунктов. Найдено проблем: ${count}. Отдельно требуют проверки: ${review.length}. Успешно: ${groupChecks.filter(c=>c.status==='passed').length}.`;
   const scope = document.querySelector(".audit-scope");
-  if (scope) scope.textContent = [state.audit?.scope, state.audit?.summary?.fineBasis].filter(Boolean).join(" ");
+  if (scope) scope.textContent = [state.audit?.scope, group === "legal" && fineMax > 0 ? state.audit?.summary?.fineBasis : ""].filter(Boolean).join(" ");
 }
 
 function getSeoOverviewHtml(checks) {
@@ -201,7 +199,7 @@ function getSeoOverviewHtml(checks) {
         <div>
           <span class="seo-overview__eyebrow">SEO-аудит</span>
           <h3>Базовая проверка видимости сайта</h3>
-          <p>Все найденные недостатки видны бесплатно. Полный отчёт добавляет план исправлений. Оценка — доля успешных автоматических проверок, а не прогноз позиций.</p>
+          <p>SEO-проверки и рекомендации доступны бесплатно и считаются отдельно от юридических проблем. Оценка — доля успешных автоматических проверок, а не прогноз позиций.</p>
         </div>
         <div class="seo-overview__score">
           <strong>${score}</strong>
@@ -210,7 +208,7 @@ function getSeoOverviewHtml(checks) {
       </div>
       <div class="seo-overview__cards">
         <div><span>Проверено пунктов</span><strong>${seoChecks.length}</strong></div>
-        <div><span>Найдено проблем</span><strong>${failed + review}</strong></div>
+        <div><span>Найдено проблем</span><strong>${failed}</strong></div>
         <div><span>Открыто сейчас</span><strong>${openedNow}${locked ? ` / +${locked}` : ""}</strong></div>
       </div>
       <div class="seo-overview__chips" aria-label="Разделы SEO-проверки">
@@ -227,16 +225,16 @@ function getSeoOverviewHtml(checks) {
 
 function renderLockedReport(items) {
   if (!lockedReport) return;
-  const checks = Array.isArray(items) ? items : [];
-  lockedReport.classList.toggle("is-hidden", checks.length === 0);
-  lockedReport.classList.add("is-transparent");
-  if (lockedItems) lockedItems.innerHTML = "";
-  if (!checks.length) return;
-  const legalCount = checks.filter(c=>c.group === "legal").length;
-  const seoCount = checks.filter(c=>c.group === "seo").length;
-  if (lockedReportTitle) lockedReportTitle.textContent = "Что входит в полный отчёт";
-  if (lockedReportText) lockedReportText.textContent = `План по ${checks.length} ${plural(checks.length,["пункту","пунктам","пунктам"])}: юридические — ${legalCount}, SEO — ${seoCount}. Обоснования, порядок исправлений и результаты всех ${state.audit?.checks?.length || 0} проверок. Новые скрытые нарушения не добавляются.`;
-  if (lockedReportLink) lockedReportLink.textContent = "Получить план исправлений — 179 ₽";
+  const count = items ? Number(state.audit?.access?.hiddenLegal) || 0 : 0;
+  const locked = state.tab === "fines" && !state.reportUnlocked && count > 0;
+  lockedReport.classList.toggle("is-hidden", !locked);
+  lockedReport.classList.remove("is-transparent");
+  if (!locked) { if (lockedItems) lockedItems.innerHTML=""; return; }
+  // Generic shapes indicate locked findings without embedding private report data.
+  if (lockedItems) lockedItems.innerHTML = Array.from({length:Math.min(count,3)},()=>'<div class="locked-item"><div class="locked-shape"></div><div class="locked-shape"></div></div>').join("");
+  if (lockedReportTitle) lockedReportTitle.textContent = `Ещё ${count} ${plural(count,["проблема","проблемы","проблем"])} по штрафам`;
+  if (lockedReportText) lockedReportText.textContent = `Открыты первые ${state.audit.access.visibleLegal}. После оплаты получите все ${state.audit.access.totalLegal} найденных проблем: что обнаружено, на какой странице и как исправить. Пункты ручной проверки не входят в платный счётчик.`;
+  if (lockedReportLink) lockedReportLink.textContent = "Открыть все проблемы — 179 ₽";
 }
 
 function renderIssueList() {
@@ -264,26 +262,30 @@ function renderIssueList() {
         </div>
       </article>
     `;
-    renderLockedReport([]);
+    renderLockedReport(null);
     renderPassedChecks();
     return;
   }
 
   const visibleChecks = checks;
+  const failedCount = checks.filter(c=>c.status==='failed').length;
+  const reviewCount = checks.filter(c=>c.status==='review').length;
   issueList.innerHTML =
     seoOverviewHtml +
     visibleChecks
-    .map((check) => {
+    .map((check,index) => {
       const riskClass = check.status === "review" ? "is-review" : "";
+      const sectionTitle = check.status==='review' && (index===0 || checks[index-1].status!=='review') ? `<div data-lock-position></div><h3 class="issue-section-title">Нужна ручная проверка — ${reviewCount}</h3><p class="issue-section-note">Эти пункты не подтверждены как нарушения и не входят в число найденных проблем.</p>` : index===0 && failedCount ? '<h3 class="issue-section-title">Найденные проблемы</h3>' : '';
 
       return `
+        ${sectionTitle}
         <article>
           <div>
             <h3>${escapeHtml(check.title)}</h3>
             <p>${escapeHtml(getIssueText(check))}</p>
             ${check.law ? `<small class="issue-law">${escapeHtml(check.law)}${check.source ? ` · <a href="${escapeHtml(check.source)}" target="_blank" rel="noopener">Источник</a>` : ""}</small>` : ""}
             ${check.condition ? `<small class="issue-condition">${escapeHtml(check.condition)}</small>` : ""}
-            ${state.reportUnlocked && check.fix ? `<p class="issue-fix"><strong>Что сделать:</strong> ${escapeHtml(check.fix)}</p>` : ""}
+            ${check.fix ? `<p class="issue-fix"><strong>Что сделать:</strong> ${escapeHtml(check.fix)}</p>` : ""}
           </div>
           <div class="risk ${riskClass}"><span>!</span> ${escapeHtml(getPillText(check))}</div>
         </article>
@@ -291,7 +293,10 @@ function renderIssueList() {
     })
     .join("");
 
-  renderLockedReport(state.reportUnlocked || state.audit?.warning ? [] : getActionableChecks());
+  renderLockedReport(state.reportUnlocked || state.audit?.warning ? null : true);
+  const lockPosition=issueList.querySelector('[data-lock-position]');
+  if(lockPosition)lockPosition.replaceWith(lockedReport);
+  else issueList.append(lockedReport);
   renderPassedChecks();
 }
 
@@ -356,7 +361,15 @@ form?.addEventListener("submit", async (event) => {
 
     state.audit = audit;
     state.tab = "fines";
-    state.reportUnlocked = false;
+    state.reportUnlocked = audit.access?.full === true;
+    const download=document.querySelector('[data-report-download]');
+    if(download) download.hidden=!state.reportUnlocked;
+    document.querySelector('[data-report-print]').hidden=!state.reportUnlocked;
+    document.querySelector('[data-report-link]').hidden=!audit.reportToken;
+    const status=document.querySelector('.report-payment-status');
+    status.hidden=!state.reportUnlocked;
+    if(state.reportUnlocked)status.textContent='Весь отчёт открыт бесплатно: найдено не больше 5 юридических проблем. Можно сохранить ссылку и скачать результаты.';
+    document.querySelector('[data-report-refresh]').hidden=true;
     renderResult();
     showView("result");
   } catch (error) {
@@ -430,7 +443,7 @@ async function startTestPayment() {
     const response = await fetch("/api/payments", { method:"POST", headers:{"Content-Type":"application/json"},body:JSON.stringify({reportToken:state.audit.reportToken}) });
     const payment = await response.json();
     if (!response.ok) throw new Error(payment.error || "Не удалось создать тестовый платёж");
-    if (payment.paid) { await restoreReport(state.audit.reportToken); closePaymentModal(); return; }
+    if (payment.paid || payment.free) { await restoreReport(state.audit.reportToken); closePaymentModal(); return; }
     if (payment.test !== true) throw new Error("Доступен только тестовый режим");
     window.location.assign(payment.confirmationUrl);
   } catch (error) { paymentHint.textContent = error.message; }
@@ -443,19 +456,42 @@ async function restoreReport(token) {
   if (!response.ok) throw new Error(result.error || "Отчёт недоступен");
   state.audit = result.audit;
   state.checkedUrl = result.audit.url;
-  state.reportUnlocked = result.paid;
+  state.reportUnlocked = result.paid || result.audit.access?.full === true;
   renderResult(); showView("result");
   const note = document.querySelector(".report-payment-status");
   if (note) {
     note.hidden = false;
-    note.textContent = result.paid ? "Тестовый платёж подтверждён. План исправлений открыт." : result.canceled ? "Тестовый платёж отменён. Отчёт сохранён, можно повторить оплату." : "Оплата пока не подтверждена. Можно проверить статус ещё раз.";
+    note.textContent = result.paid ? "Тестовый платёж подтверждён. Все найденные проблемы и рекомендации открыты. Сохраните ссылку или скачайте отчёт." : state.reportUnlocked ? "Найдено не больше 5 юридических проблем — полный отчёт доступен бесплатно." : result.canceled ? "Тестовый платёж отменён. Отчёт сохранён, можно повторить оплату." : "Оплата пока не подтверждена. Если платёж ещё обрабатывается, отчёт откроется после подтверждения. Можно проверить статус ещё раз.";
   }
-  document.querySelector("[data-report-refresh]").hidden = result.paid;
-  document.querySelector("[data-report-download]").hidden = !result.paid;
+  document.querySelector("[data-report-refresh]").hidden = state.reportUnlocked;
+  document.querySelector("[data-report-download]").hidden = !state.reportUnlocked;
+  document.querySelector("[data-report-print]").hidden = !state.reportUnlocked;
+  document.querySelector("[data-report-link]").hidden = false;
   return result;
 }
 const returnToken = new URLSearchParams(window.location.search).get("report");
-if (/^[a-f0-9]{48}$/.test(returnToken || "")) restoreReport(returnToken).catch(error=>{showView("result");document.querySelector(".report-payment-status").hidden=false;document.querySelector(".report-payment-status").textContent=error.message;});
+if (/^[a-f0-9]{48}$/.test(returnToken || "")) (async()=>{
+  for(let attempt=0;attempt<7;attempt++){
+    const result=await restoreReport(returnToken);
+    if(state.reportUnlocked||result.canceled)break;
+    if(attempt<6)await new Promise(resolve=>setTimeout(resolve,5000));
+  }
+})().catch(error=>{showView("result");document.querySelector(".report-payment-status").hidden=false;document.querySelector(".report-payment-status").textContent=error.message;});
+document.querySelector('[data-report-print]')?.addEventListener('click',()=>{
+  if(!state.reportUnlocked)return;
+  document.querySelector('.print-report')?.remove();
+  const report=document.createElement('section');report.className='print-report';
+  const status={failed:'Проблема',review:'Требует проверки',passed:'Проверка пройдена'};
+  report.innerHTML=`<h1>Отчёт KinavaPro</h1><p>${escapeHtml(state.audit.url)} · ${escapeHtml(state.audit.checkedAt||'')}</p><p>${escapeHtml(state.audit.scope)}</p>${state.audit.checks.map(c=>`<article><h2>${escapeHtml(c.title)} — ${status[c.status]||''}</h2><p>${escapeHtml(c.evidence)}</p>${c.fix?`<p><strong>Что сделать:</strong> ${escapeHtml(c.fix)}</p>`:''}<p>${escapeHtml(c.law||'')} ${escapeHtml(c.condition||'')}</p></article>`).join('')}`;
+  document.body.append(report);window.print();
+});
+window.addEventListener('afterprint',()=>document.querySelector('.print-report')?.remove());
+document.querySelector('[data-report-link]')?.addEventListener('click',async()=>{
+  const token=state.audit?.reportToken;
+  if(!token)return;
+  const url=new URL('/?report='+token,location.origin).href;
+  try{await navigator.clipboard.writeText(url);document.querySelector('.report-payment-status').hidden=false;document.querySelector('.report-payment-status').textContent='Ссылка скопирована. Она даёт доступ к этому отчёту — храните её у себя.';}catch{document.querySelector('.report-payment-status').hidden=false;document.querySelector('.report-payment-status').textContent='Ссылка на отчёт: '+url;}
+});
 document.querySelector("[data-report-refresh]")?.addEventListener("click",()=>restoreReport(state.audit?.reportToken || returnToken).catch(error=>{document.querySelector(".report-payment-status").textContent=error.message;}));
 document.querySelector("[data-report-download]")?.addEventListener("click",()=>{
   if (!state.reportUnlocked) return;

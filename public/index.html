@@ -271,7 +271,7 @@
                 <h3>Цифровой полный отчёт</h3>
                 <p>Отчёт показывает найденные нарушения, точки потери заявок и рекомендации по исправлению для проверяемого сайта.</p>
                 <strong>179 ₽</strong>
-                <p>Цена фиксированная. После оплаты доступ к полному отчёту открывается на странице результата проверки.</p>
+                <p>До 5 юридических проблем — полный отчёт бесплатно. Если найдено 6 и больше, первые 3 открыты, остальные доступны за 179 ₽. SEO доступно бесплатно.</p>
               </article>
 
               <article>
@@ -391,12 +391,14 @@
           <p class="report-payment-status" role="status" hidden></p>
           <button type="button" data-report-refresh hidden>Проверить статус оплаты</button>
           <button type="button" data-report-download hidden>Скачать полный отчёт</button>
+          <button type="button" data-report-print hidden>Сохранить в PDF / печать</button>
+          <button type="button" data-report-link hidden>Скопировать ссылку на отчёт</button>
         </div>
 
         <section class="result-panel">
           <div class="tabs" role="tablist" aria-label="Разделы проверки">
             <button class="active" type="button" data-result-tab="fines" role="tab" aria-selected="true">Штрафы</button>
-            <button type="button" data-result-tab="growth" role="tab" aria-selected="false">Почему теряете клиентов?</button>
+            <button type="button" data-result-tab="growth" role="tab" aria-selected="false">SEO</button>
           </div>
 
           <div class="issue-list" aria-live="polite">
@@ -425,8 +427,8 @@
       <div class="payment-modal__dialog">
         <button class="payment-modal__close" type="button" data-payment-close aria-label="Закрыть">×</button>
         <p class="payment-modal__eyebrow">Полный отчёт</p>
-        <h2 id="payment-modal-title">План исправления сайта</h2>
-        <p class="payment-modal__text">Отчёт за 179 ₽ содержит рекомендации по найденным пунктам, приоритеты работ и результаты успешных проверок. Число пунктов зависит от вашего сайта.</p>
+        <h2 id="payment-modal-title">Откройте все найденные проблемы</h2>
+        <p class="payment-modal__text">За 179 ₽ откроются все юридические проблемы, найденные в этой проверке: доказательства, страницы, основания и рекомендации. После подтверждения оплаты вы вернётесь к полному отчёту, сможете скачать его и сохранить ссылку. При 5 проблемах или меньше весь отчёт бесплатный.</p>
         <button class="payment-modal__buy" type="button" data-payment-buy>Проверить тестовую оплату</button>
         <small class="payment-modal__hint" data-payment-hint>Доступ к цифровому отчёту предоставляется после оплаты.</small>
         <a class="payment-modal__terms" href="#payment-terms" data-payment-terms>Условия оплаты и получения отчёта</a>

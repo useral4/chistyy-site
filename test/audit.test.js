@@ -38,3 +38,19 @@ test('Internal, mapped and reserved IP ranges are forbidden',async()=>{
   assert.equal(publicAddress('8.8.8.8'),true);assert.equal(publicAddress('2606:4700:4700::1111'),true);
   await assert.rejects(fetchText('http://127.0.0.1'),/адреса/);
 });
+
+test('Contact page forms are checked, including insecure GET and bundled/marketing consent',()=>{
+ const a=audit('<h1>Главная</h1>',{resources:[{kind:'page',ok:true,url:'https://example.ru/contact',text:'<form action="http://example.ru/send" method="get"><input type="email"><label><input type="checkbox" required>Согласен на обработку персональных данных и принимаю оферту</label><label><input type="checkbox" checked>Рекламная рассылка</label></form>'}]});
+ for(const id of ['form-transport','form-url-data','consent-document','consent-separate','marketing-choice'])assert.equal(check(a,id).status,'failed',id);
+ assert.equal(a.facts.dataFormCount,1);assert.match(check(a,'form-transport').evidence,/contact/);
+});
+test('Missing policy creates no invented policy-section failures; optional marketing and POST are valid',()=>{
+ const a=audit('<form method="post" action="/send"><input type="email"><label><input type="checkbox" required>Согласен на обработку персональных данных <a href="/consent">Согласие</a></label><label><input type="checkbox">Рекламная рассылка</label></form>');
+ for(const id of ['form-transport','form-url-data','consent-document','consent-separate','marketing-choice'])assert.equal(check(a,id).status,'passed',id);
+ for(const id of ['policy-purposes','policy-data','policy-contact','policy-rights','policy-retention'])assert.equal(check(a,id).status,'review',id);
+});
+test('Analytics banner with acceptance only is distinguished from one allowing refusal',()=>{
+ const banner='<script>ym(123,"init",{})</script><div id="cookie-banner">Cookie <button>Принять</button>';
+ assert.equal(check(audit(banner+'</div>'),'cookie-refusal').status,'failed');
+ assert.equal(check(audit(banner+'<button>Только необходимые</button></div>'),'cookie-refusal').status,'passed');
+});

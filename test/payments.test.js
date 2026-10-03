@@ -8,7 +8,7 @@ test('Test-only API, idempotency, pending/canceled/amount tampering and verified
   const original=global.fetch;const old={...process.env};
   try{
     process.env.YOOKASSA_MODE='test';process.env.YOOKASSA_SHOP_ID='1391549';process.env.YOOKASSA_SECRET_KEY='live_not_allowed';process.env.PUBLIC_URL='https://kinavapro.ru';assert.equal(configured(),false);
-    const token=await reports.create({url:'https://example.ru',checks:[{id:'title',status:'failed',fix:'SECRET PLAN'}]});
+    const token=await reports.create({url:'https://example.ru',checks:Array.from({length:6},(_,i)=>({id:'legal-'+i,group:'legal',status:'failed',fix:'SECRET PLAN',evidence:'SECRET EVIDENCE '+i}))});
     assert.equal((await invoke('/api/payments',{reportToken:token})).status,503);
     process.env.YOOKASSA_SECRET_KEY='test_fake_for_unit_test';assert.equal(configured(),true);
     let phase='pending',amount='179.00',calls=0;
@@ -19,9 +19,13 @@ test('Test-only API, idempotency, pending/canceled/amount tampering and verified
     const [a,b]=await Promise.all([invoke('/api/payments',{reportToken:token}),invoke('/api/payments',{reportToken:token})]);assert.equal(a.status,201);assert.equal(b.status,201);assert.equal(calls,1);
     assert.equal((await invoke('/api/payments',{reportToken:token})).status,200);assert.equal(calls,1);
     let preview=await invoke('/api/report?token='+token);assert.equal(preview.paid,false);assert.equal(preview.audit.checks[0].fix,undefined);
+    assert.equal(preview.audit.checks.length,3);assert.equal(preview.audit.access.hiddenLegal,3);assert.ok(!JSON.stringify(preview).includes('SECRET EVIDENCE 5'));
     phase='succeeded';amount='1.00';assert.equal((await invoke('/api/report?token='+token)).paid,false);
     amount='179.00';const unlocked=await invoke('/api/report?token='+token);assert.equal(unlocked.paid,true);assert.equal(unlocked.audit.checks[0].fix,'SECRET PLAN');
     const record=await reports.read(token);record.paid=false;await reports.write(token,record);phase='canceled';assert.equal((await invoke('/api/report?token='+token)).canceled,true);assert.equal((await reports.read(token)).paymentId,null);
     assert.equal((await invoke('/api/report?token=../../secret')).status,404);
+    const freeToken=await reports.create({checks:[{id:'small',group:'legal',status:'failed',fix:'FREE PLAN'}]});
+    assert.equal((await invoke('/api/payments',{reportToken:freeToken})).free,true);assert.equal(calls,1,'No charge created for a small report');
+    assert.equal((await invoke('/api/report?token='+freeToken)).audit.checks[0].fix,'FREE PLAN');
   }finally{global.fetch=original;for(const key of ['YOOKASSA_MODE','YOOKASSA_SHOP_ID','YOOKASSA_SECRET_KEY','PUBLIC_URL'])if(old[key]===undefined)delete process.env[key];else process.env[key]=old[key];if(scratch.startsWith(path.resolve(__dirname,'../../../work')+path.sep))await fs.rm(scratch,{recursive:true,force:true});}
 });
