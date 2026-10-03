@@ -65,7 +65,7 @@ function initStatsSlider() {
 }
 
 function openPaymentModal() {
-  paymentHint && (paymentHint.textContent = "Доступ к цифровому отчёту предоставляется после оплаты. До подключения магазина можно открыть демо-доступ для теста.");
+  paymentHint && (paymentHint.textContent = "Доступ к цифровому отчёту предоставляется после оплаты.");
   paymentModal?.classList.add("is-open");
   paymentModal?.setAttribute("aria-hidden", "false");
 }
@@ -73,13 +73,6 @@ function openPaymentModal() {
 function closePaymentModal() {
   paymentModal?.classList.remove("is-open");
   paymentModal?.setAttribute("aria-hidden", "true");
-}
-
-function unlockReportDemo() {
-  state.reportUnlocked = true;
-  closePaymentModal();
-  renderResult();
-  document.querySelector(".result-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function normalizeUrl(value) {
@@ -423,8 +416,6 @@ document.querySelectorAll("[data-payment-close]").forEach((button) => {
   button.addEventListener("click", closePaymentModal);
 });
 
-document.querySelector("[data-demo-unlock]")?.addEventListener("click", unlockReportDemo);
-
 document.querySelector("[data-payment-buy]")?.addEventListener("click", () => {
   if (paymentHint) {
     paymentHint.textContent = "Платёжный переход будет доступен после подключения магазина. Стоимость цифрового отчёта - 179 ₽.";
@@ -452,3 +443,74 @@ document.querySelectorAll(".js-home, .back-home").forEach((link) => {
 });
 
 initStatsSlider();
+
+const requestModal = document.querySelector(".request-modal");
+const requestForm = document.querySelector(".request-form");
+const requestSuccess = document.querySelector(".request-success");
+const requestStatus = document.querySelector(".request-status");
+const requestSubmit = document.querySelector(".request-submit");
+let requestPending = false;
+let requestTrigger = null;
+
+document.querySelectorAll("[data-request-service]").forEach((button) => {
+  button.addEventListener("click", () => {
+    requestTrigger = button;
+    requestForm.reset();
+    requestForm.elements.service.value = button.dataset.requestService;
+    requestForm.elements.website.value = input?.value.trim() || "";
+    requestForm.hidden = false;
+    requestSuccess.hidden = true;
+    requestStatus.textContent = "";
+    requestModal.showModal();
+    requestForm.elements.website.focus();
+  });
+});
+
+function closeRequest() {
+  if (!requestPending) requestModal.close();
+}
+document.querySelector(".request-close")?.addEventListener("click", closeRequest);
+document.querySelector(".request-done")?.addEventListener("click", closeRequest);
+requestModal?.addEventListener("click", (event) => {
+  const bounds = requestModal.getBoundingClientRect();
+  if (event.target === requestModal && (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom)) closeRequest();
+});
+requestModal?.addEventListener("cancel", (event) => {
+  if (requestPending) event.preventDefault();
+});
+requestModal?.addEventListener("close", () => requestTrigger?.focus());
+requestForm?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  if (requestPending || !requestForm.reportValidity()) return;
+  const fields = Object.fromEntries(new FormData(requestForm));
+  fields.consent = requestForm.elements.consent.checked;
+  requestPending = true;
+  requestSubmit.disabled = true;
+  requestForm.setAttribute("aria-busy", "true");
+  requestSubmit.textContent = "Отправляем…";
+  requestStatus.textContent = "";
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), 15000);
+  try {
+    const response = await fetch("/api/requests", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(fields), signal: controller.signal
+    });
+    const result = await response.json();
+    if (!response.ok || !result.id) throw new Error(result.error || "Не удалось отправить заявку");
+    document.querySelector(".request-confirmation").textContent = `Номер заявки: ${result.id}. Email для ответа: ${fields.email}.`;
+    requestForm.hidden = true;
+    requestSuccess.hidden = false;
+    requestSuccess.focus();
+  } catch (error) {
+    requestStatus.textContent = error.name === "AbortError" || error instanceof TypeError
+      ? "Не удалось получить подтверждение. Проверьте соединение и повторите отправку или напишите нам в Telegram."
+      : error.message;
+  } finally {
+    window.clearTimeout(timeout);
+    requestPending = false;
+    requestSubmit.disabled = false;
+    requestForm.removeAttribute("aria-busy");
+    requestSubmit.textContent = "Отправить заявку";
+  }
+});

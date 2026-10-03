@@ -184,7 +184,7 @@
                 <button class="details" type="button">Показать подробнее⌄</button>
                 <strong>от 5 000р</strong>
                 <span>Стоимость зависит от объёма<br />ошибок на сайте</span>
-                <a class="dark-btn" href="#">Узнать точную стоимость</a>
+                <button class="dark-btn" type="button" data-request-service="legal">Узнать точную стоимость</button>
               </article>
               <article class="service-card">
                 <img src="/assets/service-seo.png" alt="" />
@@ -193,7 +193,7 @@
                 <button class="details" type="button">Показать подробнее⌄</button>
                 <strong>от 15 000р</strong>
                 <span>Стоимость зависит от<br />количества страниц на сайте</span>
-                <a class="dark-btn" href="#">Узнать точную стоимость</a>
+                <button class="dark-btn" type="button" data-request-service="seo">Узнать точную стоимость</button>
               </article>
             </div>
           </div>
@@ -406,11 +406,34 @@
         <h2 id="payment-modal-title">Откройте все найденные пункты</h2>
         <p class="payment-modal__text">Цифровой отчёт стоит 179 ₽. После оплаты здесь откроются точные рекомендации по каждому найденному пункту.</p>
         <button class="payment-modal__buy" type="button" data-payment-buy>Купить за 179 ₽</button>
-        <button class="payment-modal__demo" type="button" data-demo-unlock>Посмотреть демо-доступ</button>
-        <small class="payment-modal__hint" data-payment-hint>Доступ к цифровому отчёту предоставляется после оплаты. До подключения магазина можно открыть демо-доступ для теста.</small>
+        <small class="payment-modal__hint" data-payment-hint>Доступ к цифровому отчёту предоставляется после оплаты.</small>
         <a class="payment-modal__terms" href="#payment-terms" data-payment-terms>Условия оплаты и получения отчёта</a>
       </div>
     </div>
+    <dialog class="request-modal" aria-labelledby="request-title">
+      <button class="request-close" type="button" aria-label="Закрыть форму">×</button>
+      <p class="request-eyebrow">Расчёт стоимости</p>
+      <h2 id="request-title">Обсудим ваш сайт</h2>
+      <p class="request-intro">Посмотрим задачу, уточним детали и согласуем стоимость до начала работ.</p>
+      <form class="request-form">
+        <label>Услуга<select name="service" required><option value="legal">Устранение нарушений</option><option value="seo">Продвижение сайта</option></select></label>
+        <label>Адрес сайта<input name="website" type="text" inputmode="url" placeholder="example.ru" maxlength="2048" required /></label>
+        <label>Как к вам обращаться <span>(необязательно)</span><input name="name" autocomplete="name" maxlength="100" /></label>
+        <label>Email для ответа<input name="email" type="email" autocomplete="email" placeholder="you@example.ru" maxlength="254" required /></label>
+        <label>Что нужно сделать <span>(необязательно)</span><textarea name="message" rows="3" maxlength="2000" placeholder="Расскажите о задаче или задайте вопрос"></textarea></label>
+        <label class="request-consent"><input name="consent" type="checkbox" required /><span>Согласен на обработку указанных данных для рассмотрения заявки и связи со мной.</span></label>
+        <p class="request-status" role="status" aria-live="polite"></p>
+        <button class="request-submit" type="submit">Отправить заявку</button>
+        <small>Отправка заявки бесплатна и не обязывает заказывать работы.</small>
+      </form>
+      <div class="request-success" hidden tabindex="-1">
+        <h3>Заявка получена</h3>
+        <p class="request-confirmation"></p>
+        <p>Дальше мы изучим сайт и напишем на указанный email, чтобы уточнить задачу. Вы получите предложение со стоимостью и сроками, затем решите, подходит ли оно вам.</p>
+        <a href="https://t.me/svaslyeva" target="_blank" rel="noopener noreferrer">Обсудить в Telegram</a>
+        <button class="request-done" type="button">Вернуться на сайт</button>
+      </div>
+    </dialog>
     <script src="/app.js" defer></script>
   </body>
 </html>

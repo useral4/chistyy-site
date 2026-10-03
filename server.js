@@ -2,6 +2,7 @@ const http = require("node:http");
 const fs = require("node:fs");
 const path = require("node:path");
 const { performance } = require("node:perf_hooks");
+const { randomUUID } = require("node:crypto");
 
 const PORT = Number(process.env.PORT || 4173);
 const PUBLIC_DIR = path.join(__dirname, "public");
@@ -869,7 +870,72 @@ async function handleAudit(req, res) {
   }
 }
 
+async function handleRequest(req, res) {
+  if (req.method !== "POST") {
+    res.setHeader("Allow", "POST");
+    return sendJson(res, 405, { error: "Используйте POST" });
+  }
+  if (!/^application\/json(?:;|$)/i.test(req.headers["content-type"] || "")) {
+    return sendJson(res, 415, { error: "Нужен формат JSON" });
+  }
+  const chunks = [];
+  try {
+    let bytes = 0;
+    for await (const chunk of req) {
+      bytes += chunk.length;
+      if (bytes > 16384) {
+        sendJson(res, 413, { error: "Заявка слишком большая" });
+        return;
+      }
+      chunks.push(chunk);
+    }
+    const data = JSON.parse(Buffer.concat(chunks).toString("utf8"));
+    const limits = { website: 2048, email: 254, name: 100, message: 2000 };
+    if (!data || typeof data !== "object" || !["legal", "seo"].includes(data.service) || data.consent !== true) {
+      return sendJson(res, 400, { error: "Выберите услугу и подтвердите согласие на обработку данных" });
+    }
+    for (const [field, limit] of Object.entries(limits)) {
+      if (data[field] != null && (typeof data[field] !== "string" || data[field].length > limit)) {
+        return sendJson(res, 400, { error: "Проверьте длину и формат полей" });
+      }
+    }
+    const email = (data.email || "").trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return sendJson(res, 400, { error: "Укажите email для ответа" });
+    }
+    let website;
+    try {
+      website = normalizeTarget(data.website);
+      if (!website.hostname.includes(".") || website.username || website.password) throw new Error();
+    } catch {
+      return sendJson(res, 400, { error: "Проверьте адрес сайта, например example.ru" });
+    }
+    const request = {
+      id: randomUUID(), createdAt: new Date().toISOString(), service: data.service,
+      website: website.href, email, name: (data.name || "").trim(),
+      message: (data.message || "").trim(), consent: true, consentVersion: "request-v1"
+    };
+    const directory = path.resolve(process.env.LEADS_DIR || path.join(__dirname, "data"));
+    const relative = path.relative(PUBLIC_DIR, directory);
+    if (!relative || (!relative.startsWith(`..${path.sep}`) && relative !== ".." && !path.isAbsolute(relative))) {
+      throw Object.assign(new Error("LEADS_DIR must be outside public"), { code: "UNSAFE_LEADS_DIR" });
+    }
+    await fs.promises.mkdir(directory, { recursive: true });
+    // One file per request: no shared append races and no publicly served personal data.
+    await fs.promises.writeFile(path.join(directory, `${request.id}.json`), JSON.stringify(request, null, 2), { flag: "wx", mode: 0o600 });
+    sendJson(res, 201, { id: request.id });
+  } catch (error) {
+    if (error instanceof SyntaxError) return sendJson(res, 400, { error: "Некорректный JSON" });
+    console.error("Request could not be saved:", error.code || "unknown");
+    if (!res.headersSent) sendJson(res, 503, { error: "Не удалось сохранить заявку. Попробуйте ещё раз или напишите нам в Telegram." });
+  }
+}
+
 const server = http.createServer((req, res) => {
+  if (new URL(req.url, `http://${req.headers.host}`).pathname === "/api/requests") {
+    handleRequest(req, res);
+    return;
+  }
   if (req.url.startsWith("/api/audit")) {
     handleAudit(req, res);
     return;
