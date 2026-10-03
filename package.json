@@ -3,9 +3,14 @@
   "version": "1.0.0",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "test": "node --test test/*.test.js"
   },
   "engines": {
-    "node": "20.x"
+    "node": "24.x"
+  },
+  "dependencies": {
+    "cheerio": "1.2.0",
+    "nodemailer": "10.0.13"
   }
 }

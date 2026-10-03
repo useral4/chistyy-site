@@ -3,6 +3,11 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { performance } = require("node:perf_hooks");
 const { randomUUID } = require("node:crypto");
+const { fetchText: safeFetchText } = require("./lib/safe-fetch");
+const { enhanceAudit, collectResources } = require("./lib/audit-engine");
+const reports = require("./lib/reports");
+const { handlePayments, publicConfig } = require("./lib/payments");
+const { notifyLead } = require("./lib/mail");
 
 const PORT = Number(process.env.PORT || 4173);
 const PUBLIC_DIR = path.join(__dirname, "public");
@@ -13,6 +18,9 @@ const MIME_TYPES = {
   ".js": "text/javascript; charset=utf-8",
   ".json": "application/json; charset=utf-8",
   ".svg": "image/svg+xml",
+  ".xml": "application/xml; charset=utf-8",
+  ".txt": "text/plain; charset=utf-8",
+  ".ico": "image/x-icon",
   ".png": "image/png",
   ".jpg": "image/jpeg",
   ".jpeg": "image/jpeg",
@@ -51,6 +59,9 @@ function sendJson(res, status, payload) {
 
 function serveStatic(req, res) {
   const requestUrl = new URL(req.url, `http://${req.headers.host}`);
+  if (requestUrl.pathname === "/index.html") {
+    res.writeHead(301, {Location: "/" + requestUrl.search}); res.end(); return;
+  }
   const requestedPath =
     requestUrl.pathname === "/" ? "/index.html" : decodeURIComponent(requestUrl.pathname);
   const safePath = path
@@ -73,6 +84,8 @@ function serveStatic(req, res) {
     }
 
     const ext = path.extname(filePath).toLowerCase();
+    if (ext === ".html" && /^[a-f0-9]{16,64}$/i.test(process.env.YANDEX_VERIFICATION || "")) data = Buffer.from(data.toString("utf8").replace("</head>", `<meta name="yandex-verification" content="${process.env.YANDEX_VERIFICATION}" /></head>`));
+    if (requestUrl.searchParams.has("report")) res.setHeader("X-Robots-Tag", "noindex, nofollow");
     res.writeHead(200, {
       "Content-Type": MIME_TYPES[ext] || "application/octet-stream",
       "Cache-Control": "no-store"
@@ -96,37 +109,9 @@ function normalizeTarget(input) {
   return url;
 }
 
-async function fetchText(url, timeoutMs = 12000) {
-  const startedAt = performance.now();
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), timeoutMs);
-
-  try {
-    const response = await fetch(url, {
-      redirect: "follow",
-      signal: controller.signal,
-      headers: {
-        "User-Agent": "KinavaAuditBot/0.3 (+https://kinava.local; legal and seo audit)",
-        Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
-      }
-    });
-
-    return {
-      ok: response.ok,
-      status: response.status,
-      finalUrl: response.url,
-      text: await response.text(),
-      responseMs: Math.round(performance.now() - startedAt),
-      contentType: response.headers.get("content-type") || ""
-    };
-  } finally {
-    clearTimeout(timeout);
-  }
-}
-
 async function fetchOptional(url) {
   try {
-    const result = await fetchText(url, 5000);
+    const result = await safeFetchText(url, 5000);
     return result.ok ? result.text : "";
   } catch {
     return "";
@@ -756,36 +741,6 @@ function analyzeHtml({ html, robots, sitemap, targetUrl, profile, timing }) {
   };
 }
 
-function demoAudit(rawUrl, profile, message) {
-  const targetUrl = normalizeTarget(rawUrl || "demo.kinava.local");
-  const demoHtml = `<!doctype html>
-    <html lang="ru">
-      <head><title>Демо сайт</title></head>
-      <body>
-        <h1>Услуги для бизнеса</h1>
-        <form><input name="phone"></form>
-        <img src="case.jpg">
-        <section>Реклама партнера. Скидка на запуск сайта.</section>
-      </body>
-    </html>`;
-
-  const audit = analyzeHtml({
-    html: demoHtml,
-    robots: "",
-    sitemap: "",
-    targetUrl,
-    profile,
-    timing: {
-      responseMs: 2200,
-      status: 0,
-      finalUrl: targetUrl.href
-    }
-  });
-
-  audit.warning = message;
-  return audit;
-}
-
 async function handleAudit(req, res) {
   const requestUrl = new URL(req.url, `http://${req.headers.host}`);
   const raw = requestUrl.searchParams.get("url");
@@ -800,27 +755,31 @@ async function handleAudit(req, res) {
   }
 
   try {
-    const page = await fetchText(targetUrl.href);
+    const page = await safeFetchText(targetUrl.href);
+    if (!page.ok || !/text\/html|application\/xhtml/i.test(page.contentType)) throw new Error(`Страница не доступна как HTML (HTTP ${page.status})`);
     const finalUrl = new URL(page.finalUrl || targetUrl.href);
-    const [robots, sitemap] = await Promise.all([
+    const [robots, sitemap, resources] = await Promise.all([
       fetchOptional(new URL("/robots.txt", finalUrl).href),
-      fetchOptional(new URL("/sitemap.xml", finalUrl).href)
+      fetchOptional(new URL("/sitemap.xml", finalUrl).href),
+      collectResources(page)
     ]);
 
-    const audit = analyzeHtml({
+    const audit = enhanceAudit({
       html: page.text,
       robots,
       sitemap,
+      resources,
       targetUrl,
       profile,
       timing: page
-    });
+    }, analyzeHtml);
 
     if (!page.ok) {
       audit.warning = `Сайт ответил HTTP ${page.status}; часть проверки может быть неполной.`;
     }
 
-    sendJson(res, 200, audit);
+    const token = await reports.create(audit);
+    sendJson(res, 200, reports.preview(audit, token));
   } catch (error) {
     const profileConfig = PROFILES[profile] || PROFILES.lead;
     const message = `Не удалось загрузить сайт: ${error.message}. Автоматические выводы не сформированы.`;
@@ -923,6 +882,8 @@ async function handleRequest(req, res) {
     await fs.promises.mkdir(directory, { recursive: true });
     // One file per request: no shared append races and no publicly served personal data.
     await fs.promises.writeFile(path.join(directory, `${request.id}.json`), JSON.stringify(request, null, 2), { flag: "wx", mode: 0o600 });
+    // Saved requests remain queued if SMTP is unavailable; delivery failures do not discard them.
+    notifyLead(request, directory).catch(() => console.error("Lead notification remains queued"));
     sendJson(res, 201, { id: request.id });
   } catch (error) {
     if (error instanceof SyntaxError) return sendJson(res, 400, { error: "Некорректный JSON" });
@@ -931,19 +892,45 @@ async function handleRequest(req, res) {
   }
 }
 
+const requestRates = new Map();
+let activeAudits = 0;
 const server = http.createServer((req, res) => {
+  res.setHeader("Referrer-Policy", "no-referrer");
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  const route = new URL(req.url, `http://${req.headers.host}`).pathname;
+  if (["/api/audit", "/api/requests", "/api/payments", "/api/report"].includes(route)) {
+    const ip = process.env.TRUST_PROXY === "1" ? String(req.headers["x-forwarded-for"] || req.socket.remoteAddress).split(",").pop().trim() : req.socket.remoteAddress;
+    const key = route + ip;
+    const now = Date.now();
+    for (const [entry, value] of requestRates) if (value.until < now) requestRates.delete(entry);
+    const limit = route === "/api/audit" || route === "/api/report" ? 10 : 5;
+    const value = requestRates.get(key) || {count: 0, until: now + 60000};
+    if (++value.count > limit || requestRates.size > 10000) {
+      res.setHeader("Retry-After", "60"); return sendJson(res, 429, {error:"Слишком много запросов. Повторите через минуту."});
+    }
+    requestRates.set(key, value);
+  }
+  if (route === "/api/config") return sendJson(res, 200, publicConfig());
+  if (route === "/api/payments" || route === "/api/report") {
+    handlePayments(req, res, sendJson).catch(() => sendJson(res, 503, {error:"Платёжный сервис временно недоступен. Попробуйте позже."}));
+    return;
+  }
   if (new URL(req.url, `http://${req.headers.host}`).pathname === "/api/requests") {
     handleRequest(req, res);
     return;
   }
-  if (req.url.startsWith("/api/audit")) {
-    handleAudit(req, res);
+  if (route === "/api/audit") {
+    if (req.method !== "GET") return sendJson(res, 405, {error:"Нужен GET"});
+    if (activeAudits >= 6) return sendJson(res, 503, {error:"Все проверки заняты. Повторите чуть позже."});
+    activeAudits++;
+    handleAudit(req, res).catch(() => { if (!res.headersSent) sendJson(res, 503, {error:"Не удалось выполнить проверку"}); }).finally(() => activeAudits--);
     return;
   }
 
   serveStatic(req, res);
 });
 
-server.listen(PORT, () => {
+if (require.main === module) server.listen(PORT, () => {
   console.log(`Kinava Audit running at http://localhost:${PORT}`);
 });
+module.exports = { analyzeHtml, server };
