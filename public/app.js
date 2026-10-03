@@ -135,7 +135,7 @@ function getTabChecks() {
 }
 
 function getPillText(check) {
-  if (check.status === "review") return "Проверить";
+  if (check.status === "review") return "Нет данных";
   if (state.tab === "growth") return check.severity === "high" ? "Приоритет" : "Исправить";
   return Number(check.fineMax) > 0 ? `Справочно до ${formatRub(check.fineMax)}` : "Недостаток";
 }
@@ -163,6 +163,13 @@ function getCheckDetailsHtml(check) {
   return `<details class="issue-details"><summary>${locations.length?'Где обнаружено':'Подробнее о проверке'}</summary><ul>${rows}</ul></details>`;
 }
 
+function getExportDetails(check) {
+  return [...new Set([
+    ...(Array.isArray(check.locations)?check.locations:[]).map(item=>`${item.url}${item.forms?.length?` — формы: ${item.forms.join(', ')}`:''}`),
+    ...(Array.isArray(check.details)?check.details:[])
+  ])];
+}
+
 function renderTabs() {
   tabs.forEach((button) => {
     const isActive = button.dataset.resultTab === state.tab;
@@ -182,6 +189,7 @@ function renderHero() {
   const groupChecks = checks.filter(check=>check.group===group);
   const count = group === "legal" ? (state.audit?.summary?.legalIssues ?? groupChecks.filter(c=>c.status==='failed').length) : (state.audit?.summary?.seoIssues ?? groupChecks.filter(c=>c.status==='failed').length);
   const review = groupChecks.filter((check) => check.status === "review");
+  const skipped = groupChecks.filter((check) => check.status === "skipped").length;
   const fineMax = Number(state.audit?.summary?.fineMax) || 0;
 
   if (resultTitle) {
@@ -201,7 +209,7 @@ function renderHero() {
   if (riskValue?.parentElement) riskValue.parentElement.hidden = group !== "legal" || fineMax === 0;
   const summary = document.querySelector(".audit-summary");
   const hidden=Number(group==='legal'?state.audit?.access?.hiddenLegal:state.audit?.access?.hiddenSeo)||0;
-  if (summary) summary.textContent = `${group === "legal" ? "Юридическая проверка" : "SEO-проверка"}: ${groupChecks.length + hidden} пунктов. Найдено проблем: ${count}. Требуют дополнительной проверки: ${review.length}. Успешно: ${groupChecks.filter(c=>c.status==='passed').length}.`;
+  if (summary) summary.textContent = `${group === "legal" ? "Юридическая проверка" : "SEO-проверка"}: ${groupChecks.length + hidden - skipped} пунктов. Найдено проблем: ${count}. Успешно: ${groupChecks.filter(c=>c.status==='passed').length}.${review.length?` Не удалось установить: ${review.length}.`:''}`;
   const scope = document.querySelector(".audit-scope");
   if (scope) scope.textContent = [state.audit?.scope, group === "legal" && fineMax > 0 ? state.audit?.summary?.fineBasis : ""].filter(Boolean).join(" ");
   const accessNote=document.querySelector('[data-report-access]');
@@ -257,15 +265,18 @@ function getSeoOverviewHtml(checks) {
 function renderLockedReport(items) {
   if (!lockedReport) return;
   const seo=state.tab==='growth';
-  const count = items ? Number(seo?state.audit?.access?.hiddenSeo:state.audit?.access?.hiddenLegal) || 0 : 0;
+  const ownCount = Number(seo?state.audit?.access?.hiddenSeo:state.audit?.access?.hiddenLegal) || 0;
+  const otherCount = Number(seo?state.audit?.access?.hiddenLegal:state.audit?.access?.hiddenSeo) || 0;
+  const count = items ? ownCount || otherCount : 0;
   const locked = !state.reportUnlocked && count > 0;
   lockedReport.classList.toggle("is-hidden", !locked);
   lockedReport.classList.remove("is-transparent");
   if (!locked) { if (lockedItems) lockedItems.innerHTML=""; return; }
   // Generic shapes indicate locked findings without embedding private report data.
   if (lockedItems) lockedItems.innerHTML = Array.from({length:Math.min(count,3)},()=>'<div class="locked-item"><div class="locked-shape"></div><div class="locked-shape"></div></div>').join("");
-  if (lockedReportTitle) lockedReportTitle.textContent = `Ещё ${count} ${plural(count,["проблема","проблемы","проблем"])} ${seo?'SEO':'по штрафам'}`;
-  if (lockedReportText) lockedReportText.textContent = `После одной оплаты откроются все найденные проблемы в обоих разделах, доказательства и план исправления. Сейчас доступны первые 3 проблемы этого раздела. Дополнительные проверки не входят в число платных проблем.`;
+  const hiddenGroup=ownCount?(seo?'SEO':'по штрафам'):(seo?'по штрафам':'SEO');
+  if (lockedReportTitle) lockedReportTitle.textContent = `Ещё ${count} ${plural(count,["проблема","проблемы","проблем"])} ${hiddenGroup} в полном аудите`;
+  if (lockedReportText) lockedReportText.textContent = `${ownCount?'В этом разделе открыты первые 3 проблемы.':'Этот раздел открыт целиком; блюр показывает закрытые проблемы другого раздела.'} Одна оплата 179 ₽ откроет все найденные проблемы по штрафам и SEO, их обоснования и рекомендации. После оплаты будут доступны скачивание и PDF.`;
   if (lockedReportLink) lockedReportLink.textContent = "Открыть полный аудит — 179 ₽";
 }
 
@@ -294,12 +305,13 @@ function renderIssueList() {
         </div>
       </article>
     `;
-    renderLockedReport(null);
+    renderLockedReport(state.reportUnlocked || state.audit?.warning ? null : true);
+    issueList.append(lockedReport);
     renderPassedChecks();
     return;
   }
 
-  const visibleChecks = checks;
+  const visibleChecks = checks.filter(check=>check.status==='failed');
   const failedCount = checks.filter(c=>c.status==='failed').length;
   const reviewCount = checks.filter(c=>c.status==='review').length;
   issueList.innerHTML =
@@ -307,7 +319,7 @@ function renderIssueList() {
     visibleChecks
     .map((check,index) => {
       const riskClass = check.status === "review" ? "is-review" : "";
-      const sectionTitle = check.status==='review' && (index===0 || checks[index-1].status!=='review') ? `<div data-lock-position></div><h3 class="issue-section-title">${state.tab==='growth'?'Дополнительные измерения':'Требуют уточнения'} — ${reviewCount}</h3><p class="issue-section-note">${state.tab==='growth'?'Для этих показателей нужно измерить работу сайта в браузере. Они не включены в число SEO-ошибок.':'По открытым страницам нельзя подтвердить эти пункты. Они не включены в число найденных проблем.'}</p>` : index===0 && failedCount ? '<h3 class="issue-section-title">Найденные проблемы</h3>' : '';
+      const sectionTitle = index===0 && failedCount ? '<h3 class="issue-section-title">Найденные проблемы</h3>' : '';
 
       return `
         ${sectionTitle}
@@ -327,9 +339,9 @@ function renderIssueList() {
     .join("");
 
   renderLockedReport(state.reportUnlocked || state.audit?.warning ? null : true);
-  const lockPosition=issueList.querySelector('[data-lock-position]');
-  if(lockPosition)lockPosition.replaceWith(lockedReport);
-  else issueList.append(lockedReport);
+  issueList.append(lockedReport);
+  const reviews=checks.filter(check=>check.status==='review');
+  if(reviewCount)issueList.insertAdjacentHTML('beforeend',`<details class="audit-limitations"><summary>Что не удалось установить автоматически — ${reviewCount}</summary><p>Эти пункты не входят в число найденных проблем и не продаются как нарушения. Здесь указано, каких данных не хватает для вывода.</p>${reviews.map(check=>`<article><h3>${escapeHtml(check.title)}</h3><p>${escapeHtml(check.evidence)}</p>${check.fix?`<p><strong>Для точного вывода:</strong> ${escapeHtml(check.fix)}</p>`:''}</article>`).join('')}</details>`);
   renderPassedChecks();
 }
 
@@ -398,8 +410,8 @@ form?.addEventListener("submit", async (event) => {
     state.tab = "fines";
     state.reportUnlocked = audit.access?.full === true;
     const download=document.querySelector('[data-report-download]');
-    if(download) download.hidden=!state.reportUnlocked;
-    document.querySelector('[data-report-print]').hidden=!state.reportUnlocked;
+    if(download) download.hidden=!audit.reportToken;
+    document.querySelector('[data-report-print]').hidden=!audit.reportToken;
     document.querySelector('[data-report-link]').hidden=!audit.reportToken;
     const status=document.querySelector('.report-payment-status');
     status.hidden=!state.reportUnlocked;
@@ -506,8 +518,8 @@ async function restoreReport(token) {
     note.textContent = result.paid ? "Тестовый платёж подтверждён. Полный аудит по штрафам и SEO открыт. Сохраните ссылку или скачайте отчёт." : state.reportUnlocked ? "В каждом разделе найдено не больше 5 проблем — полный отчёт доступен бесплатно." : result.canceled ? "Тестовый платёж отменён. Отчёт сохранён, можно повторить оплату." : result.paymentPending ? "Оплата пока не подтверждена. Когда платёж завершится, полный аудит откроется автоматически. Можно проверить статус ещё раз." : "Предварительный отчёт сохранён. Одна оплата 179 ₽ откроет все найденные проблемы по штрафам и SEO.";
   }
   document.querySelector("[data-report-refresh]").hidden = state.reportUnlocked;
-  document.querySelector("[data-report-download]").hidden = !state.reportUnlocked;
-  document.querySelector("[data-report-print]").hidden = !state.reportUnlocked;
+  document.querySelector("[data-report-download]").hidden = false;
+  document.querySelector("[data-report-print]").hidden = false;
   document.querySelector("[data-report-link]").hidden = false;
   return result;
 }
@@ -521,11 +533,11 @@ if (/^[a-f0-9]{48}$/.test(returnToken || "")) (async()=>{
   }
 })().catch(error=>{showView("result");document.querySelector(".report-payment-status").hidden=false;document.querySelector(".report-payment-status").textContent=error.message;});
 document.querySelector('[data-report-print]')?.addEventListener('click',()=>{
-  if(!state.reportUnlocked)return;
+  if(!state.reportUnlocked){openPaymentModal();return;}
   document.querySelector('.print-report')?.remove();
   const report=document.createElement('section');report.className='print-report';
-  const status={failed:'Проблема',review:'Требует проверки',passed:'Проверка пройдена'};
-  report.innerHTML=`<h1>Отчёт KinavaPro</h1><p>${escapeHtml(state.audit.url)} · ${escapeHtml(state.audit.checkedAt||'')}</p><p>${escapeHtml(state.audit.scope)}</p>${state.audit.checks.map(c=>`<article><h2>${escapeHtml(c.title)} — ${status[c.status]||''}</h2><p>${escapeHtml(c.evidence)}</p>${c.fix?`<p><strong>Что сделать:</strong> ${escapeHtml(c.fix)}</p>`:''}<p>${escapeHtml(c.law||'')} ${escapeHtml(c.condition||'')}</p></article>`).join('')}`;
+  const status={failed:'Проблема',review:'Недостаточно данных для вывода',passed:'Проверка пройдена',skipped:'Проверка не применялась'};
+  report.innerHTML=`<h1>Отчёт KinavaPro</h1><p>${escapeHtml(state.audit.url)} · ${escapeHtml(state.audit.checkedAt||'')}</p><p>${escapeHtml(state.audit.scope)}</p>${state.audit.checks.map(c=>`<article><h2>${escapeHtml(c.title)} — ${status[c.status]||''}</h2><p>${escapeHtml(c.evidence)}</p>${getExportDetails(c).length?`<ul>${getExportDetails(c).map(line=>`<li>${escapeHtml(line)}</li>`).join('')}</ul>`:''}${c.fix?`<p><strong>Что сделать:</strong> ${escapeHtml(c.fix)}</p>`:''}<p>${escapeHtml(c.law||'')} ${escapeHtml(c.condition||'')}</p></article>`).join('')}`;
   document.body.append(report);window.print();
 });
 window.addEventListener('afterprint',()=>document.querySelector('.print-report')?.remove());
@@ -537,9 +549,9 @@ document.querySelector('[data-report-link]')?.addEventListener('click',async()=>
 });
 document.querySelector("[data-report-refresh]")?.addEventListener("click",()=>restoreReport(state.audit?.reportToken || returnToken).catch(error=>{document.querySelector(".report-payment-status").textContent=error.message;}));
 document.querySelector("[data-report-download]")?.addEventListener("click",()=>{
-  if (!state.reportUnlocked) return;
+  if (!state.reportUnlocked) {openPaymentModal();return;}
   const audit=state.audit;
-  const content=[`Отчёт KinavaPro: ${audit.url}`,`Проверка: ${audit.checkedAt}`,audit.scope,audit.summary.fineBasis,...audit.checks.map(check=>`\n${check.title} [${check.status}]\n${check.evidence}\n${check.fix || ""}\n${check.law || ""}`)].join("\n");
+  const content=[`Отчёт KinavaPro: ${audit.url}`,`Проверка: ${audit.checkedAt}`,audit.scope,audit.summary.fineBasis,...audit.checks.map(check=>`\n${check.title} [${check.status}]\n${check.evidence}\n${getExportDetails(check).join('\n')}\n${check.fix || ""}\n${check.law || ""}\n${check.condition||''}`)].join("\n");
   const url=URL.createObjectURL(new Blob([content],{type:"text/plain;charset=utf-8"}));const anchor=document.createElement("a");anchor.href=url;anchor.download="kinavapro-report.txt";anchor.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 });
 

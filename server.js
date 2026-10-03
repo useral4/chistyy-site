@@ -5,6 +5,7 @@ const { performance } = require("node:perf_hooks");
 const { randomUUID } = require("node:crypto");
 const { fetchText: safeFetchText } = require("./lib/safe-fetch");
 const { enhanceAudit, collectResources } = require("./lib/audit-engine");
+const { inspectBrowser } = require("./lib/browser-audit");
 const reports = require("./lib/reports");
 const { handlePayments, publicConfig } = require("./lib/payments");
 const { notifyLead } = require("./lib/mail");
@@ -764,8 +765,10 @@ async function handleAudit(req, res) {
       collectResources(page)
     ]);
 
+    const browser = await inspectBrowser(page, resources);
     const audit = enhanceAudit({
-      html: page.text,
+      html: browser.available ? browser.html : page.text,
+      browser,
       robots,
       sitemap,
       resources,
