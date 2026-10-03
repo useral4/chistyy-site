@@ -13,7 +13,7 @@
   function choose(value){choice=value;try{localStorage.setItem(key,JSON.stringify({choice:value,at:Date.now()}));}catch{}banner.hidden=true;
     if(value==='accepted')startAnalytics();else if(loaded)window.location.reload();
   }
-  if(!choice)banner.hidden=false;
+  if(!choice||location.hash==='#cookie-settings')banner.hidden=false;
   document.querySelector('[data-cookie-accept]')?.addEventListener('click',()=>choose('accepted'));
   document.querySelector('[data-cookie-decline]')?.addEventListener('click',()=>choose('declined'));
   document.querySelector('[data-cookie-settings]')?.addEventListener('click',()=>{banner.hidden=false;document.querySelector('[data-cookie-decline]').focus();});

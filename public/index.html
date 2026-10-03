@@ -10,9 +10,9 @@
     />
     <meta name="robots" content="index, follow" />
     <link rel="canonical" href="https://kinavapro.ru/" />
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <link rel="icon" href="/favicon.png" sizes="64x64" type="image/png" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
+    <link rel="icon" href="/favicon.svg?v=kp2" type="image/svg+xml" />
+    <link rel="icon" href="/favicon.png?v=kp2" sizes="64x64" type="image/png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=kp2" sizes="180x180" />
     <meta property="og:title" content="Юридическая и SEO-проверка сайта — KinavaPro" />
     <meta property="og:description" content="Найдите недостатки сайта и получите понятный план исправления юридических и SEO-проблем." />
     <meta property="og:type" content="website" />
@@ -37,11 +37,11 @@
     <main class="site" data-view="home">
       <section class="page-view home-view" data-screen="home">
         <section class="dark-stage">
-          <img class="decor decor-coin-left" src="/assets/coin-left.png" alt="" width="576" height="944" />
+          <img class="decor decor-coin-left" src="/assets/coin-mid.png" alt="" width="936" height="1020" />
           <img class="decor decor-coin-mid" src="/assets/coin-mid.png" alt="" width="936" height="1020" />
-          <img class="decor decor-arrow" src="/assets/red-arrow.png" alt="" width="1651" height="2651" />
+          <img class="decor decor-arrow" src="/assets/red-arrow-small.png" alt="" width="941" height="941" />
           <img class="decor decor-warning" src="/assets/warning.png" alt="" width="1924" height="1924" />
-          <img class="decor decor-ring" src="/assets/red-ring.png" alt="" width="1463" height="2600" />
+          <img class="decor decor-ring" src="/assets/shield.png" alt="" width="936" height="936" />
 
           <header class="topbar">
             <a class="logo" href="#" aria-label="KinavaPro">
@@ -271,7 +271,7 @@
                 <h3>Цифровой полный отчёт</h3>
                 <p>Отчёт показывает найденные нарушения, точки потери заявок и рекомендации по исправлению для проверяемого сайта.</p>
                 <strong>179 ₽</strong>
-                <p>До 5 юридических проблем — полный отчёт бесплатно. Если найдено 6 и больше, первые 3 открыты, остальные доступны за 179 ₽. SEO доступно бесплатно.</p>
+                <p>Штрафы и SEO считаются отдельно. До 5 проблем в разделе — раздел открыт бесплатно. От 6 — первые 3 открыты, остальные доступны после одной оплаты 179 ₽ за полный аудит.</p>
               </article>
 
               <article>
@@ -358,6 +358,7 @@
           </svg>
           <h2 class="loading-title">Проверяем сайт</h2>
           <p>Изучаем 40+ критериев и показываем,<br />что нарушено за 60 секунд. Бесплатно, без регистрации</p>
+          <aside class="loading-help" data-loading-help role="status" hidden><p>Проверка занимает больше 30 секунд. Можно подождать ещё немного или написать нам — поможем получить отчёт.</p><a href="https://t.me/svaslyeva" target="_blank" rel="noopener noreferrer">Написать в Telegram</a><a href="https://max.ru/u/f9LHodD0cOJX9YGp-nI-L1uKEjcejWlwwqxxdtWaktCDILcYL573JfI1uPQ" target="_blank" rel="noopener noreferrer">Написать в MAX</a></aside>
         </div>
       </section>
 
@@ -389,6 +390,7 @@
           <p class="audit-summary" aria-live="polite"></p>
           <p class="audit-scope"></p>
           <p class="report-payment-status" role="status" hidden></p>
+          <p class="report-access-note" data-report-access hidden></p>
           <button type="button" data-report-refresh hidden>Проверить статус оплаты</button>
           <button type="button" data-report-download hidden>Скачать полный отчёт</button>
           <button type="button" data-report-print hidden>Сохранить в PDF / печать</button>
@@ -428,7 +430,7 @@
         <button class="payment-modal__close" type="button" data-payment-close aria-label="Закрыть">×</button>
         <p class="payment-modal__eyebrow">Полный отчёт</p>
         <h2 id="payment-modal-title">Откройте все найденные проблемы</h2>
-        <p class="payment-modal__text">За 179 ₽ откроются все юридические проблемы, найденные в этой проверке: доказательства, страницы, основания и рекомендации. После подтверждения оплаты вы вернётесь к полному отчёту, сможете скачать его и сохранить ссылку. При 5 проблемах или меньше весь отчёт бесплатный.</p>
+        <p class="payment-modal__text">Одна оплата 179 ₽ откроет все найденные проблемы по штрафам и SEO, доказательства и рекомендации. После подтверждения платежа вы вернётесь к этому отчёту без блюра, сможете скачать его и сохранить личную ссылку. Если в каждом разделе не больше 5 проблем, весь отчёт бесплатный.</p>
         <button class="payment-modal__buy" type="button" data-payment-buy>Проверить тестовую оплату</button>
         <small class="payment-modal__hint" data-payment-hint>Доступ к цифровому отчёту предоставляется после оплаты.</small>
         <a class="payment-modal__terms" href="#payment-terms" data-payment-terms>Условия оплаты и получения отчёта</a>
@@ -458,7 +460,13 @@
         <button class="request-done" type="button">Вернуться на сайт</button>
       </div>
     </dialog>
-    <footer class="legal-footer"><a href="/privacy.html">Политика персональных данных</a><a href="/consent.html">Согласие на обработку данных</a><a href="/cookies.html">Cookie</a><button type="button" data-cookie-settings>Настройки cookie</button><a href="/terms.html">Условия услуг</a></footer>
+    <footer class="legal-footer">
+  <div class="footer-inner">
+    <div><a class="logo" href="/"><span>Kinava</span><strong>Pro</strong></a><p>Проверка юридических рисков и SEO сайта.<br>Понятный отчёт и помощь с исправлениями.</p><a href="https://t.me/svaslyeva" target="_blank" rel="noopener noreferrer">Telegram</a> · <a href="https://max.ru/u/f9LHodD0cOJX9YGp-nI-L1uKEjcejWlwwqxxdtWaktCDILcYL573JfI1uPQ" target="_blank" rel="noopener noreferrer">MAX</a></div>
+    <nav aria-label="Документы и настройки"><h2>Документы</h2><a href="/privacy.html">Политика персональных данных</a><a href="/consent.html">Согласие на обработку данных</a><a href="/cookies.html">Cookie и аналитика</a><a href="/terms.html">Условия услуг</a><button type="button" data-cookie-settings>Настройки cookie</button></nav>
+    <div><h2>Контакты и реквизиты</h2><p>Самозанятая Васильева Софья Андреевна<br>ИНН 212416070437</p><a href="mailto:vasilyeva.sofia12@mail.ru">vasilyeva.sofia12@mail.ru</a><br><a href="tel:+79523135157">+7 952 313-51-57</a><p><a href="/terms.html#requisites">Все реквизиты и условия</a></p></div>
+  </div><div class="footer-bottom">© 2026 KinavaPro. Все права защищены.</div>
+</footer>
     <section class="cookie-banner" data-cookie-banner aria-label="Настройки cookie" hidden>
       <p>Мы сохраняем ваш выбор cookie в браузере. Необязательная аналитика запускается только с вашего согласия. <a href="/cookies.html">Подробнее</a></p>
       <button type="button" data-cookie-accept>Разрешить аналитику</button>
