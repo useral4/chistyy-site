@@ -1,9 +1,27 @@
 const {test}=require('node:test');const assert=require('node:assert/strict');const fs=require('node:fs/promises');const path=require('node:path');
 const scratch=path.resolve(__dirname,'../../../work/payment-tests-'+process.pid);process.env.REPORTS_DIR=scratch;
-const reports=require('../lib/reports');const {handlePayments,configured}=require('../lib/payments');
+const reports=require('../lib/reports');const {handlePayments,configured,publicConfig}=require('../lib/payments');
 const {Readable}=require('node:stream');
 const request=(url,body)=>Object.assign(Readable.from(body?[Buffer.from(JSON.stringify(body))]:[]),{url,method:body?'POST':'GET'});
 async function invoke(url,body){let result;await handlePayments(request(url,body),{},(_res,status,data)=>{result={status,...data};});return result;}
+
+test('Configuration trims copied values, defaults to test only, and exposes no secrets',()=>{
+  const fields=['YOOKASSA_MODE','YOOKASSA_SHOP_ID','YOOKASSA_SECRET_KEY','PUBLIC_URL'];
+  const before=Object.fromEntries(fields.map(field=>[field,process.env[field]]));
+  try{
+    process.env.YOOKASSA_MODE=' TEST ';process.env.YOOKASSA_SHOP_ID=' 1485993 ';
+    process.env.YOOKASSA_SECRET_KEY=' test_unit_secret ';process.env.PUBLIC_URL=' https://kinavapro.ru ';
+    assert.equal(configured(),true);assert.deepEqual(publicConfig().paymentSetup,[]);
+    assert.ok(!JSON.stringify(publicConfig()).includes('test_unit_secret'));
+    delete process.env.YOOKASSA_MODE;delete process.env.PUBLIC_URL;
+    assert.equal(configured(),true,'Test key can infer test mode, with the canonical return URL');
+    process.env.YOOKASSA_MODE='live';assert.equal(configured(),false);
+    assert.deepEqual(publicConfig().paymentSetup,[{field:'YOOKASSA_MODE',reason:'invalid'}]);
+    process.env.YOOKASSA_MODE='test';delete process.env.YOOKASSA_SECRET_KEY;
+    assert.deepEqual(publicConfig().paymentSetup,[{field:'YOOKASSA_SECRET_KEY',reason:'missing'}]);
+    process.env.YOOKASSA_SECRET_KEY='live_secret';assert.equal(configured(),false);
+  }finally{for(const field of fields)if(before[field]===undefined)delete process.env[field];else process.env[field]=before[field];}
+});
 test('Test-only API, idempotency, pending/canceled/amount tampering and verified grant',async()=>{
   const original=global.fetch;const old={...process.env};
   try{

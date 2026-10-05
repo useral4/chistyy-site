@@ -73,9 +73,12 @@ function initStatsSlider() {
 }
 
 function openPaymentModal() {
-  paymentHint && (paymentHint.textContent = paymentMode === "test" ? "Тестовый режим ЮKassa: используйте тестовую карту, реальные деньги не списываются." : "Тестовая ЮKassa пока не настроена на сервере. Реальные платежи отключены.");
+  paymentHint && (paymentHint.textContent = "Проверяем доступность оплаты…");
   paymentModal?.classList.add("is-open");
   paymentModal?.setAttribute("aria-hidden", "false");
+  refreshPaymentConfig().then(()=>{
+    if(paymentHint)paymentHint.textContent=paymentMode==="test"?"Тестовый режим ЮKassa: используйте тестовую карту, реальные деньги не списываются.":"Оплата временно недоступна. Попробуйте позже.";
+  }).catch(()=>{if(paymentHint)paymentHint.textContent="Не удалось проверить доступность оплаты. Повторите попытку.";});
 }
 
 function closePaymentModal() {
@@ -149,6 +152,23 @@ function getIssueText(check) {
   }
 
   return evidence || fix || "Проверка нашла проблему, которую стоит исправить.";
+}
+
+function getIssueTitle(check) {
+  const titles = {
+    "form-consent": "У форм не найдено отдельное согласие",
+    "company-details": "Реквизиты не найдены или требуют исправления",
+    "offer-return": "Не найдены полные условия заказа и возврата",
+    "consent-document": "У формы нет доступного текста согласия",
+    "policy-purposes": "В политике не найдены цели и основания обработки",
+    "policy-data": "В политике не описаны категории данных",
+    "policy-retention": "В политике не найдены сроки хранения данных",
+    "policy-rights": "В политике не описаны права и отзыв согласия",
+    "policy-contact": "В политике не найден контакт для обращений",
+    "payment-docs": "Не найден опубликованный порядок оплаты",
+    "document-links": "Ссылки на юридические документы не работают"
+  };
+  return check.status === "failed" ? titles[check.id] || check.title : check.title;
 }
 
 function getCheckDetailsHtml(check) {
@@ -323,16 +343,20 @@ function renderIssueList() {
 
       return `
         ${sectionTitle}
-        <article>
-          <div>
-            <h3>${escapeHtml(check.title)}</h3>
-            <p>${escapeHtml(getIssueText(check))}</p>
+        <article class="issue-entry" aria-labelledby="issue-title-${escapeHtml(check.id)}">
+          <header class="issue-entry__head">
+            <h3 id="issue-title-${escapeHtml(check.id)}">${escapeHtml(getIssueTitle(check))}</h3>
+            <div class="risk ${riskClass}"><span aria-hidden="true">!</span> ${escapeHtml(getPillText(check))}</div>
+          </header>
+          <div class="issue-entry__body">
+            <div class="issue-finding"><h4>Что найдено</h4><p>${escapeHtml(getIssueText(check))}</p></div>
+            ${check.fix ? `<div class="issue-action"><h4>Как исправить</h4><p>${escapeHtml(check.fix)}</p></div>` : ""}
             ${getCheckDetailsHtml(check)}
-            ${check.law ? `<small class="issue-law">${escapeHtml(check.law)}${check.source ? ` · <a href="${escapeHtml(check.source)}" target="_blank" rel="noopener">Источник</a>` : ""}</small>` : ""}
-            ${check.condition ? `<small class="issue-condition">${escapeHtml(check.condition)}</small>` : ""}
-            ${check.fix ? `<p class="issue-fix"><strong>Что сделать:</strong> ${escapeHtml(check.fix)}</p>` : ""}
+            ${check.law || check.condition ? `<details class="issue-basis"><summary>Правовое основание и ограничения</summary>
+              ${check.law ? `<p>${escapeHtml(check.law)}${check.source ? ` · <a href="${escapeHtml(check.source)}" target="_blank" rel="noopener">Источник</a>` : ""}</p>` : ""}
+              ${check.condition ? `<p>${escapeHtml(check.condition)}</p>` : ""}
+            </details>` : ""}
           </div>
-          <div class="risk ${riskClass}"><span>!</span> ${escapeHtml(getPillText(check))}</div>
         </article>
       `;
     })
@@ -485,7 +509,12 @@ function renderPassedChecks() {
   if (passed.length) issueList?.insertAdjacentHTML("beforeend", `<details class="passed-checks"><summary>Успешные проверки: ${passed.length}</summary>${passed.map(c=>`<div><strong>${escapeHtml(c.title)}</strong><p>${escapeHtml(c.evidence)}</p></div>`).join("")}</details>`);
 }
 let paymentMode = "unavailable";
-fetch("/api/config").then(r=>r.json()).then(config=>{paymentMode=config.paymentMode;}).catch(()=>{});
+async function refreshPaymentConfig(){
+  const response=await fetch("/api/config",{cache:"no-store"});
+  if(!response.ok)throw new Error("Оплата недоступна");
+  const config=await response.json();paymentMode=config.paymentMode;return config;
+}
+refreshPaymentConfig().catch(()=>{});
 
 async function startTestPayment() {
   const button = document.querySelector("[data-payment-buy]");
