@@ -1,6 +1,8 @@
 const http = require("node:http");
 const fs = require("node:fs");
 const path = require("node:path");
+const envPath = path.join(__dirname, ".env");
+if (fs.existsSync(envPath)) process.loadEnvFile(envPath);
 const { performance } = require("node:perf_hooks");
 const { randomUUID } = require("node:crypto");
 const { fetchText: safeFetchText } = require("./lib/safe-fetch");
