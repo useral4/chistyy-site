@@ -9,6 +9,7 @@ const { fetchText: safeFetchText } = require("./lib/safe-fetch");
 const { enhanceAudit, collectResources } = require("./lib/audit-engine");
 const { inspectBrowser } = require("./lib/browser-audit");
 const reports = require("./lib/reports");
+const domainAccess = require("./lib/domain-access");
 const { handlePayments, publicConfig } = require("./lib/payments");
 const { notifyLead } = require("./lib/mail");
 
@@ -88,7 +89,7 @@ function serveStatic(req, res) {
 
     const ext = path.extname(filePath).toLowerCase();
     if (ext === ".html" && /^[a-f0-9]{16,64}$/i.test(process.env.YANDEX_VERIFICATION || "")) data = Buffer.from(data.toString("utf8").replace("</head>", `<meta name="yandex-verification" content="${process.env.YANDEX_VERIFICATION}" /></head>`));
-    if (requestUrl.searchParams.has("report")) res.setHeader("X-Robots-Tag", "noindex, nofollow");
+    if (requestUrl.searchParams.has("report") || requestUrl.searchParams.has("access")) res.setHeader("X-Robots-Tag", "noindex, nofollow");
     res.writeHead(200, {
       "Content-Type": MIME_TYPES[ext] || "application/octet-stream",
       "Cache-Control": "no-store"
@@ -746,8 +747,18 @@ function analyzeHtml({ html, robots, sitemap, targetUrl, profile, timing }) {
 
 async function handleAudit(req, res) {
   const requestUrl = new URL(req.url, `http://${req.headers.host}`);
-  const raw = requestUrl.searchParams.get("url");
-  const profile = requestUrl.searchParams.get("profile") || "lead";
+  let data;
+  if (req.method === 'POST') {
+    try {
+      if (!/^application\/json(?:;|$)/i.test(req.headers['content-type'] || '')) throw new Error();
+      const chunks = []; let bytes = 0;
+      for await (const chunk of req) { bytes += chunk.length; if (bytes > 4096) throw new Error(); chunks.push(chunk); }
+      data = JSON.parse(Buffer.concat(chunks).toString('utf8'));
+    } catch { return sendJson(res, 400, { error: 'Некорректный запрос' }); }
+    if (data?.consent !== true) return sendJson(res, 400, { error: 'Подтвердите согласие с политикой конфиденциальности' });
+  }
+  const raw = data ? data.url : requestUrl.searchParams.get("url");
+  const profile = (data ? data.profile : requestUrl.searchParams.get("profile")) || "lead";
 
   let targetUrl;
   try {
@@ -784,7 +795,10 @@ async function handleAudit(req, res) {
     }
 
     const token = await reports.create(audit);
-    sendJson(res, 200, reports.preview(audit, token));
+    const record = await reports.read(token);
+    // Only same-origin POSTs may spend a buyer's domain allowance; public GET previews never do.
+    const pass = req.method === 'POST' ? await domainAccess.apply(record, token, req) : null;
+    sendJson(res, 200, { ...(pass ? reports.full(audit, token) : reports.preview(audit, token)), paid: Boolean(pass), domainAccess: pass });
   } catch (error) {
     const profileConfig = PROFILES[profile] || PROFILES.lead;
     const message = `Не удалось загрузить сайт: ${error.message}. Автоматические выводы не сформированы.`;
@@ -903,12 +917,17 @@ const server = http.createServer((req, res) => {
   res.setHeader("Referrer-Policy", "no-referrer");
   res.setHeader("X-Content-Type-Options", "nosniff");
   const route = new URL(req.url, `http://${req.headers.host}`).pathname;
-  if (["/api/audit", "/api/requests", "/api/payments", "/api/report", "/api/report/email"].includes(route)) {
+  if (req.method === 'POST' && route.startsWith('/api/') && route !== '/api/payments/webhook') {
+    const origin = req.headers.origin;
+    const site = req.headers['sec-fetch-site'];
+    if (site === 'cross-site' || (origin && ![new URL(process.env.PUBLIC_URL || 'https://kinavapro.ru').origin, `http://${req.headers.host}`, `https://${req.headers.host}`].includes(origin))) return sendJson(res, 403, { error: 'Запрос должен быть отправлен с сайта KinavaPro' });
+  }
+  if (["/api/audit", "/api/requests", "/api/payments", "/api/report", "/api/report/email", "/api/access"].includes(route)) {
     const ip = process.env.TRUST_PROXY === "1" ? String(req.headers["x-forwarded-for"] || req.socket.remoteAddress).split(",").pop().trim() : req.socket.remoteAddress;
-    const key = route + ip;
+    const key = route + (route === '/api/access' ? req.method : '') + ip;
     const now = Date.now();
     for (const [entry, value] of requestRates) if (value.until < now) requestRates.delete(entry);
-    const limit = route === "/api/audit" || route === "/api/report" ? 10 : 5;
+    const limit = route === '/api/access' && req.method === 'GET' ? 30 : route === "/api/audit" || route === "/api/report" ? 10 : 5;
     const value = requestRates.get(key) || {count: 0, until: now + 60000};
     if (++value.count > limit || requestRates.size > 10000) {
       res.setHeader("Retry-After", "60"); return sendJson(res, 429, {error:"Слишком много запросов. Повторите через минуту."});
@@ -916,7 +935,7 @@ const server = http.createServer((req, res) => {
     requestRates.set(key, value);
   }
   if (route === "/api/config") return sendJson(res, 200, publicConfig());
-  if (["/api/payments", "/api/report", "/api/report/email", "/api/payments/webhook"].includes(route)) {
+  if (["/api/payments", "/api/report", "/api/report/email", "/api/payments/webhook", "/api/access"].includes(route)) {
     handlePayments(req, res, sendJson).catch(() => sendJson(res, 503, {error:"Платёжный сервис временно недоступен. Попробуйте позже."}));
     return;
   }
@@ -925,7 +944,7 @@ const server = http.createServer((req, res) => {
     return;
   }
   if (route === "/api/audit") {
-    if (req.method !== "GET") return sendJson(res, 405, {error:"Нужен GET"});
+    if (!["GET", "POST"].includes(req.method)) return sendJson(res, 405, {error:"Нужен GET или POST"});
     if (activeAudits >= 6) return sendJson(res, 503, {error:"Все проверки заняты. Повторите чуть позже."});
     activeAudits++;
     handleAudit(req, res).catch(() => { if (!res.headersSent) sendJson(res, 503, {error:"Не удалось выполнить проверку"}); }).finally(() => activeAudits--);

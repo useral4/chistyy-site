@@ -90,6 +90,10 @@
                 <span>Принимаю <a href="/privacy.html" target="_blank" rel="noopener">политику конфиденциальности</a></span>
               </label>
               <span class="policy-error" id="policy-error" role="alert" aria-live="polite"></span>
+              <div class="access-bar">
+                <span data-access-status>Предварительная проверка бесплатна</span>
+                <div><a href="#pricing">Тарифы</a><button type="button" data-access-open>Мой доступ</button></div>
+              </div>
             </form>
           </div>
 
@@ -258,6 +262,30 @@
           <a class="primary-cta" href="#site-url">Проверить сайт <span>→</span></a>
         </section>
 
+        <section class="pricing" id="pricing" aria-labelledby="pricing-title">
+          <div class="pricing__inner">
+            <h2 id="pricing-title">Полные отчёты и перепроверки</h2>
+            <p>30 дней для исправлений. Повторная проверка того же домена не расходует лимит.</p>
+            <div class="pricing__grid">
+              <article class="price-plan">
+                <h3>Один сайт</h3><p class="price-plan__price">179 ₽</p><p>1 домен на 30 дней</p>
+                <ul><li>Полный юридический и SEO-отчёт</li><li>Повторные проверки своего сайта</li><li>Скачивание и PDF</li></ul>
+                <button type="button" data-plan-start="single">Проверить свой сайт</button>
+              </article>
+              <article class="price-plan">
+                <h3>Специалист</h3><p class="price-plan__price">390 ₽</p><p>До 10 доменов за 30 дней</p>
+                <ul><li>Всё из тарифа «Один сайт»</li><li>Отчёты по сайтам клиентов</li><li>39 ₽ за домен при полном лимите</li></ul>
+                <button type="button" data-plan-start="specialist">Выбрать 10 доменов</button>
+              </article>
+              <article class="price-plan">
+                <h3>Агентство</h3><p class="price-plan__price">999 ₽</p><p>До 30 доменов за 30 дней</p>
+                <ul><li>Всё из тарифа «Специалист»</li><li>Пакет для нескольких проектов</li><li>33,30 ₽ за домен при полном лимите</li></ul>
+                <button type="button" data-plan-start="agency">Выбрать 30 доменов</button>
+              </article>
+            </div>
+            <p class="pricing__note">Без автопродления. Срок начинается с оплаты и не продлевается перепроверками. Купленные отчёты сохраняются после окончания пакета. Бесплатные отчёты не расходуют лимит новых доменов.</p>
+          </div>
+        </section>
         <section class="payment-info" id="payment-terms">
           <div class="payment-info__inner">
             <div class="payment-info__intro">
@@ -268,10 +296,10 @@
 
             <div class="payment-info__grid">
               <article>
-                <h3>Цифровой полный отчёт</h3>
+                <h3>Полные отчёты и перепроверки</h3>
                 <p>Отчёт показывает найденные нарушения, точки потери заявок и рекомендации по исправлению для проверяемого сайта.</p>
-                <strong>179 ₽</strong>
-                <p>Штрафы и SEO считаются отдельно. До 5 проблем в разделе — раздел открыт бесплатно. От 6 — первые 3 открыты, остальные доступны после одной оплаты 179 ₽ за полный аудит.</p>
+                <strong>от 179 ₽</strong>
+                <p>Один домен — 179 ₽, до 10 доменов — 390 ₽, до 30 доменов — 999 ₽. Пакет действует 30 дней без автопродления. До 5 проблем в разделе — раздел бесплатный, от 6 — первые 3 открыты бесплатно.</p>
               </article>
 
               <article>
@@ -287,7 +315,8 @@
                 <h3>Получение заказа и условия услуг</h3>
                 <ul>
                   <li>Физическая доставка не требуется: отчёт и услуги предоставляются дистанционно.</li>
-                  <li>Цифровой отчёт становится доступен после подтверждения оплаты на странице результата проверки. Его можно скачать, сохранить в PDF и открыть по личной ссылке в течение 30 дней.</li>
+                  <li>Полный отчёт открывается после подтверждения оплаты: его можно скачать, сохранить в PDF и открыть по личной ссылке после окончания пакета.</li>
+                  <li>Перепроверки добавленных доменов бесплатны до окончания 30 дней. http, https и www считаются одним доменом; другие поддомены — отдельными. Лимит нового домена расходуется только при открытии платных пунктов.</li>
                   <li>Индивидуальные работы выполняются после согласования состава работ, срока и стоимости.</li>
                   <li>Если услуга не может быть оказана, порядок возврата согласуется по обращению клиента.</li>
                 </ul>
@@ -391,6 +420,7 @@
           <p class="audit-scope"></p>
           <p class="report-payment-status" role="status" hidden></p>
           <p class="report-access-note" data-report-access hidden></p>
+          <button type="button" data-access-open>Мой доступ и отчёты</button>
           <button type="button" data-report-refresh hidden>Проверить статус оплаты</button>
           <button type="button" data-report-download hidden>Скачать полный отчёт</button>
           <button type="button" data-report-print hidden>Сохранить в PDF / печать</button>
@@ -437,14 +467,30 @@
       <div class="payment-modal__backdrop" data-payment-close></div>
       <div class="payment-modal__dialog">
         <button class="payment-modal__close" type="button" data-payment-close aria-label="Закрыть">×</button>
-        <p class="payment-modal__eyebrow">Полный отчёт</p>
         <h2 id="payment-modal-title">Откройте все найденные проблемы</h2>
-        <p class="payment-modal__text">Одна оплата 179 ₽ откроет все найденные проблемы по штрафам и SEO, доказательства и рекомендации. После подтверждения платежа полный отчёт появится здесь: его можно скачать, сохранить в PDF и открыть по личной ссылке в течение 30 дней. Если в каждом разделе не больше 5 проблем, весь отчёт бесплатный.</p>
+        <fieldset class="payment-plans">
+          <legend>Пакет на 30 дней</legend>
+          <label><input type="radio" name="payment-plan" value="single" checked /><span><strong>Один сайт</strong><small>1 домен</small></span><b>179 ₽</b></label>
+          <label><input type="radio" name="payment-plan" value="specialist" /><span><strong>Специалист</strong><small>До 10 доменов</small></span><b>390 ₽</b></label>
+          <label><input type="radio" name="payment-plan" value="agency" /><span><strong>Агентство</strong><small>До 30 доменов</small></span><b>999 ₽</b></label>
+        </fieldset>
+        <p class="payment-modal__text">Полный отчёт, доказательства и рекомендации по штрафам и SEO. Перепроверки добавленных доменов не расходуют лимит. Срок не продлевается; готовые отчёты остаются доступными. Без автопродления.</p>
         <button class="payment-modal__buy" type="button" data-payment-buy>Проверить тестовую оплату</button>
         <small class="payment-modal__hint" data-payment-hint>Доступ к цифровому отчёту предоставляется после оплаты.</small>
         <a class="payment-modal__terms" href="#payment-terms" data-payment-terms>Условия оплаты и получения отчёта</a>
       </div>
     </div>
+    <dialog class="access-dialog" aria-labelledby="access-title">
+      <button class="access-dialog__close" type="button" data-access-close aria-label="Закрыть">×</button>
+      <h2 id="access-title">Мой доступ и отчёты</h2>
+      <div data-access-passes></div>
+      <form class="access-restore" data-access-restore>
+        <label for="access-link">Личная ссылка доступа</label>
+        <input id="access-link" name="link" type="text" autocomplete="off" placeholder="https://kinavapro.ru/?access=…" maxlength="2048" required />
+        <button type="submit">Восстановить доступ</button>
+        <p data-access-message role="status" aria-live="polite"></p>
+      </form>
+    </dialog>
     <dialog class="request-modal" aria-labelledby="request-title">
       <button class="request-close" type="button" aria-label="Закрыть форму">×</button>
       <p class="request-eyebrow">Расчёт стоимости</p>

@@ -2,9 +2,10 @@
   const banner=document.querySelector('[data-cookie-banner]');
   const key='kinava-cookie-choice-v1';
   let choice=null,config=null,loaded=false;
+  const privatePage=new URLSearchParams(location.search).has('report')||new URLSearchParams(location.search).has('access');
   try {const saved=JSON.parse(localStorage.getItem(key)||'null');if(saved&&Date.now()-saved.at<180*86400000)choice=saved.choice;}catch{}
   function startAnalytics(){
-    if(loaded||choice!=='accepted'||!config?.metrikaId)return;
+    if(loaded||privatePage||choice!=='accepted'||!config?.metrikaId)return;
     loaded=true;
     window.ym=window.ym||function(){(window.ym.a=window.ym.a||[]).push(arguments);};window.ym.l=Date.now();
     const script=document.createElement('script');script.src='https://mc.yandex.ru/metrika/tag.js';script.async=true;document.head.append(script);

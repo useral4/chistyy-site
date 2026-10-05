@@ -22,6 +22,10 @@ const statCards = Array.from(document.querySelectorAll(".stats .stat"));
 let loadingTimer = null;
 let auditRequest = null;
 let paymentPolling = true;
+let selectedPlan = 'single';
+let startPlanAfterAudit = false;
+let accessPasses = [];
+let paymentFocus = null;
 const loadingHelp = document.querySelector('[data-loading-help]');
 
 const state = {
@@ -73,17 +77,24 @@ function initStatsSlider() {
 }
 
 function openPaymentModal() {
+  paymentFocus = document.activeElement;
   paymentHint && (paymentHint.textContent = "Проверяем доступность оплаты…");
   paymentModal?.classList.add("is-open");
   paymentModal?.setAttribute("aria-hidden", "false");
+  if (site) site.inert = true;
+  document.querySelector(`input[name="payment-plan"][value="${selectedPlan}"]`).checked = true;
+  document.querySelector('input[name="payment-plan"]:checked')?.focus();
   refreshPaymentConfig().then(()=>{
     if(paymentHint)paymentHint.textContent=paymentMode==="test"?"Тестовый режим ЮKassa: используйте тестовую карту, реальные деньги не списываются.":"Оплата временно недоступна. Попробуйте позже.";
   }).catch(()=>{if(paymentHint)paymentHint.textContent="Не удалось проверить доступность оплаты. Повторите попытку.";});
 }
 
 function closePaymentModal() {
+  if (!paymentModal?.classList.contains('is-open')) return;
   paymentModal?.classList.remove("is-open");
   paymentModal?.setAttribute("aria-hidden", "true");
+  if (site) site.inert = false;
+  paymentFocus?.focus();
 }
 
 function normalizeUrl(value) {
@@ -421,8 +432,9 @@ form?.addEventListener("submit", async (event) => {
   const controller=new AbortController();auditRequest=controller;
 
   try {
-    const response = await fetch(`/api/audit?url=${encodeURIComponent(url)}&profile=lead`, {
-      headers: { Accept: "application/json" }, signal:controller.signal
+    const response = await fetch('/api/audit', {
+      method: 'POST', headers: { Accept: "application/json", 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url, profile: 'lead', consent: policyCheckbox.checked }), signal:controller.signal
     });
     const audit = await response.json();
 
@@ -439,12 +451,16 @@ form?.addEventListener("submit", async (event) => {
     document.querySelector('[data-report-link]').hidden=!audit.reportToken;
     const status=document.querySelector('.report-payment-status');
     status.hidden=!state.reportUnlocked;
-    status.classList.remove('is-paid');
+    status.classList.toggle('is-paid',Boolean(audit.paid));
     document.querySelector('[data-report-email]').hidden=true;
-    if(state.reportUnlocked)status.textContent='Весь отчёт открыт бесплатно: в каждом разделе найдено не больше 5 проблем. Можно сохранить ссылку и скачать результаты.';
+    if(state.reportUnlocked)status.textContent=audit.paid?paidAccessText(audit.domainAccess):'Весь отчёт открыт бесплатно: в каждом разделе найдено не больше 5 проблем. Можно сохранить ссылку и скачать результаты.';
     document.querySelector('[data-report-refresh]').hidden=true;
     renderResult();
     showView("result");
+    if (audit.paid) await restoreReport(audit.reportToken);
+    refreshAccess().catch(()=>{});
+    if (startPlanAfterAudit && !audit.paid && audit.reportToken && (!state.reportUnlocked || selectedPlan !== 'single')) openPaymentModal();
+    startPlanAfterAudit = false;
   } catch (error) {
     if(error.name==='AbortError')return;
     renderError(url, error.message || "Проверка временно недоступна");
@@ -491,6 +507,12 @@ document.querySelector("[data-payment-terms]")?.addEventListener("click", (event
 
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape") closePaymentModal();
+  if (event.key === 'Tab' && paymentModal?.classList.contains('is-open')) {
+    const controls = [...paymentModal.querySelectorAll('button:not(:disabled), a[href], input:not(:disabled)')];
+    const first = controls[0], last = controls[controls.length - 1];
+    if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+    else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+  }
 });
 
 document.querySelectorAll(".js-home, .back-home, .logo, .nav a[href^='#'], .footer-inner a[href^='#']").forEach((link) => {
@@ -524,7 +546,8 @@ async function startTestPayment() {
   button.disabled = true;
   paymentHint.textContent = "Готовим тестовый платёж…";
   try {
-    const response = await fetch("/api/payments", { method:"POST", headers:{"Content-Type":"application/json"},body:JSON.stringify({reportToken:state.audit.reportToken}) });
+    selectedPlan = document.querySelector('input[name="payment-plan"]:checked')?.value || 'single';
+    const response = await fetch("/api/payments", { method:"POST", headers:{"Content-Type":"application/json"},body:JSON.stringify({reportToken:state.audit.reportToken,planId:selectedPlan}) });
     const payment = await response.json();
     if (!response.ok) throw new Error(payment.error || "Не удалось создать тестовый платёж");
     if (payment.paid || payment.free) { await restoreReport(state.audit.reportToken); closePaymentModal(); return; }
@@ -547,22 +570,83 @@ async function restoreReport(token) {
   if (note) {
     note.hidden = false;
     note.classList.toggle('is-paid',Boolean(result.paid));
-    const expiry=result.expiresAt?new Date(result.expiresAt).toLocaleDateString('ru-RU'):'';
-    note.textContent = result.paid ? `Тестовая оплата подтверждена. Полный отчёт открыт: все проблемы, доказательства и рекомендации по штрафам и SEO. Скачайте файл или сохраните PDF; личная ссылка действует${expiry?` до ${expiry}`:' 30 дней'}.` : state.reportUnlocked ? "В каждом разделе найдено не больше 5 проблем — полный отчёт доступен бесплатно." : result.canceled ? "Оплата отменена. Полный отчёт не открыт; предварительный отчёт сохранён. Можно повторить оплату." : result.paymentPending ? "Оплата ещё не подтверждена. Пока доступен предварительный отчёт. Полный отчёт откроется после подтверждения платежа; можно проверить статус ещё раз." : "Предварительный отчёт сохранён. Одна оплата 179 ₽ откроет все найденные проблемы по штрафам и SEO.";
+    note.textContent = result.paid ? paidAccessText(result.domainAccess) : state.reportUnlocked ? "В каждом разделе найдено не больше 5 проблем — полный отчёт доступен бесплатно." : result.canceled ? "Оплата отменена. Полный отчёт не открыт; предварительный отчёт сохранён. Можно повторить оплату." : result.paymentPending ? "Оплата ещё не подтверждена. Пока доступен предварительный отчёт. Полный отчёт откроется после подтверждения платежа; можно проверить статус ещё раз." : "Предварительный отчёт сохранён. От 179 ₽ за домен с перепроверками на 30 дней.";
   }
   document.querySelector('[data-report-email]').hidden=!result.reportEmailAvailable;
-  document.querySelector("[data-report-refresh]").hidden = state.reportUnlocked;
+    document.querySelector("[data-report-refresh]").hidden = !result.paymentPending;
   document.querySelector("[data-report-download]").hidden = false;
   document.querySelector("[data-report-print]").hidden = false;
   document.querySelector("[data-report-link]").hidden = false;
+  if(result.paid)refreshAccess().catch(()=>{});
   return result;
 }
+function paidAccessText(pass) {
+  if(pass?.owned===false)return 'Полный отчёт открыт и останется доступным после окончания пакета. Для перепроверок восстановите пакет по личной ссылке покупателя в разделе «Мой доступ».';
+  const until=pass?.expiresAt?new Date(pass.expiresAt).toLocaleDateString('ru-RU'):'';
+  return `Полный отчёт открыт и останется доступным после окончания пакета. ${pass?.active?`Перепроверки добавленных доменов включены до ${until}. ${pass.name}: использовано ${pass.used} из ${pass.limit} доменов. Сохраните личную ссылку в разделе «Мой доступ» для других устройств.`:'Срок пакета закончился. Для новых проверок можно купить новый пакет; этот отчёт оплачивать повторно не нужно.'}`;
+}
+
+const accessDialog = document.querySelector('.access-dialog');
+function renderAccessPasses() {
+  const container=document.querySelector('[data-access-passes]');
+  container.innerHTML=accessPasses.length?accessPasses.map((pass,index)=>`<section class="access-pass"><h3>${escapeHtml(pass.name)}</h3><p>${pass.active?`До ${new Date(pass.expiresAt).toLocaleDateString('ru-RU')} · ${pass.used} из ${pass.limit} доменов`:'Пакет завершён. Сохранённые отчёты доступны.'}</p><p class="access-pass__domains">${pass.domains.map(escapeHtml).join(', ')}</p><button type="button" data-access-copy="${index}">Скопировать личную ссылку</button>${pass.reports.length?`<details><summary>Сохранённые отчёты · ${pass.reports.length}</summary>${pass.reports.map(report=>`<a href="/?report=${encodeURIComponent(report.token)}">${escapeHtml(report.url)}<span>${new Date(report.checkedAt).toLocaleString('ru-RU')}</span></a>`).join('')}</details>`:''}</section>`).join(''):'<p class="access-empty">В этом браузере пока нет оплаченного пакета. После оплаты он появится здесь. На другом устройстве откройте вашу личную ссылку доступа.</p>';
+  const active=accessPasses.filter(pass=>pass.active);
+  document.querySelector('[data-access-status]').textContent=active.length?`Перепроверки включены · осталось ${active.reduce((sum,pass)=>sum+pass.remaining,0)} новых доменов`:accessPasses.length?'Пакет завершён · сохранённые отчёты доступны':'Предварительная проверка бесплатна';
+}
+async function refreshAccess() {
+  const response=await fetch('/api/access',{cache:'no-store'});
+  if(!response.ok)throw new Error('Не удалось загрузить доступ. Попробуйте позже.');
+  accessPasses=(await response.json()).passes||[];renderAccessPasses();
+}
+async function restoreAccess(token) {
+  const response=await fetch('/api/access',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token})});
+  const data=await response.json();
+  if(!response.ok)throw new Error(data.error||'Не удалось восстановить доступ');
+  await refreshAccess();return data.pass;
+}
+document.querySelectorAll('[data-access-open]').forEach(button=>button.addEventListener('click',()=>{
+  accessDialog.showModal();refreshAccess().catch(error=>document.querySelector('[data-access-message]').textContent=error.message);
+}));
+document.querySelector('[data-access-close]').addEventListener('click',()=>accessDialog.close());
+document.querySelector('[data-access-passes]').addEventListener('click',async(event)=>{
+  const button=event.target.closest('[data-access-copy]');if(!button)return;
+  const link=new URL(accessPasses[Number(button.dataset.accessCopy)].accessUrl,location.origin).href;
+  try{await navigator.clipboard.writeText(link);document.querySelector('[data-access-message]').textContent='Личная ссылка скопирована. Она восстанавливает весь пакет: не передавайте её посторонним.';}
+  catch{document.querySelector('[data-access-message]').textContent='Ваша личная ссылка: '+link;}
+});
+document.querySelector('[data-access-restore]').addEventListener('submit',async(event)=>{
+  event.preventDefault();const form=event.currentTarget;if(!form.reportValidity())return;
+  const button=form.querySelector('button');button.disabled=true;
+  try{
+    const link=new URL(form.elements.link.value.trim());
+    if(link.origin!==location.origin)throw new Error('Укажите личную ссылку с этого сайта.');
+    const token=link.searchParams.get('access')||link.searchParams.get('report');
+    if(!/^[a-f0-9]{48}$/.test(token||''))throw new Error('В ссылке не найден ключ доступа. Скопируйте её целиком.');
+    await restoreAccess(token);document.querySelector('[data-access-message]').textContent='Доступ восстановлен. Срок пакета не изменился.';form.reset();
+  }catch(error){document.querySelector('[data-access-message]').textContent=error.message;}
+  finally{button.disabled=false;}
+});
+document.querySelectorAll('[data-plan-start]').forEach(button=>button.addEventListener('click',()=>{
+  selectedPlan=button.dataset.planStart;startPlanAfterAudit=true;showView('home');
+  form.scrollIntoView({behavior:'smooth',block:'center'});input.focus({preventScroll:true});
+}));
+const accessToken=new URLSearchParams(location.search).get('access');
 const returnToken = new URLSearchParams(window.location.search).get("report");
+if(/^[a-f0-9]{48}$/.test(accessToken||'')&&!returnToken){
+  history.replaceState(null,'','/');
+  accessDialog.showModal();
+  restoreAccess(accessToken).then(()=>document.querySelector('[data-access-message]').textContent='Доступ восстановлен. Можно снова проверять добавленные домены.').catch(error=>document.querySelector('[data-access-message]').textContent=error.message);
+}else refreshAccess().catch(()=>{});
 if (/^[a-f0-9]{48}$/.test(returnToken || "")) (async()=>{
   showView('loading');
   for(let attempt=0;attempt<7&&paymentPolling;attempt++){
     const result=await restoreReport(returnToken);
-    if(state.reportUnlocked||result.canceled||!result.paymentPending)break;
+    if(result.paid&&/^[a-f0-9]{48}$/.test(accessToken||'')){
+      const restoredPass=await restoreAccess(accessToken);
+      document.querySelector('.report-payment-status').textContent=paidAccessText(restoredPass);
+      history.replaceState(null,'','/?report='+returnToken);
+    }
+    if(result.paid||result.canceled||!result.paymentPending)break;
     if(attempt<6)await new Promise(resolve=>setTimeout(resolve,5000));
   }
 })().catch(error=>{showView("result");document.querySelector(".report-payment-status").hidden=false;document.querySelector(".report-payment-status").textContent=error.message;});
