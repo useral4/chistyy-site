@@ -3263,9 +3263,35 @@ body:has(.request-modal[open]) { overflow: hidden; }
 .audit-limitations article { display: block; margin: 20px 0 0; padding: 0; }
 .audit-limitations article h3 { margin: 0 0 8px; font-size: 18px; }
 .audit-limitations article p { font-size: 16px; line-height: 1.5; }
-.locked-item { grid-template-columns: 1fr; gap: 14px; background: #3a2c2d; box-shadow: none; }
-.locked-items { max-height: 190px; opacity: .9; }
-.locked-report { padding-top: 190px; }
+.locked-item { grid-template-columns: 1fr; gap: 14px; background: transparent; box-shadow: none; border-radius: 16px; }
+.locked-items {
+  top: 8px;
+  left: 12px;
+  right: 12px;
+  max-height: 180px;
+  padding: 12px;
+  filter: blur(4px);
+  opacity: .55;
+  transform: none;
+  mask-image: linear-gradient(to bottom, transparent, #000 16%, #000 50%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 16%, #000 50%, transparent 100%);
+}
+.locked-report::before { inset: 0; background: linear-gradient(180deg, transparent, #21212199 35%, #212121 65%); }
+.locked-report { padding-top: 160px; }
+.report-payment-status.is-paid { border: 1px solid #91c9a34d; background: #24302a; color: #edf8f0; text-align: left; }
+.report-email { width: min(650px, calc(100% - 32px)); margin: 24px auto 0; text-align: left; }
+.report-email[hidden] { display: none; }
+.report-email label { display: block; margin-bottom: 10px; font-size: 16px; }
+.report-email__row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; }
+.report-email input { width: 100%; min-width: 0; min-height: 48px; padding: 12px 14px; border: 1px solid #ffffff40; border-radius: 8px; background: #292929; color: #fff; font: inherit; font-size: 16px; }
+.report-email button { min-height: 48px; padding: 12px 18px; border: 1px solid #ffffff40; border-radius: 8px; background: #fff; color: #222; font: inherit; font-size: 16px; cursor: pointer; }
+.report-email button:disabled { opacity: .6; cursor: wait; }
+.report-email input:focus-visible, .report-email button:focus-visible { outline: 2px solid #ffb4b8; outline-offset: 3px; }
+.report-email small, .report-email__status { display: block; font-size: 14px; line-height: 1.5; color: #ccc; }
+.report-email__status { margin: 12px 0 0; }
+.report-email__status:empty { display: none; }
+.report-email small { margin-top: 8px; }
+@media (max-width: 500px) { .report-email__row { grid-template-columns: 1fr; } }
 @media (max-width: 700px) {
   .footer-inner { grid-template-columns: 1fr; gap: 28px; }
   .bottom-cta { min-height: 510px; padding: 130px 24px 72px; }

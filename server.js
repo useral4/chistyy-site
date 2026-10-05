@@ -903,7 +903,7 @@ const server = http.createServer((req, res) => {
   res.setHeader("Referrer-Policy", "no-referrer");
   res.setHeader("X-Content-Type-Options", "nosniff");
   const route = new URL(req.url, `http://${req.headers.host}`).pathname;
-  if (["/api/audit", "/api/requests", "/api/payments", "/api/report"].includes(route)) {
+  if (["/api/audit", "/api/requests", "/api/payments", "/api/report", "/api/report/email"].includes(route)) {
     const ip = process.env.TRUST_PROXY === "1" ? String(req.headers["x-forwarded-for"] || req.socket.remoteAddress).split(",").pop().trim() : req.socket.remoteAddress;
     const key = route + ip;
     const now = Date.now();
@@ -916,7 +916,7 @@ const server = http.createServer((req, res) => {
     requestRates.set(key, value);
   }
   if (route === "/api/config") return sendJson(res, 200, publicConfig());
-  if (route === "/api/payments" || route === "/api/report") {
+  if (["/api/payments", "/api/report", "/api/report/email", "/api/payments/webhook"].includes(route)) {
     handlePayments(req, res, sendJson).catch(() => sendJson(res, 503, {error:"Платёжный сервис временно недоступен. Попробуйте позже."}));
     return;
   }

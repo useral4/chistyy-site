@@ -287,7 +287,7 @@
                 <h3>Получение заказа и условия услуг</h3>
                 <ul>
                   <li>Физическая доставка не требуется: отчёт и услуги предоставляются дистанционно.</li>
-                  <li>Цифровой отчёт становится доступен после оплаты на странице результата проверки.</li>
+                  <li>Цифровой отчёт становится доступен после подтверждения оплаты на странице результата проверки. Его можно скачать, сохранить в PDF и открыть по личной ссылке в течение 30 дней.</li>
                   <li>Индивидуальные работы выполняются после согласования состава работ, срока и стоимости.</li>
                   <li>Если услуга не может быть оказана, порядок возврата согласуется по обращению клиента.</li>
                 </ul>
@@ -395,6 +395,15 @@
           <button type="button" data-report-download hidden>Скачать полный отчёт</button>
           <button type="button" data-report-print hidden>Сохранить в PDF / печать</button>
           <button type="button" data-report-link hidden>Скопировать ссылку на отчёт</button>
+          <form class="report-email" data-report-email hidden>
+            <label for="report-email">Получить копию полного отчёта на email</label>
+            <div class="report-email__row">
+              <input id="report-email" name="email" type="email" autocomplete="email" placeholder="you@example.ru" maxlength="254" required />
+              <button type="submit">Отправить отчёт</button>
+            </div>
+            <p class="report-email__status" role="status" aria-live="polite"></p>
+            <small>В письме будет файл отчёта и ваша личная ссылка.</small>
+          </form>
         </div>
 
         <section class="result-panel">
@@ -430,7 +439,7 @@
         <button class="payment-modal__close" type="button" data-payment-close aria-label="Закрыть">×</button>
         <p class="payment-modal__eyebrow">Полный отчёт</p>
         <h2 id="payment-modal-title">Откройте все найденные проблемы</h2>
-        <p class="payment-modal__text">Одна оплата 179 ₽ откроет все найденные проблемы по штрафам и SEO, доказательства и рекомендации. После подтверждения платежа вы вернётесь к этому отчёту без блюра, сможете скачать его и сохранить личную ссылку. Если в каждом разделе не больше 5 проблем, весь отчёт бесплатный.</p>
+        <p class="payment-modal__text">Одна оплата 179 ₽ откроет все найденные проблемы по штрафам и SEO, доказательства и рекомендации. После подтверждения платежа полный отчёт появится здесь: его можно скачать, сохранить в PDF и открыть по личной ссылке в течение 30 дней. Если в каждом разделе не больше 5 проблем, весь отчёт бесплатный.</p>
         <button class="payment-modal__buy" type="button" data-payment-buy>Проверить тестовую оплату</button>
         <small class="payment-modal__hint" data-payment-hint>Доступ к цифровому отчёту предоставляется после оплаты.</small>
         <a class="payment-modal__terms" href="#payment-terms" data-payment-terms>Условия оплаты и получения отчёта</a>

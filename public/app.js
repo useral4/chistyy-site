@@ -196,7 +196,7 @@ function renderTabs() {
     button.classList.toggle("active", isActive);
     button.setAttribute("aria-selected", isActive ? "true" : "false");
     const seo=button.dataset.resultTab==='growth';
-    const count=seo?state.audit?.summary?.seoIssues:state.audit?.summary?.legalIssues;
+    const count=seo?(state.audit?.summary?.seoIssues??state.audit?.access?.totalSeo):(state.audit?.summary?.legalIssues??state.audit?.access?.totalLegal);
     button.textContent=(seo?'SEO':'Штрафы')+(Number.isFinite(count)?` · ${count}`:'');
   });
 }
@@ -207,7 +207,7 @@ function renderHero() {
   const checks = Array.isArray(state.audit?.checks) ? state.audit.checks : [];
   const group = state.tab === "growth" ? "seo" : "legal";
   const groupChecks = checks.filter(check=>check.group===group);
-  const count = group === "legal" ? (state.audit?.summary?.legalIssues ?? groupChecks.filter(c=>c.status==='failed').length) : (state.audit?.summary?.seoIssues ?? groupChecks.filter(c=>c.status==='failed').length);
+  const count = group === "legal" ? (state.audit?.summary?.legalIssues ?? state.audit?.access?.totalLegal ?? groupChecks.filter(c=>c.status==='failed').length) : (state.audit?.summary?.seoIssues ?? state.audit?.access?.totalSeo ?? groupChecks.filter(c=>c.status==='failed').length);
   const review = groupChecks.filter((check) => check.status === "review");
   const skipped = groupChecks.filter((check) => check.status === "skipped").length;
   const fineMax = Number(state.audit?.summary?.fineMax) || 0;
@@ -245,7 +245,7 @@ function getSeoOverviewHtml(checks) {
 
   const allChecks = Array.isArray(state.audit?.checks) ? state.audit.checks : [];
   const seoChecks = allChecks.filter((check) => check.group === "seo");
-  const failed = state.audit?.summary?.seoIssues ?? seoChecks.filter((check) => check.status === "failed").length;
+  const failed = state.audit?.summary?.seoIssues ?? state.audit?.access?.totalSeo ?? seoChecks.filter((check) => check.status === "failed").length;
   const review = seoChecks.filter((check) => check.status === "review").length;
   const locked = Number(state.audit?.access?.hiddenSeo)||0;
   const openedNow = failed-locked;
@@ -439,6 +439,8 @@ form?.addEventListener("submit", async (event) => {
     document.querySelector('[data-report-link]').hidden=!audit.reportToken;
     const status=document.querySelector('.report-payment-status');
     status.hidden=!state.reportUnlocked;
+    status.classList.remove('is-paid');
+    document.querySelector('[data-report-email]').hidden=true;
     if(state.reportUnlocked)status.textContent='Весь отчёт открыт бесплатно: в каждом разделе найдено не больше 5 проблем. Можно сохранить ссылку и скачать результаты.';
     document.querySelector('[data-report-refresh]').hidden=true;
     renderResult();
@@ -544,8 +546,11 @@ async function restoreReport(token) {
   const note = document.querySelector(".report-payment-status");
   if (note) {
     note.hidden = false;
-    note.textContent = result.paid ? "Тестовый платёж подтверждён. Полный аудит по штрафам и SEO открыт. Сохраните ссылку или скачайте отчёт." : state.reportUnlocked ? "В каждом разделе найдено не больше 5 проблем — полный отчёт доступен бесплатно." : result.canceled ? "Тестовый платёж отменён. Отчёт сохранён, можно повторить оплату." : result.paymentPending ? "Оплата пока не подтверждена. Когда платёж завершится, полный аудит откроется автоматически. Можно проверить статус ещё раз." : "Предварительный отчёт сохранён. Одна оплата 179 ₽ откроет все найденные проблемы по штрафам и SEO.";
+    note.classList.toggle('is-paid',Boolean(result.paid));
+    const expiry=result.expiresAt?new Date(result.expiresAt).toLocaleDateString('ru-RU'):'';
+    note.textContent = result.paid ? `Тестовая оплата подтверждена. Полный отчёт открыт: все проблемы, доказательства и рекомендации по штрафам и SEO. Скачайте файл или сохраните PDF; личная ссылка действует${expiry?` до ${expiry}`:' 30 дней'}.` : state.reportUnlocked ? "В каждом разделе найдено не больше 5 проблем — полный отчёт доступен бесплатно." : result.canceled ? "Оплата отменена. Полный отчёт не открыт; предварительный отчёт сохранён. Можно повторить оплату." : result.paymentPending ? "Оплата ещё не подтверждена. Пока доступен предварительный отчёт. Полный отчёт откроется после подтверждения платежа; можно проверить статус ещё раз." : "Предварительный отчёт сохранён. Одна оплата 179 ₽ откроет все найденные проблемы по штрафам и SEO.";
   }
+  document.querySelector('[data-report-email]').hidden=!result.reportEmailAvailable;
   document.querySelector("[data-report-refresh]").hidden = state.reportUnlocked;
   document.querySelector("[data-report-download]").hidden = false;
   document.querySelector("[data-report-print]").hidden = false;
@@ -577,6 +582,21 @@ document.querySelector('[data-report-link]')?.addEventListener('click',async()=>
   try{await navigator.clipboard.writeText(url);document.querySelector('.report-payment-status').hidden=false;document.querySelector('.report-payment-status').textContent='Ссылка скопирована. Она даёт доступ к этому отчёту — храните её у себя.';}catch{document.querySelector('.report-payment-status').hidden=false;document.querySelector('.report-payment-status').textContent='Ссылка на отчёт: '+url;}
 });
 document.querySelector("[data-report-refresh]")?.addEventListener("click",()=>restoreReport(state.audit?.reportToken || returnToken).catch(error=>{document.querySelector(".report-payment-status").textContent=error.message;}));
+document.querySelector('[data-report-email]')?.addEventListener('submit',async(event)=>{
+  event.preventDefault();
+  const form=event.currentTarget;
+  const button=form.querySelector('button');
+  const status=form.querySelector('.report-email__status');
+  if(button.disabled||!form.reportValidity()||!state.reportUnlocked)return;
+  button.disabled=true;form.setAttribute('aria-busy','true');status.textContent='Отправляем отчёт…';
+  try{
+    const response=await fetch('/api/report/email',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({reportToken:state.audit.reportToken,email:form.elements.email.value.trim()})});
+    const result=await response.json();
+    if(!response.ok||!result.sent)throw new Error(result.error||'Не удалось отправить письмо. Скачайте отчёт или попробуйте позже.');
+    status.textContent=result.alreadySent?'Письмо уже отправлено на этот адрес. Проверьте входящие и папку «Спам».':'Письмо отправлено. Проверьте входящие и папку «Спам».';
+  }catch(error){status.textContent=error.message;}
+  finally{button.disabled=false;form.removeAttribute('aria-busy');}
+});
 document.querySelector("[data-report-download]")?.addEventListener("click",()=>{
   if (!state.reportUnlocked) {openPaymentModal();return;}
   const audit=state.audit;
