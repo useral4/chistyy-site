@@ -60,10 +60,70 @@ const severityOrder = { high: 0, medium: 1, low: 2 };
 const statusOrder = { failed: 0, review: 1, passed: 2 };
 const statPositions = ["stat-left", "stat-center", "stat-right"];
 
-function showView(view) {
+function resetAuditProgress(message = 'Подключаемся к проверке') {
+  const bar = document.querySelector('.loading-progress');
+  if (!bar) return;
+  bar.removeAttribute('aria-valuenow');
+  bar.removeAttribute('aria-valuetext');
+  bar.querySelector('span').style.transform = 'scaleX(0)';
+  document.querySelector('[data-progress-count]').textContent = message;
+  document.querySelector('[data-progress-stage]').textContent = '';
+}
+
+function updateAuditProgress({completed, total, message}) {
+  if (!Number.isInteger(completed) || !Number.isInteger(total) || total <= 0 || completed < 0 || completed > total) return;
+  const bar = document.querySelector('.loading-progress');
+  if (!bar) return;
+  bar.setAttribute('aria-valuemax', String(total));
+  bar.setAttribute('aria-valuenow', String(completed));
+  bar.setAttribute('aria-valuetext', `Выполнено ${completed} из ${total} этапов`);
+  bar.querySelector('span').style.transform = `scaleX(${completed / total})`;
+  document.querySelector('[data-progress-count]').textContent = `Выполнено ${completed} из ${total} этапов`;
+  document.querySelector('[data-progress-stage]').textContent = typeof message === 'string' ? message : '';
+}
+
+async function readAuditResponse(response, onProgress) {
+  if (!response.ok || !/application\/x-ndjson/i.test(response.headers.get('content-type') || '')) {
+    const audit = await response.json();
+    if (!response.ok || audit.error) throw new Error(audit.error || 'Проверка временно недоступна');
+    return audit;
+  }
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '', result;
+  const consume = line => {
+    if (!line.trim()) return;
+    let event;
+    try { event = JSON.parse(line); }
+    catch { throw new Error('Не удалось прочитать данные проверки. Попробуйте ещё раз.'); }
+    if (event.type === 'error') throw new Error(event.error || 'Проверка временно недоступна');
+    if (event.type === 'progress' && !result) onProgress(event);
+    if (event.type === 'result') result = event.audit;
+  };
+  try {
+    while (true) {
+      const {value, done} = await reader.read();
+      buffer += decoder.decode(value, {stream: !done});
+      let newline;
+      while ((newline = buffer.indexOf('\n')) !== -1) {
+        consume(buffer.slice(0, newline));
+        buffer = buffer.slice(newline + 1);
+      }
+      if (done) break;
+    }
+    consume(buffer);
+    if (!result || result.error) throw new Error(result?.error || 'Соединение прервалось до получения отчёта. Попробуйте ещё раз.');
+    return result;
+  } finally { await reader.cancel().catch(()=>{}); reader.releaseLock(); }
+}
+
+function showView(view, loadingMessage) {
   clearTimeout(loadingTimer);
   if(loadingHelp)loadingHelp.hidden=true;
-  if(view==='loading')loadingTimer=setTimeout(()=>{if(site?.dataset.view==='loading'&&loadingHelp)loadingHelp.hidden=false;},30000);
+  if(view==='loading'){
+    resetAuditProgress(loadingMessage);
+    loadingTimer=setTimeout(()=>{if(site?.dataset.view==='loading'&&loadingHelp)loadingHelp.hidden=false;},30000);
+  }
   else if(view==='home'){paymentPolling=false;if(auditRequest){auditRequest.abort();auditRequest=null;}}
   site?.setAttribute("data-view", view);
   window.scrollTo({ top: 0, behavior: "instant" });
@@ -490,14 +550,10 @@ form?.addEventListener("submit", async (event) => {
 
   try {
     const response = await fetch('/api/audit', {
-      method: 'POST', headers: { Accept: "application/json", 'Content-Type': 'application/json' },
+      method: 'POST', headers: { Accept: "application/x-ndjson", 'Content-Type': 'application/json' },
       body: JSON.stringify({ url, profile: 'lead', consent: policyCheckbox.checked }), signal:controller.signal
     });
-    const audit = await response.json();
-
-    if (!response.ok || audit.error) {
-      throw new Error(audit.error || "Проверка временно недоступна");
-    }
+    const audit = await readAuditResponse(response, updateAuditProgress);
 
     state.audit = audit;
     state.tab = "fines";
@@ -702,7 +758,7 @@ if(/^[a-f0-9]{48}$/.test(accessToken||'')&&!returnToken){
   restoreAccess(accessToken).then(()=>document.querySelector('[data-access-message]').textContent='Доступ восстановлен. Можно снова проверять добавленные сайты.').catch(error=>document.querySelector('[data-access-message]').textContent=error.message);
 }else refreshAccess().catch(()=>{});
 if (/^[a-f0-9]{48}$/.test(returnToken || "")) (async()=>{
-  showView('loading');
+  showView('loading', 'Загружаем сохранённый отчёт');
   for(let attempt=0;attempt<7&&paymentPolling;attempt++){
     const result=await restoreReport(returnToken);
     if(result.paid&&/^[a-f0-9]{48}$/.test(accessToken||'')){

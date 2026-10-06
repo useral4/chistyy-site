@@ -221,6 +221,13 @@ test('Audit consent and same-origin protection run before requests or quota cons
     assert.equal(checked.paid, true); assert.equal(checked.access.full, true);
     assert.equal(checked.domainAccess.expiresAt, bought.receipt.domainAccess.expiresAt);
     assert.equal(checked.domainAccess.used, 1);
+    const streamedResponse = await realFetch(base + '/api/audit', {method:'POST',headers:{'Content-Type':'application/json',Cookie:bought.cookie,Origin:base,Accept:'application/x-ndjson'},body:JSON.stringify({url:'https://www.example.ru',consent:true})});
+    const streamEvents = (await streamedResponse.text()).trim().split('\n').map(line=>JSON.parse(line));
+    const streamedAudit = streamEvents.at(-1).audit;
+    assert.equal(streamedAudit.paid, true);
+    assert.equal(streamedAudit.access.full, true);
+    assert.equal(streamedAudit.domainAccess.used, 1);
+    assert.equal(streamedAudit.domainAccess.expiresAt, bought.receipt.domainAccess.expiresAt);
     const strangerResponse = await realFetch(base + '/api/audit', { method: 'POST', headers: { 'Content-Type': 'application/json', Origin: base }, body: JSON.stringify({ url: 'https://example.ru', consent: true }) });
     assert.equal((await strangerResponse.json()).paid, false);
   } finally { safe.fetchText = originalSafeFetch; await new Promise(resolve => server.close(resolve)); }

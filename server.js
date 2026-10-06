@@ -8,6 +8,7 @@ const { randomUUID } = require("node:crypto");
 const { fetchText: safeFetchText } = require("./lib/safe-fetch");
 const { enhanceAudit, collectResources } = require("./lib/audit-engine");
 const { inspectBrowser } = require("./lib/browser-audit");
+const { createAuditProgress } = require("./lib/audit-progress");
 const reports = require("./lib/reports");
 const domainAccess = require("./lib/domain-access");
 const { handlePayments, publicConfig } = require("./lib/payments");
@@ -770,19 +771,26 @@ async function handleAudit(req, res) {
     return;
   }
 
+  // The same request carries live progress and the entitlement-filtered final report.
+  const progress = /application\/x-ndjson/i.test(req.headers.accept || '') ? createAuditProgress(res) : null;
+  const respond = (status, payload) => progress ? progress.finish(status, payload) : sendJson(res, status, payload);
   let auditStage = 'fetch';
   try {
     const page = await safeFetchText(targetUrl.href);
     if (!page.ok || !/text\/html|application\/xhtml/i.test(page.contentType)) throw new Error(`Страница не доступна как HTML (HTTP ${page.status})`);
+    progress?.complete('page', 'Загружаем документы, скрипты и SEO-файлы');
     auditStage = 'analyze';
     const finalUrl = new URL(page.finalUrl || targetUrl.href);
     const [robots, sitemap, resources] = await Promise.all([
-      fetchOptional(new URL("/robots.txt", finalUrl).href),
-      fetchOptional(new URL("/sitemap.xml", finalUrl).href),
-      collectResources(page)
+      fetchOptional(new URL("/robots.txt", finalUrl).href).then(text => { progress?.complete('robots'); return text; }),
+      fetchOptional(new URL("/sitemap.xml", finalUrl).href).then(text => { progress?.complete('sitemap'); return text; }),
+      collectResources(page, undefined, ({completed, total}) => progress?.update(`Документы и скрипты: ${completed} из ${total}`))
+        .then(items => { progress?.complete('resources'); return items; })
     ]);
 
+    progress?.update('Проверяем сайт в чистом браузере');
     const browser = await inspectBrowser(page, resources);
+    progress?.complete('browser', 'Анализируем юридические риски и SEO');
     const audit = enhanceAudit({
       html: browser.available ? browser.html : page.text,
       browser,
@@ -793,6 +801,7 @@ async function handleAudit(req, res) {
       profile,
       timing: page
     }, analyzeHtml);
+    progress?.complete('analysis', 'Сохраняем отчёт и проверяем доступ');
 
     if (!page.ok) {
       audit.warning = `Сайт ответил HTTP ${page.status}; часть проверки может быть неполной.`;
@@ -802,13 +811,16 @@ async function handleAudit(req, res) {
     const token = await reports.create(audit);
     const record = await reports.read(token);
     if (!record) throw new Error('Saved report could not be read');
+    if (res.destroyed) return;
     // Only same-origin POSTs may spend a buyer's domain allowance; public GET previews never do.
     const pass = req.method === 'POST' ? await domainAccess.apply(record, token, req) : null;
-    sendJson(res, 200, { ...(pass ? reports.full(audit, token) : reports.preview(audit, token)), paid: Boolean(pass), domainAccess: pass });
+    const result = { ...(pass ? reports.full(audit, token) : reports.preview(audit, token)), paid: Boolean(pass), domainAccess: pass };
+    progress?.complete('save', 'Отчёт готов');
+    respond(200, result);
   } catch (error) {
     if (auditStage !== 'fetch') {
       console.error('Audit failed at %s: %s', auditStage, error.code || error.name);
-      return sendJson(res, 503, { error: auditStage === 'save'
+      return respond(503, { error: auditStage === 'save'
         ? 'Проверка выполнена, но не удалось сохранить отчёт. Попробуйте позже.'
         : 'Не удалось обработать результаты проверки. Попробуйте позже.' });
     }
@@ -827,7 +839,7 @@ async function handleAudit(req, res) {
       })
     ];
 
-    sendJson(res, 200, {
+    respond(200, {
       url: targetUrl.href,
       profile,
       profileLabel: profileConfig.label,
@@ -959,7 +971,10 @@ const server = http.createServer((req, res) => {
     if (!["GET", "POST"].includes(req.method)) return sendJson(res, 405, {error:"Нужен GET или POST"});
     if (activeAudits >= 6) return sendJson(res, 503, {error:"Все проверки заняты. Повторите чуть позже."});
     activeAudits++;
-    handleAudit(req, res).catch(() => { if (!res.headersSent) sendJson(res, 503, {error:"Не удалось выполнить проверку"}); }).finally(() => activeAudits--);
+    handleAudit(req, res).catch(() => {
+      if (!res.headersSent) sendJson(res, 503, {error:"Не удалось выполнить проверку"});
+      else if (!res.writableEnded) res.end(JSON.stringify({type:'error',error:'Не удалось выполнить проверку'})+'\n');
+    }).finally(() => activeAudits--);
     return;
   }
 
