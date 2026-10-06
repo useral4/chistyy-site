@@ -181,3 +181,9 @@ test('Payment information is a separate monochrome document without orphaned che
     assert.equal(expanded.slice(2, 4), expanded.slice(4, 6));
   }
 });
+
+test('The document canvas matches the dark footer while the offer remains white', () => {
+  assert.match(css, /html\s*\{[^}]*background: #171717;/);
+  assert.match(css, /body\s*\{[^}]*background: #171717;/);
+  assert.match(css, /html:has\(body\.offer-page\) \{ background: #fff; \}/);
+});

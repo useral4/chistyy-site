@@ -29,12 +29,13 @@
 
 html {
   scroll-behavior: smooth;
+  background: #171717;
 }
 
 body {
   margin: 0;
   overflow-x: hidden;
-  background: var(--white);
+  background: #171717;
   color: var(--white);
   font-family: "Onest", Arial, sans-serif;
   letter-spacing: 0;
@@ -3571,6 +3572,9 @@ body:has(.access-dialog[open]), body:has(.payment-modal.is-open) { overflow: hid
   width: 140px;
   filter: grayscale(1) brightness(0);
 }
+
+html:has(body.offer-page) { background: #fff; }
+@media print { html { background: #fff; } }
 
 .hero h1 > span:last-child { display: block; }
 
