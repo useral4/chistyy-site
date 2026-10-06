@@ -194,12 +194,14 @@ test('Audit loading uses completed server stages and compact support links', () 
   assert.equal($('.loading-progress').attr('aria-valuemax'), '7');
   assert.equal($('[data-progress-count]').length, 1);
   assert.equal($('[data-progress-stage]').length, 1);
-  assert.equal($('.loading-title > span').length, 2);
+  assert.equal($('.loading-title').text(), 'Проверяем сайт');
+  assert.equal($('.loading-title > span').length, 0);
   assert.equal($('.loading-center .spinner').length, 1);
   assert.match(css, /\.loading-center \.spinner \{ display: block; width: 96px; height: 96px;/);
   assert.doesNotMatch(css, /\.loading-center \.spinner \{ display: none;/);
   assert.deepEqual($('.loading-help-links > a').map((_, a) => $(a).text()).get(), ['Telegram', 'MAX']);
-  assert.match(css, /\.loading-title > span \+ span \{ margin-top: 8px; \}/);
+  assert.match(css, /\.loading-center \.loading-title \{[^}]*white-space: nowrap;/);
+  assert.match(css, /\.loading-center \.loading-title \{ font-size: 26px; \}/);
   assert.match(css, /@media \(prefers-reduced-motion: reduce\)[\s\S]*\.loading-progress > span \{ transition: none;/);
   assert.doesNotMatch(css, /@keyframes audit-progress|animation: audit-progress/);
 });
