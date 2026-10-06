@@ -88,3 +88,24 @@ test('Finding headings have two explicit lines while manual-review and empty sta
   context.renderHero();
   assert.equal(resultTitle.textContent, 'SEO-проблем не найдено');
 });
+
+test('Blurred cards are neutral placeholders, never hidden findings or recommendations', () => {
+  const lockedItems = {};
+  const lockedReportText = {};
+  const lockedReportTitle = {};
+  const classes = new Set();
+  const lockedReport = { classList: {toggle(name, value) { value ? classes.add(name) : classes.delete(name); }, remove(name) { classes.delete(name); }} };
+  const state = {tab: 'fines', reportUnlocked: false, audit: {access: {hiddenLegal: 0, hiddenSeo: 9}, checks: [{title: 'PRIVATE FINDING', fix: 'PRIVATE REMEDY'}]}};
+  const context = vm.createContext({state, lockedItems, lockedReportText, lockedReportTitle, lockedReport, plural: (_, forms) => forms[2]});
+  vm.runInContext(source.slice(source.indexOf('function renderLockedReport('), source.indexOf('function renderIssueList()')), context);
+  context.renderLockedReport(true);
+  assert.equal((lockedItems.innerHTML.match(/class="locked-item"/g) || []).length, 3);
+  assert.doesNotMatch(lockedItems.innerHTML, /PRIVATE/);
+  assert.match(lockedItems.innerHTML, /Пункт полного отчёта/);
+  assert.match(lockedReportText.textContent, /Этот раздел открыт/);
+  assert.doesNotMatch(lockedReportText.textContent, /Одна оплата|блюр/);
+  state.reportUnlocked = true;
+  context.renderLockedReport(null);
+  assert.equal(classes.has('is-hidden'), true);
+  assert.equal(lockedItems.innerHTML, '');
+});

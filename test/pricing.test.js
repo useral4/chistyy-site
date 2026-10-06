@@ -33,6 +33,7 @@ function checkoutContext() {
     set(value) { if (value) radios.forEach(radio => radio.selected = false); this.selected = value; }
   }));
   radios[0].checked = true;
+  document.querySelectorAll = selector => selector === 'input[name="payment-plan"]' ? radios : [];
   document.querySelector = selector => {
     if (selector === '.stats') return null;
     if (selector === 'input[name="payment-plan"]:checked') return radios.find(radio => radio.checked);
@@ -58,7 +59,9 @@ test('Single-site checkout is the default and other packages are optional', () =
   const options = $('[data-payment-options]');
   assert.equal(options.prop('tagName'), 'DETAILS');
   assert.equal(options.attr('open'), undefined);
-  assert.match(options.children('summary').text(), /несколько сайтов/);
+  assert.match(options.children('summary').text(), /несколько сайтов/i);
+  assert.equal(options.closest('.locked-report').length, 1);
+  assert.equal($('.payment-modal input[name="payment-plan"], .payment-modal [data-payment-options]').length, 0);
   assert.equal($('input[name="payment-plan"]:checked').length, 1);
   assert.equal($('input[name="payment-plan"]:checked').val(), 'single');
   assert.match($('[data-payment-buy]').text(), /Получить отчёт за 179/);
@@ -89,16 +92,28 @@ test('Opening a regular report resets a previous package choice to 179 rubles', 
   const trigger = ui.element('.locked-report-link');
   trigger.focus();
   ui.context.openPaymentModal('agency');
-  assert.equal(ui.element('[data-payment-options]').open, true);
-  assert.equal(ui.document.activeElement.value, 'agency');
+  assert.equal(ui.element('[data-payment-options]').open, undefined);
+  assert.equal(ui.document.activeElement, ui.element('[data-payment-buy]'));
   assert.equal(ui.element('[data-payment-buy]').textContent, 'Получить пакет за 999\u202f₽');
   ui.context.closePaymentModal();
   assert.equal(ui.document.activeElement, trigger);
   assert.equal(ui.element('.site').inert, false);
   ui.context.openPaymentModal();
   assert.equal(ui.radios.find(radio => radio.checked).value, 'single');
-  assert.equal(ui.element('[data-payment-options]').open, false);
+  assert.equal(ui.element('[data-payment-options]').open, undefined);
   assert.equal(ui.element('[data-payment-buy]').textContent, 'Получить отчёт за 179\u202f₽');
+  assert.equal(ui.document.activeElement, ui.element('[data-payment-buy]'));
+});
+
+test('Inline package choice updates the report button and is preserved when checkout opens', () => {
+  const ui = checkoutContext();
+  const agency = ui.radios.find(radio => radio.value === 'agency');
+  agency.checked = true;
+  agency.events.change();
+  assert.equal(ui.element('.locked-report-link').textContent, 'Получить пакет за 999\u202f₽');
+  ui.element('.locked-report-link').events.click({preventDefault() {}});
+  assert.equal(ui.radios.find(radio => radio.checked).value, 'agency');
+  assert.equal(ui.element('[data-payment-price]').textContent, '999\u202f₽');
   assert.equal(ui.document.activeElement, ui.element('[data-payment-buy]'));
 });
 

@@ -405,7 +405,16 @@
             <h2 class="locked-report-title">Что входит в полный отчёт</h2>
             <p class="locked-report-text">Обоснования и план исправления найденных недостатков</p>
             <a class="locked-report-link" href="#">Получить полный отчёт за 179 ₽</a>
-            <small>Без привязки карты</small>
+            <details class="payment-options" data-payment-options>
+              <summary>Несколько сайтов? Выбрать тариф</summary>
+              <fieldset class="payment-plans">
+                <legend>Количество сайтов на 30 дней</legend>
+                <label><input type="radio" name="payment-plan" value="single" data-price="179" data-sites="1" checked /><span><strong>Один сайт</strong><small>Для своего сайта</small></span><b>179&#8239;₽</b></label>
+                <label><input type="radio" name="payment-plan" value="specialist" data-price="390" data-sites="10" /><span><strong>До 10 сайтов</strong><small>Для специалиста</small></span><b>390&#8239;₽</b></label>
+                <label><input type="radio" name="payment-plan" value="agency" data-price="999" data-sites="30" /><span><strong>До 30 сайтов</strong><small>Для агентства</small></span><b>999&#8239;₽</b></label>
+              </fieldset>
+            </details>
+            <small>Без автопродления</small>
           </div>
           <details class="audit-details">
             <summary>Что проверено и ограничения проверки</summary>
@@ -426,16 +435,6 @@
           <strong data-payment-price>179&#8239;₽</strong>
           <span data-payment-scope>1 сайт · перепроверки на 30 дней</span>
         </div>
-        <details class="payment-options" data-payment-options>
-          <summary>Нужно проверить несколько сайтов?</summary>
-          <p>Состав отчёта одинаковый. Пакеты подходят для нескольких сайтов и работы с клиентами.</p>
-          <fieldset class="payment-plans">
-            <legend>Количество сайтов на 30 дней</legend>
-            <label><input type="radio" name="payment-plan" value="single" data-price="179" data-sites="1" checked /><span><strong>Один сайт</strong><small>Для своего сайта</small></span><b>179&#8239;₽</b></label>
-            <label><input type="radio" name="payment-plan" value="specialist" data-price="390" data-sites="10" /><span><strong>До 10 сайтов</strong><small>Для специалиста · 39 ₽ за сайт при всех 10 сайтах</small></span><b>390&#8239;₽</b></label>
-            <label><input type="radio" name="payment-plan" value="agency" data-price="999" data-sites="30" /><span><strong>До 30 сайтов</strong><small>Для агентства · 33,30 ₽ за сайт при всех 30 сайтах</small></span><b>999&#8239;₽</b></label>
-          </fieldset>
-        </details>
         <p class="payment-modal__note">Без подписки и автопродления. Готовые отчёты останутся доступными после 30 дней.</p>
         <button class="payment-modal__buy" type="button" data-payment-buy>Получить отчёт за 179 ₽</button>
         <small class="payment-modal__hint" data-payment-hint>Доступ к цифровому отчёту предоставляется после оплаты.</small>

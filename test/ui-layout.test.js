@@ -192,9 +192,19 @@ test('Audit loading uses honest indeterminate progress and compact support links
   assert.equal($('.loading-progress').attr('role'), 'progressbar');
   assert.equal($('.loading-progress').attr('aria-valuenow'), undefined);
   assert.equal($('.loading-title > span').length, 2);
+  assert.equal($('.loading-center .spinner').length, 1);
+  assert.match(css, /\.loading-center \.spinner \{ display: block; width: 96px; height: 96px;/);
+  assert.doesNotMatch(css, /\.loading-center \.spinner \{ display: none;/);
   assert.deepEqual($('.loading-help-links > a').map((_, a) => $(a).text()).get(), ['Telegram', 'MAX']);
   assert.match(css, /\.loading-title > span \+ span \{ margin-top: 8px; \}/);
   assert.match(css, /@media \(prefers-reduced-motion: reduce\)[\s\S]*\.loading-progress > span \{ animation: none;/);
+});
+
+test('Locked preview uses lighter illustrative cards and reduced top spacing', () => {
+  assert.match(css, /\.locked-items \{[^}]*filter: blur\(2px\); opacity: \.8;/);
+  assert.match(css, /\.locked-report \{ justify-content: flex-start; margin-top: 0; padding: 56px 0 8px; \}/);
+  assert.match(css, /\.locked-item \{[^}]*background: #58262c66;/);
+  assert.match(css, /\.payment-modal__dialog \{ padding: 24px; border-radius: 16px; \}/);
 });
 
 test('Report actions have labeled icon controls, fixed touch targets and single-line URL', () => {

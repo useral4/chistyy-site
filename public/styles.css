@@ -3605,7 +3605,7 @@ html:has(body.offer-page) { background: #fff; }
   .hero-subtitle { font-size: 16px; }
 }
 
-.loading-center .spinner { display: none; }
+.loading-center .spinner { display: block; width: 96px; height: 96px; margin-bottom: 32px; }
 .loading-center .loading-title { margin-bottom: 24px; font-weight: 600; line-height: 1.15; }
 .loading-progress { width: min(360px, 100%); height: 6px; margin: 28px auto; overflow: hidden; border-radius: 3px; background: #393939; }
 .loading-progress > span { display: block; width: 40%; height: 100%; border-radius: inherit; background: #ee1b24; animation: audit-progress 1.8s linear infinite; }
@@ -3655,5 +3655,58 @@ html:has(body.offer-page) { background: #fff; }
 }
 @media (prefers-reduced-motion: reduce) {
   .loading-progress > span { animation: none; margin: 0 auto; }
+  .loading-center .spinner { animation: none; }
   .flash-toast { animation: none; }
+}
+
+.site:not([data-view="loading"]) .loading-center .spinner { animation-play-state: paused; }
+.locked-report { justify-content: flex-start; margin-top: 0; padding: 56px 0 8px; }
+.locked-items { top: 0; right: 0; left: 0; max-height: 300px; gap: 16px; padding: 4px; filter: blur(2px); opacity: .8; mask-image: none; -webkit-mask-image: none; }
+.locked-item { min-height: 88px; height: 88px; justify-content: center; gap: 8px; padding: 16px 20px; border-radius: 8px; background: #58262c66; }
+.locked-placeholder-title { color: #f0d4d6; font-size: 17px; font-weight: 600; line-height: 1.3; }
+.locked-placeholder-copy { color: #d6afb3; font-size: 14px; line-height: 1.4; }
+.locked-item .locked-shape { width: 58%; height: 6px; background: #b98e9180; }
+.locked-item:nth-child(2) { opacity: .8; }
+.locked-item:nth-child(3) { opacity: .6; }
+.locked-report::before { background: linear-gradient(180deg, transparent 0, #21212133 120px, #21212188 280px, #212121 380px); }
+.locked-report > img { width: 136px; height: 136px; margin-bottom: 16px; }
+.locked-report > h2 { max-width: 26ch; margin-bottom: 12px; font-size: 30px; font-weight: 600; line-height: 1.2; text-wrap: balance; text-shadow: none; }
+.locked-report > p { max-width: 44ch; margin-bottom: 24px; font-size: 18px; line-height: 1.45; }
+.locked-report > a { min-height: 56px; height: auto; padding: 16px; border-radius: 8px; font-size: 18px; line-height: 1.35; }
+.locked-report > small { margin-top: 0; font-size: 14px; line-height: 1.4; color: #ccc; }
+.locked-report > .payment-options { position: relative; z-index: 3; width: min(473px, 100%); margin: 16px 0 12px; border: 0; text-align: left; }
+.locked-report .payment-options summary { min-height: 44px; padding: 10px 0; text-align: center; font-size: 15px; }
+.locked-report .payment-plans { margin-top: 12px; }
+.locked-report .payment-plans label { gap: 10px; min-height: 64px; padding: 10px 12px; }
+.locked-report .payment-plans small { margin: 4px 0 0; color: #ddd; font-size: 13px; line-height: 1.4; }
+.locked-report .payment-plans strong, .locked-report .payment-plans b { font-size: 15px; }
+.payment-modal__dialog { padding: 24px; border-radius: 16px; }
+.payment-modal h2 { margin: 0 42px 16px 0; font-size: 26px; line-height: 1.2; }
+.payment-modal__text { margin-bottom: 16px; }
+.payment-modal__offer { margin-bottom: 16px; }
+.payment-modal__note { margin-bottom: 16px; }
+.payment-modal__hint { margin-top: 12px; }
+.payment-modal__terms { line-height: 1.4; }
+
+@media (max-width: 720px) {
+  .loading-center { padding: 40px 0 48px; }
+  .loading-center .spinner { width: 80px; height: 80px; }
+  .locked-report { padding-top: 48px; }
+  .locked-report > img { width: 112px; height: 112px; }
+  .locked-report > h2 { font-size: 26px; }
+  .locked-report > p { font-size: 16px; }
+  .locked-report > a { font-size: 16px; }
+  .locked-placeholder-title { font-size: 15px; }
+  .locked-placeholder-copy { font-size: 13px; }
+}
+@media (max-width: 360px), (max-height: 650px) {
+  .payment-modal__dialog { padding: 20px; }
+  .payment-modal h2 { margin-bottom: 12px; font-size: 22px; }
+  .payment-modal__text { margin-bottom: 12px; font-size: 15px; line-height: 1.4; }
+  .payment-modal__offer { margin-bottom: 12px; }
+  .payment-modal__offer strong { font-size: 32px; }
+  .payment-modal__offer span { font-size: 14px; }
+  .payment-modal__note { margin-bottom: 12px; font-size: 13px; }
+  .payment-modal__buy { min-height: 52px; font-size: 16px; }
+  .payment-modal__hint, .payment-modal__terms { font-size: 12px; }
 }

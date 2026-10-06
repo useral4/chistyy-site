@@ -119,7 +119,7 @@ function initStatsSlider() {
 }
 
 function updatePaymentPlan(planId) {
-  const inputs = [...paymentModal.querySelectorAll('input[name="payment-plan"]')];
+  const inputs = [...document.querySelectorAll('input[name="payment-plan"]')];
   const selected = inputs.find(radio => radio.value === planId) || inputs[0];
   selected.checked = true;
   selectedPlan = selected.value;
@@ -130,7 +130,8 @@ function updatePaymentPlan(planId) {
   document.querySelector('[data-payment-price]').textContent = price;
   document.querySelector('[data-payment-scope]').textContent = `${single ? '1 сайт' : `До ${sites} сайтов`} · перепроверки на 30 дней`;
   document.querySelector('[data-payment-buy]').textContent = single ? `Получить отчёт за ${price}` : `Получить пакет за ${price}`;
-  document.querySelector('[data-payment-options] summary').textContent = single ? 'Нужно проверить несколько сайтов?' : 'Изменить количество сайтов';
+  document.querySelector('[data-payment-options] summary').textContent = single ? 'Несколько сайтов? Выбрать тариф' : `До ${sites} сайтов · изменить тариф`;
+  if (lockedReportLink) lockedReportLink.textContent = single ? `Получить полный отчёт за ${price}` : `Получить пакет за ${price}`;
 }
 
 function openPaymentModal(planId = 'single') {
@@ -140,10 +141,7 @@ function openPaymentModal(planId = 'single') {
   paymentModal?.setAttribute("aria-hidden", "false");
   if (site) site.inert = true;
   updatePaymentPlan(planId);
-  const options = document.querySelector('[data-payment-options]');
-  options.open = selectedPlan !== 'single';
-  const focus = options.open ? paymentModal.querySelector('input[name="payment-plan"]:checked') : document.querySelector('[data-payment-buy]');
-  focus?.focus();
+  document.querySelector('[data-payment-buy]')?.focus();
   refreshPaymentConfig().then(()=>{
     if(paymentHint)paymentHint.textContent=paymentMode==="test"?"Тестовый режим ЮKassa: используйте тестовую карту, реальные деньги не списываются.":"Оплата временно недоступна. Попробуйте позже.";
   }).catch(()=>{if(paymentHint)paymentHint.textContent="Не удалось проверить доступность оплаты. Повторите попытку.";});
@@ -362,11 +360,10 @@ function renderLockedReport(items) {
   lockedReport.classList.remove("is-transparent");
   if (!locked) { if (lockedItems) lockedItems.innerHTML=""; return; }
   // Generic shapes indicate locked findings without embedding private report data.
-  if (lockedItems) lockedItems.innerHTML = Array.from({length:Math.min(count,3)},()=>'<div class="locked-item"><div class="locked-shape"></div><div class="locked-shape"></div></div>').join("");
+  if (lockedItems) lockedItems.innerHTML = Array.from({length:Math.min(count,3)},()=>'<div class="locked-item"><div class="locked-placeholder-title">Пункт полного отчёта</div><div class="locked-placeholder-copy">Доказательства и рекомендации</div><div class="locked-shape"></div></div>').join("");
   const hiddenGroup=ownCount?(seo?'SEO':'по штрафам'):(seo?'по штрафам':'SEO');
   if (lockedReportTitle) lockedReportTitle.textContent = `Ещё ${count} ${plural(count,["проблема","проблемы","проблем"])} ${hiddenGroup} в полном аудите`;
-  if (lockedReportText) lockedReportText.textContent = `${ownCount?'В этом разделе открыты первые 3 проблемы.':'Этот раздел открыт целиком; блюр показывает закрытые проблемы другого раздела.'} Одна оплата 179 ₽ откроет все найденные проблемы по штрафам и SEO, их обоснования и рекомендации. После оплаты будут доступны скачивание и PDF.`;
-  if (lockedReportLink) lockedReportLink.textContent = "Получить полный отчёт за 179 ₽";
+  if (lockedReportText) lockedReportText.textContent = ownCount ? 'Где обнаружены проблемы и как их исправить — в полном отчёте.' : 'Этот раздел открыт. Остальные проблемы и рекомендации — в полном отчёте.';
 }
 
 function renderIssueList() {
@@ -433,6 +430,7 @@ function renderIssueList() {
 
   renderLockedReport(state.reportUnlocked || state.audit?.warning ? null : true);
   issueList.append(lockedReport);
+  updatePaymentPlan(selectedPlan);
   const reviews=checks.filter(check=>check.status==='review');
   if(reviewCount)issueList.insertAdjacentHTML('beforeend',`<details class="audit-limitations"><summary>Что не удалось установить автоматически — ${reviewCount}</summary><p>Эти пункты не входят в число найденных проблем и не продаются как нарушения. Здесь указано, каких данных не хватает для вывода.</p>${reviews.map(check=>`<article><h3>${escapeHtml(check.title)}</h3><p>${escapeHtml(check.evidence)}</p>${check.fix?`<p><strong>Для точного вывода:</strong> ${escapeHtml(check.fix)}</p>`:''}</article>`).join('')}</details>`);
   renderPassedChecks();
@@ -514,6 +512,7 @@ form?.addEventListener("submit", async (event) => {
     document.querySelector('[data-report-email]').hidden=true;
     status.textContent=audit.paid?paidAccessText(audit.domainAccess):'';
     document.querySelector('[data-report-refresh]').hidden=true;
+    if (!startPlanAfterAudit) selectedPlan = 'single';
     renderResult();
     showView("result");
     if (audit.paid) await restoreReport(audit.reportToken);
@@ -544,7 +543,7 @@ tabs.forEach((button) => {
 
 lockedReportLink?.addEventListener("click", (event) => {
   event.preventDefault();
-  openPaymentModal();
+  openPaymentModal(selectedPlan);
 });
 
 document.querySelectorAll("[data-payment-close]").forEach((button) => {
@@ -555,7 +554,7 @@ document.querySelector("[data-payment-buy]")?.addEventListener("click", () => {
   startTestPayment();
 });
 
-paymentModal.querySelectorAll('input[name="payment-plan"]').forEach(radio => {
+document.querySelectorAll('input[name="payment-plan"]').forEach(radio => {
   radio.addEventListener('change', () => updatePaymentPlan(radio.value));
 });
 
