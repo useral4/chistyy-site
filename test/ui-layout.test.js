@@ -129,6 +129,7 @@ test('Hero uses Figma typography, compact consent and the requested submit label
   assert.equal($('.hero h1 > span').length, 3);
   assert.match($('.hero .form-row > button').text(), /Проверить нарушения/);
   assert.match(css, /\.hero h1\s*\{ font-size: 44px; line-height: 1; \}/);
+  assert.match(css, /\.hero h1 > span:last-child \{ margin-top: 8px; \}/);
   assert.match(css, /\.hero \.policy\s*\{ min-height: 28px; margin: 0; gap: 7px; \}/);
   assert.match(css, /@container \(max-width: 364px\)/);
 });
