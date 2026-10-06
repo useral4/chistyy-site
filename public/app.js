@@ -27,6 +27,27 @@ let startPlanAfterAudit = false;
 let accessPasses = [];
 let paymentFocus = null;
 const loadingHelp = document.querySelector('[data-loading-help]');
+const flashToast = document.querySelector('.flash-toast');
+let toastTimer;
+
+function showToast(message, duration = 7000) {
+  if (!flashToast) return;
+  clearTimeout(toastTimer);
+  flashToast.querySelector('[data-toast-message]').textContent = message;
+  flashToast.hidden = false;
+  flashToast.dataset.duration = String(duration);
+  if (duration > 0) toastTimer = setTimeout(() => { flashToast.hidden = true; }, duration);
+}
+document.querySelector('[data-toast-close]')?.addEventListener('click', () => { clearTimeout(toastTimer); flashToast.hidden = true; });
+flashToast?.addEventListener('mouseenter', () => clearTimeout(toastTimer));
+flashToast?.addEventListener('focusin', () => clearTimeout(toastTimer));
+const resumeToast = () => {
+  const duration = Number(flashToast?.dataset.duration);
+  clearTimeout(toastTimer);
+  if (duration > 0) toastTimer = setTimeout(() => { flashToast.hidden = true; }, duration);
+};
+flashToast?.addEventListener('mouseleave', resumeToast);
+flashToast?.addEventListener('focusout', resumeToast);
 
 const state = {
   audit: null,
@@ -252,7 +273,7 @@ function renderTabs() {
 }
 
 function renderHero() {
-  if (resultUrl) resultUrl.textContent = state.checkedUrl;
+  if (resultUrl) { resultUrl.textContent = state.checkedUrl; resultUrl.title = state.checkedUrl; }
 
   const checks = Array.isArray(state.audit?.checks) ? state.audit.checks : [];
   const group = state.tab === "growth" ? "seo" : "legal";
@@ -268,7 +289,11 @@ function renderHero() {
     } else if (count > 0) {
       const noun = plural(count, ["проблема", "проблемы", "проблем"]);
       const single = count % 10 === 1 && count % 100 !== 11;
-      resultTitle.textContent = `${single ? "Найдена" : "Найдено"} ${count} ${noun}${group === "seo" ? " SEO" : " по штрафам"}`;
+      const finding = document.createElement('span');
+      finding.textContent = `${single ? "Найдена" : "Найдено"} ${count} ${noun}`;
+      const category = document.createElement('span');
+      category.textContent = group === "seo" ? "по SEO" : "по штрафам";
+      resultTitle.replaceChildren(finding, category);
     } else {
       resultTitle.textContent = group === "seo" ? "SEO-проблем не найдено" : "Явных проблем по штрафам не найдено";
     }
@@ -420,6 +445,7 @@ function renderResult() {
 }
 
 function renderError(url, message) {
+  document.querySelectorAll('[data-report-download], [data-report-print], [data-report-link], [data-report-refresh], [data-report-email], .report-payment-status').forEach(el => { el.hidden = true; });
   state.checkedUrl = url;
   state.reportUnlocked = false;
   state.audit = {
@@ -483,10 +509,10 @@ form?.addEventListener("submit", async (event) => {
     document.querySelector('[data-report-print]').hidden=!audit.reportToken;
     document.querySelector('[data-report-link]').hidden=!audit.reportToken;
     const status=document.querySelector('.report-payment-status');
-    status.hidden=!state.reportUnlocked;
+    status.hidden=!audit.paid;
     status.classList.toggle('is-paid',Boolean(audit.paid));
     document.querySelector('[data-report-email]').hidden=true;
-    if(state.reportUnlocked)status.textContent=audit.paid?paidAccessText(audit.domainAccess):'Весь отчёт открыт бесплатно: в каждом разделе найдено не больше 5 проблем. Можно сохранить ссылку и скачать результаты.';
+    status.textContent=audit.paid?paidAccessText(audit.domainAccess):'';
     document.querySelector('[data-report-refresh]').hidden=true;
     renderResult();
     showView("result");
@@ -606,9 +632,9 @@ async function restoreReport(token) {
   renderResult(); showView("result");
   const note = document.querySelector(".report-payment-status");
   if (note) {
-    note.hidden = false;
+    note.hidden = !result.paid && state.reportUnlocked && !result.canceled && !result.paymentPending;
     note.classList.toggle('is-paid',Boolean(result.paid));
-    note.textContent = result.paid ? paidAccessText(result.domainAccess) : state.reportUnlocked ? "В каждом разделе найдено не больше 5 проблем — полный отчёт доступен бесплатно." : result.canceled ? "Оплата отменена. Полный отчёт не открыт; предварительный отчёт сохранён. Можно повторить оплату." : result.paymentPending ? "Оплата ещё не подтверждена. Пока доступен предварительный отчёт. Полный отчёт откроется после подтверждения платежа; можно проверить статус ещё раз." : "Предварительный отчёт сохранён. Полный отчёт за 179 ₽ включает перепроверки этого сайта на 30 дней.";
+    note.textContent = result.paid ? paidAccessText(result.domainAccess) : result.canceled ? "Оплата отменена. Полный отчёт не открыт; предварительный отчёт сохранён. Можно повторить оплату." : result.paymentPending ? "Оплата ещё не подтверждена. Пока доступен предварительный отчёт. Полный отчёт откроется после подтверждения платежа; можно проверить статус ещё раз." : state.reportUnlocked ? '' : "Предварительный отчёт сохранён. Полный отчёт за 179 ₽ включает перепроверки этого сайта на 30 дней.";
   }
   document.querySelector('[data-report-email]').hidden=!result.reportEmailAvailable;
     document.querySelector("[data-report-refresh]").hidden = !result.paymentPending;
@@ -702,9 +728,9 @@ document.querySelector('[data-report-link]')?.addEventListener('click',async()=>
   const token=state.audit?.reportToken;
   if(!token)return;
   const url=new URL('/?report='+token,location.origin).href;
-  try{await navigator.clipboard.writeText(url);document.querySelector('.report-payment-status').hidden=false;document.querySelector('.report-payment-status').textContent='Ссылка скопирована. Она даёт доступ к этому отчёту — храните её у себя.';}catch{document.querySelector('.report-payment-status').hidden=false;document.querySelector('.report-payment-status').textContent='Ссылка на отчёт: '+url;}
+  try{await navigator.clipboard.writeText(url);showToast('Ссылка скопирована. Она даёт доступ к этому отчёту — храните её у себя.');}catch{showToast('Не удалось скопировать автоматически. Ссылка на отчёт: '+url,0);}
 });
-document.querySelector("[data-report-refresh]")?.addEventListener("click",()=>restoreReport(state.audit?.reportToken || returnToken).catch(error=>{document.querySelector(".report-payment-status").textContent=error.message;}));
+document.querySelector("[data-report-refresh]")?.addEventListener("click",()=>restoreReport(state.audit?.reportToken || returnToken).catch(error=>showToast(error.message)));
 document.querySelector('[data-report-email]')?.addEventListener('submit',async(event)=>{
   event.preventDefault();
   const form=event.currentTarget;

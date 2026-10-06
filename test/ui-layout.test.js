@@ -187,3 +187,26 @@ test('The document canvas matches the dark footer while the offer remains white'
   assert.match(css, /body\s*\{[^}]*background: #171717;/);
   assert.match(css, /html:has\(body\.offer-page\) \{ background: #fff; \}/);
 });
+
+test('Audit loading uses honest indeterminate progress and compact support links', () => {
+  assert.equal($('.loading-progress').attr('role'), 'progressbar');
+  assert.equal($('.loading-progress').attr('aria-valuenow'), undefined);
+  assert.equal($('.loading-title > span').length, 2);
+  assert.deepEqual($('.loading-help-links > a').map((_, a) => $(a).text()).get(), ['Telegram', 'MAX']);
+  assert.match(css, /\.loading-title > span \+ span \{ margin-top: 8px; \}/);
+  assert.match(css, /@media \(prefers-reduced-motion: reduce\)[\s\S]*\.loading-progress > span \{ animation: none;/);
+});
+
+test('Report actions have labeled icon controls, fixed touch targets and single-line URL', () => {
+  $('.report-actions > button').each((_, button) => {
+    assert.ok($(button).attr('aria-label'));
+    assert.equal($(button).attr('title'), $(button).attr('aria-label'));
+    assert.equal($(button).find('svg[aria-hidden="true"]').length, 1);
+  });
+  assert.match(css, /\.result-hero \.checked-url > b \{[^}]*white-space: nowrap; text-overflow: ellipsis;/);
+  assert.match(css, /\.result-hero \.report-actions > button \{[^}]*width: 48px;[^}]*height: 48px;/);
+  assert.match(css, /\.result-hero \.report-actions > button\[hidden\] \{ display: none; \}/);
+  assert.equal($('.flash-toast').attr('role'), 'status');
+  assert.equal($('.flash-toast').attr('aria-live'), 'polite');
+  assert.ok($('[data-toast-close]').attr('aria-label'));
+});

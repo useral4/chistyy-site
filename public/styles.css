@@ -3604,3 +3604,56 @@ html:has(body.offer-page) { background: #fff; }
   .hero h1 { font-size: 32px; }
   .hero-subtitle { font-size: 16px; }
 }
+
+.loading-center .spinner { display: none; }
+.loading-center .loading-title { margin-bottom: 24px; font-weight: 600; line-height: 1.15; }
+.loading-progress { width: min(360px, 100%); height: 6px; margin: 28px auto; overflow: hidden; border-radius: 3px; background: #393939; }
+.loading-progress > span { display: block; width: 40%; height: 100%; border-radius: inherit; background: #ee1b24; animation: audit-progress 1.8s linear infinite; }
+.site:not([data-view="loading"]) .loading-progress > span { animation-play-state: paused; }
+@keyframes audit-progress { from { transform: translateX(-100%); } to { transform: translateX(250%); } }
+.loading-help[hidden] { display: none; }
+.loading-help-links { display: flex; justify-content: center; gap: 12px; margin-top: 12px; }
+.loading-help-links > a { display: inline-flex; align-items: center; justify-content: center; min-height: 40px; margin: 0; padding: 8px 14px; border: 1px solid #656565; border-radius: 8px; white-space: nowrap; text-decoration: none; }
+.loading-help-links > a:hover { background: #393939; }
+
+.result-hero .checked-url { display: flex; width: max-content; max-width: 100%; min-width: 0; margin-inline: auto; flex-wrap: nowrap; }
+.result-hero .checked-url > b { display: block; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; overflow-wrap: normal; }
+.result-title > span { display: block; }
+.result-title > span + span { margin-top: 6px; }
+.result-hero .report-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 24px auto; }
+.result-hero .report-actions > button { display: grid; place-items: center; flex: 0 0 48px; width: 48px; min-width: 48px; height: 48px; min-height: 48px; padding: 12px; border: 1px solid #656565; border-radius: 8px; color: #fff; background: #303030; }
+.result-hero .report-actions > button[hidden] { display: none; }
+.result-hero .report-actions > button:hover { background: #444; }
+.result-hero .report-actions > button[data-report-download] { color: #171717; background: #fff; border-color: #fff; }
+.report-actions svg, .flash-toast svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.report-actions > button:focus-visible, .loading-help-links > a:focus-visible, .flash-toast button:focus-visible { outline: 2px solid #ff7f85; outline-offset: 3px; }
+
+.flash-toast { position: fixed; z-index: 1500; right: 16px; bottom: calc(24px + env(safe-area-inset-bottom)); left: 16px; display: flex; align-items: center; gap: 12px; width: calc(100% - 32px); max-width: 420px; margin: 0 auto; padding: 16px; border-radius: 8px; color: #fff; background: #303030; box-shadow: 0 8px 24px #0006; animation: toast-enter 180ms ease-out; }
+.flash-toast[hidden] { display: none; }
+.flash-toast p { flex: 1; min-width: 0; margin: 0; font-size: 15px; line-height: 1.45; overflow-wrap: anywhere; }
+.flash-toast button { display: grid; place-items: center; flex: 0 0 40px; width: 40px; height: 40px; padding: 8px; border: 0; border-radius: 8px; color: #fff; background: transparent; cursor: pointer; }
+.flash-toast button:hover { background: #484848; }
+@keyframes toast-enter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+@media (max-width: 720px) {
+  .loading-center { min-height: calc(100dvh - 120px); padding: 64px 0 80px; }
+  .loading-center .loading-title { font-size: 40px; line-height: 1.15; }
+  .loading-title > span { display: block; }
+  .loading-title > span + span { margin-top: 8px; }
+  .loading-center > p { width: 100%; max-width: 34ch; margin: 0 auto; font-size: 18px; line-height: 1.4; }
+  .loading-center > p br { display: none; }
+  .loading-help { width: 100%; max-width: 360px; margin: 0 auto; padding: 16px; border-radius: 8px; }
+  .loading-help p { margin: 0; font-size: 14px; line-height: 1.45; }
+  .result-hero .result-title { margin: 24px auto; font-size: 30px; font-weight: 600; line-height: 1.2; text-wrap: wrap; }
+}
+@media (max-width: 360px) {
+  .loading-center .loading-title { font-size: 32px; }
+  .result-hero .result-title { font-size: 26px; }
+}
+@media (max-width: 340px) {
+  .result-hero .result-title { font-size: 24px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .loading-progress > span { animation: none; margin: 0 auto; }
+  .flash-toast { animation: none; }
+}
