@@ -69,21 +69,60 @@ function rotateStats() {
 }
 
 function initStatsSlider() {
-  if (!stats || statCards.length !== statPositions.length || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-
+  if (!stats || statCards.length !== statPositions.length) return;
+  const mobile = window.matchMedia("(max-width: 1100px)");
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const indicators = [...document.querySelectorAll('[data-stat-index]')];
+  const select = (index) => indicators.forEach((button, current) => button.setAttribute('aria-pressed', String(current === index)));
+  const scrollToCard = (index) => {
+    if (!mobile.matches) return;
+    stats.scrollTo({ left: statCards[index].offsetLeft, behavior: reducedMotion.matches ? 'instant' : 'smooth' });
+  };
+  indicators.forEach((button, index) => button.addEventListener('click', () => scrollToCard(index)));
+  stats.addEventListener('scroll', () => {
+    if (!mobile.matches) return;
+    const nearest = statCards.reduce((best, card, index) => Math.abs(card.offsetLeft - stats.scrollLeft) < Math.abs(statCards[best].offsetLeft - stats.scrollLeft) ? index : best, 0);
+    select(nearest);
+  }, { passive: true });
+  stats.addEventListener('keydown', (event) => {
+    if (!mobile.matches || event.target !== stats || event.altKey || event.ctrlKey || event.metaKey) return;
+    const current = indicators.findIndex(button => button.getAttribute('aria-pressed') === 'true');
+    const destinations = { ArrowLeft: Math.max(0, current - 1), ArrowRight: Math.min(statCards.length - 1, current + 1), Home: 0, End: statCards.length - 1 };
+    if (!(event.key in destinations)) return;
+    event.preventDefault();
+    scrollToCard(destinations[event.key]);
+  });
   window.setInterval(() => {
-    rotateStats();
+    if (!mobile.matches && !reducedMotion.matches && site?.dataset.view === 'home' && !document.hidden) rotateStats();
   }, 4200);
 }
 
-function openPaymentModal() {
+function updatePaymentPlan(planId) {
+  const inputs = [...paymentModal.querySelectorAll('input[name="payment-plan"]')];
+  const selected = inputs.find(radio => radio.value === planId) || inputs[0];
+  selected.checked = true;
+  selectedPlan = selected.value;
+  const single = selectedPlan === 'single';
+  const price = `${selected.dataset.price}\u202f₽`;
+  const sites = Number(selected.dataset.sites);
+  document.querySelector('#payment-modal-title').textContent = single ? 'Полный отчёт по вашему сайту' : `Полные отчёты по ${sites} сайтам`;
+  document.querySelector('[data-payment-price]').textContent = price;
+  document.querySelector('[data-payment-scope]').textContent = `${single ? '1 сайт' : `До ${sites} сайтов`} · перепроверки на 30 дней`;
+  document.querySelector('[data-payment-buy]').textContent = single ? `Получить отчёт за ${price}` : `Получить пакет за ${price}`;
+  document.querySelector('[data-payment-options] summary').textContent = single ? 'Нужно проверить несколько сайтов?' : 'Изменить количество сайтов';
+}
+
+function openPaymentModal(planId = 'single') {
   paymentFocus = document.activeElement;
   paymentHint && (paymentHint.textContent = "Проверяем доступность оплаты…");
   paymentModal?.classList.add("is-open");
   paymentModal?.setAttribute("aria-hidden", "false");
   if (site) site.inert = true;
-  document.querySelector(`input[name="payment-plan"][value="${selectedPlan}"]`).checked = true;
-  document.querySelector('input[name="payment-plan"]:checked')?.focus();
+  updatePaymentPlan(planId);
+  const options = document.querySelector('[data-payment-options]');
+  options.open = selectedPlan !== 'single';
+  const focus = options.open ? paymentModal.querySelector('input[name="payment-plan"]:checked') : document.querySelector('[data-payment-buy]');
+  focus?.focus();
   refreshPaymentConfig().then(()=>{
     if(paymentHint)paymentHint.textContent=paymentMode==="test"?"Тестовый режим ЮKassa: используйте тестовую карту, реальные деньги не списываются.":"Оплата временно недоступна. Попробуйте позже.";
   }).catch(()=>{if(paymentHint)paymentHint.textContent="Не удалось проверить доступность оплаты. Повторите попытку.";});
@@ -243,12 +282,6 @@ function renderHero() {
   if (summary) summary.textContent = `${group === "legal" ? "Юридическая проверка" : "SEO-проверка"}: ${groupChecks.length + hidden - skipped} пунктов. Найдено проблем: ${count}. Успешно: ${groupChecks.filter(c=>c.status==='passed').length}.${review.length?` Не удалось установить: ${review.length}.`:''}`;
   const scope = document.querySelector(".audit-scope");
   if (scope) scope.textContent = [state.audit?.scope, group === "legal" && fineMax > 0 ? state.audit?.summary?.fineBasis : ""].filter(Boolean).join(" ");
-  const accessNote=document.querySelector('[data-report-access]');
-  if(accessNote){
-    const totalHidden=(state.audit?.access?.hiddenLegal||0)+(state.audit?.access?.hiddenSeo||0);
-    accessNote.hidden=!totalHidden;
-    accessNote.textContent=hidden?`Предварительный отчёт: открыто ${count-hidden} из ${count} проблем в этом разделе. Одна оплата 179 ₽ откроет все найденные проблемы по штрафам и SEO.`:`Этот раздел открыт целиком. В другом разделе скрыто ещё ${totalHidden} ${plural(totalHidden,['проблема','проблемы','проблем'])}. Полный аудит раскрывается за одну оплату 179 ₽.`;
-  }
 }
 
 function getSeoOverviewHtml(checks) {
@@ -308,7 +341,7 @@ function renderLockedReport(items) {
   const hiddenGroup=ownCount?(seo?'SEO':'по штрафам'):(seo?'по штрафам':'SEO');
   if (lockedReportTitle) lockedReportTitle.textContent = `Ещё ${count} ${plural(count,["проблема","проблемы","проблем"])} ${hiddenGroup} в полном аудите`;
   if (lockedReportText) lockedReportText.textContent = `${ownCount?'В этом разделе открыты первые 3 проблемы.':'Этот раздел открыт целиком; блюр показывает закрытые проблемы другого раздела.'} Одна оплата 179 ₽ откроет все найденные проблемы по штрафам и SEO, их обоснования и рекомендации. После оплаты будут доступны скачивание и PDF.`;
-  if (lockedReportLink) lockedReportLink.textContent = "Открыть полный аудит — 179 ₽";
+  if (lockedReportLink) lockedReportLink.textContent = "Получить полный отчёт за 179 ₽";
 }
 
 function renderIssueList() {
@@ -459,7 +492,7 @@ form?.addEventListener("submit", async (event) => {
     showView("result");
     if (audit.paid) await restoreReport(audit.reportToken);
     refreshAccess().catch(()=>{});
-    if (startPlanAfterAudit && !audit.paid && audit.reportToken && (!state.reportUnlocked || selectedPlan !== 'single')) openPaymentModal();
+    if (startPlanAfterAudit && !audit.paid && audit.reportToken && (!state.reportUnlocked || selectedPlan !== 'single')) openPaymentModal(selectedPlan);
     startPlanAfterAudit = false;
   } catch (error) {
     if(error.name==='AbortError')return;
@@ -496,19 +529,18 @@ document.querySelector("[data-payment-buy]")?.addEventListener("click", () => {
   startTestPayment();
 });
 
-document.querySelector("[data-payment-terms]")?.addEventListener("click", (event) => {
-  event.preventDefault();
+paymentModal.querySelectorAll('input[name="payment-plan"]').forEach(radio => {
+  radio.addEventListener('change', () => updatePaymentPlan(radio.value));
+});
+
+document.querySelector("[data-payment-terms]")?.addEventListener("click", () => {
   closePaymentModal();
-  showView("home");
-  requestAnimationFrame(() => {
-    document.querySelector("#payment-terms")?.scrollIntoView({ behavior: "smooth", block: "start" });
-  });
 });
 
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape") closePaymentModal();
   if (event.key === 'Tab' && paymentModal?.classList.contains('is-open')) {
-    const controls = [...paymentModal.querySelectorAll('button:not(:disabled), a[href], input:not(:disabled)')];
+    const controls = [...paymentModal.querySelectorAll('button:not(:disabled), a[href], input:not(:disabled), summary')].filter(control => control.getClientRects().length);
     const first = controls[0], last = controls[controls.length - 1];
     if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
     else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
@@ -526,6 +558,12 @@ document.querySelectorAll(".js-home, .back-home, .logo, .nav a[href^='#'], .foot
 });
 
 initStatsSlider();
+
+function redirectLegacyPaymentTerms() {
+  if (window.location.hash === '#payment-terms') window.location.replace('/terms.html#payment-terms');
+}
+redirectLegacyPaymentTerms();
+window.addEventListener('hashchange', redirectLegacyPaymentTerms);
 
 function renderPassedChecks() {
   const passed = (state.audit?.checks || []).filter(c => c.status === "passed" && c.group === (state.tab === "growth" ? "seo" : "legal"));
@@ -570,7 +608,7 @@ async function restoreReport(token) {
   if (note) {
     note.hidden = false;
     note.classList.toggle('is-paid',Boolean(result.paid));
-    note.textContent = result.paid ? paidAccessText(result.domainAccess) : state.reportUnlocked ? "В каждом разделе найдено не больше 5 проблем — полный отчёт доступен бесплатно." : result.canceled ? "Оплата отменена. Полный отчёт не открыт; предварительный отчёт сохранён. Можно повторить оплату." : result.paymentPending ? "Оплата ещё не подтверждена. Пока доступен предварительный отчёт. Полный отчёт откроется после подтверждения платежа; можно проверить статус ещё раз." : "Предварительный отчёт сохранён. От 179 ₽ за домен с перепроверками на 30 дней.";
+    note.textContent = result.paid ? paidAccessText(result.domainAccess) : state.reportUnlocked ? "В каждом разделе найдено не больше 5 проблем — полный отчёт доступен бесплатно." : result.canceled ? "Оплата отменена. Полный отчёт не открыт; предварительный отчёт сохранён. Можно повторить оплату." : result.paymentPending ? "Оплата ещё не подтверждена. Пока доступен предварительный отчёт. Полный отчёт откроется после подтверждения платежа; можно проверить статус ещё раз." : "Предварительный отчёт сохранён. Полный отчёт за 179 ₽ включает перепроверки этого сайта на 30 дней.";
   }
   document.querySelector('[data-report-email]').hidden=!result.reportEmailAvailable;
     document.querySelector("[data-report-refresh]").hidden = !result.paymentPending;
@@ -583,15 +621,16 @@ async function restoreReport(token) {
 function paidAccessText(pass) {
   if(pass?.owned===false)return 'Полный отчёт открыт и останется доступным после окончания пакета. Для перепроверок восстановите пакет по личной ссылке покупателя в разделе «Мой доступ».';
   const until=pass?.expiresAt?new Date(pass.expiresAt).toLocaleDateString('ru-RU'):'';
-  return `Полный отчёт открыт и останется доступным после окончания пакета. ${pass?.active?`Перепроверки добавленных доменов включены до ${until}. ${pass.name}: использовано ${pass.used} из ${pass.limit} доменов. Сохраните личную ссылку в разделе «Мой доступ» для других устройств.`:'Срок пакета закончился. Для новых проверок можно купить новый пакет; этот отчёт оплачивать повторно не нужно.'}`;
+  return `Полный отчёт открыт и останется доступным после окончания пакета. ${pass?.active?`Перепроверки добавленных сайтов включены до ${until}. ${pass.name}: использовано ${pass.used} из ${pass.limit} сайтов. Сохраните личную ссылку в разделе «Мой доступ» для других устройств.`:'Срок пакета закончился. Для новых проверок можно купить новый пакет; этот отчёт оплачивать повторно не нужно.'}`;
 }
 
 const accessDialog = document.querySelector('.access-dialog');
 function renderAccessPasses() {
   const container=document.querySelector('[data-access-passes]');
-  container.innerHTML=accessPasses.length?accessPasses.map((pass,index)=>`<section class="access-pass"><h3>${escapeHtml(pass.name)}</h3><p>${pass.active?`До ${new Date(pass.expiresAt).toLocaleDateString('ru-RU')} · ${pass.used} из ${pass.limit} доменов`:'Пакет завершён. Сохранённые отчёты доступны.'}</p><p class="access-pass__domains">${pass.domains.map(escapeHtml).join(', ')}</p><button type="button" data-access-copy="${index}">Скопировать личную ссылку</button>${pass.reports.length?`<details><summary>Сохранённые отчёты · ${pass.reports.length}</summary>${pass.reports.map(report=>`<a href="/?report=${encodeURIComponent(report.token)}">${escapeHtml(report.url)}<span>${new Date(report.checkedAt).toLocaleString('ru-RU')}</span></a>`).join('')}</details>`:''}</section>`).join(''):'<p class="access-empty">В этом браузере пока нет оплаченного пакета. После оплаты он появится здесь. На другом устройстве откройте вашу личную ссылку доступа.</p>';
+  container.innerHTML=accessPasses.length?accessPasses.map((pass,index)=>`<section class="access-pass"><h3>${escapeHtml(pass.name)}</h3><p>${pass.active?`До ${new Date(pass.expiresAt).toLocaleDateString('ru-RU')} · ${pass.used} из ${pass.limit} сайтов`:'Пакет завершён. Сохранённые отчёты доступны.'}</p><p class="access-pass__domains">${pass.domains.map(escapeHtml).join(', ')}</p><button type="button" data-access-copy="${index}">Скопировать личную ссылку</button>${pass.reports.length?`<details><summary>Сохранённые отчёты · ${pass.reports.length}</summary>${pass.reports.map(report=>`<a href="/?report=${encodeURIComponent(report.token)}">${escapeHtml(report.url)}<span>${new Date(report.checkedAt).toLocaleString('ru-RU')}</span></a>`).join('')}</details>`:''}</section>`).join(''):'<p class="access-empty">В этом браузере пока нет оплаченного пакета. После оплаты он появится здесь. На другом устройстве откройте вашу личную ссылку доступа.</p>';
   const active=accessPasses.filter(pass=>pass.active);
-  document.querySelector('[data-access-status]').textContent=active.length?`Перепроверки включены · осталось ${active.reduce((sum,pass)=>sum+pass.remaining,0)} новых доменов`:accessPasses.length?'Пакет завершён · сохранённые отчёты доступны':'Предварительная проверка бесплатна';
+  const remaining = active.reduce((sum,pass)=>sum+pass.remaining,0);
+  document.querySelector('[data-access-status]').textContent=active.length?`Перепроверки включены · новых сайтов осталось: ${remaining}`:accessPasses.length?'Пакет завершён · сохранённые отчёты доступны':'Предварительная проверка бесплатна';
 }
 async function refreshAccess() {
   const response=await fetch('/api/access',{cache:'no-store'});
@@ -635,7 +674,7 @@ const returnToken = new URLSearchParams(window.location.search).get("report");
 if(/^[a-f0-9]{48}$/.test(accessToken||'')&&!returnToken){
   history.replaceState(null,'','/');
   accessDialog.showModal();
-  restoreAccess(accessToken).then(()=>document.querySelector('[data-access-message]').textContent='Доступ восстановлен. Можно снова проверять добавленные домены.').catch(error=>document.querySelector('[data-access-message]').textContent=error.message);
+  restoreAccess(accessToken).then(()=>document.querySelector('[data-access-message]').textContent='Доступ восстановлен. Можно снова проверять добавленные сайты.').catch(error=>document.querySelector('[data-access-message]').textContent=error.message);
 }else refreshAccess().catch(()=>{});
 if (/^[a-f0-9]{48}$/.test(returnToken || "")) (async()=>{
   showView('loading');
