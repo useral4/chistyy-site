@@ -3531,17 +3531,29 @@ body:has(.access-dialog[open]), body:has(.payment-modal.is-open) { overflow: hid
   .client-cases { gap: 48px; margin-top: 48px; }
   .client-cases img, .client-cases article:nth-child(2) img { width: 136px; height: 164px; margin: 0 auto 20px; }
   .client-cases h3 { margin-bottom: 12px; font-size: 28px; font-weight: 600; line-height: 1.15; }
-  .bottom-cta { min-height: 0; padding: 96px 16px 48px; }
+  .bottom-cta { min-height: 0; padding: 104px 24px 72px; }
   .bottom-cta::before { left: -20%; width: 140%; border-radius: 50% 50% 0 0 / 80px 80px 0 0; transform: none; }
-  .bottom-cta h2 { max-width: 18ch; margin: 0 auto 16px; font-size: 36px; font-weight: 600; line-height: 1.1; text-wrap: balance; }
-  .bottom-cta p { max-width: 34ch; margin: 0 auto 24px; font-size: 18px; line-height: 1.45; }
+  .bottom-cta h2 { max-width: 100%; margin: 0 auto 24px; font-size: 28px; font-weight: 600; line-height: 1.15; text-wrap: wrap; }
+  .bottom-cta h2 br { display: initial; }
+  .bottom-cta p { max-width: 34ch; margin: 0 auto 32px; font-size: 18px; line-height: 1.45; }
   .bottom-cta .primary-cta { width: 100%; height: auto; min-height: 56px; gap: 12px; padding: 14px 16px; border-radius: 16px; font-size: 18px; line-height: 1.4; }
   .bottom-cta .primary-cta span { font-size: 26px; }
 }
 
 @media (max-width: 380px) {
   .messengers { grid-template-columns: 1fr; }
-  .about h2, .bottom-cta h2 { font-size: 32px; }
+  .about h2 { font-size: 32px; }
+  .bottom-cta h2 { font-size: 24px; }
+}
+
+@media (max-width: 340px) {
+  .bottom-cta h2 { font-size: 22px; }
+}
+
+@media (min-width: 1101px) {
+  .stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: start; }
+  .stats .stat { position: relative; inset: auto; width: auto; order: 0; transform: none; transition: color 360ms ease; }
+  .stats .stat img { width: 136px; height: 136px; margin: 0 auto 24px; transition: opacity 360ms ease; }
 }
 .logo > img {
   display: block;

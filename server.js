@@ -770,9 +770,11 @@ async function handleAudit(req, res) {
     return;
   }
 
+  let auditStage = 'fetch';
   try {
     const page = await safeFetchText(targetUrl.href);
     if (!page.ok || !/text\/html|application\/xhtml/i.test(page.contentType)) throw new Error(`Страница не доступна как HTML (HTTP ${page.status})`);
+    auditStage = 'analyze';
     const finalUrl = new URL(page.finalUrl || targetUrl.href);
     const [robots, sitemap, resources] = await Promise.all([
       fetchOptional(new URL("/robots.txt", finalUrl).href),
@@ -796,12 +798,20 @@ async function handleAudit(req, res) {
       audit.warning = `Сайт ответил HTTP ${page.status}; часть проверки может быть неполной.`;
     }
 
+    auditStage = 'save';
     const token = await reports.create(audit);
     const record = await reports.read(token);
+    if (!record) throw new Error('Saved report could not be read');
     // Only same-origin POSTs may spend a buyer's domain allowance; public GET previews never do.
     const pass = req.method === 'POST' ? await domainAccess.apply(record, token, req) : null;
     sendJson(res, 200, { ...(pass ? reports.full(audit, token) : reports.preview(audit, token)), paid: Boolean(pass), domainAccess: pass });
   } catch (error) {
+    if (auditStage !== 'fetch') {
+      console.error('Audit failed at %s: %s', auditStage, error.code || error.name);
+      return sendJson(res, 503, { error: auditStage === 'save'
+        ? 'Проверка выполнена, но не удалось сохранить отчёт. Попробуйте позже.'
+        : 'Не удалось обработать результаты проверки. Попробуйте позже.' });
+    }
     const profileConfig = PROFILES[profile] || PROFILES.lead;
     const message = `Не удалось загрузить сайт: ${error.message}. Автоматические выводы не сформированы.`;
     const checks = [

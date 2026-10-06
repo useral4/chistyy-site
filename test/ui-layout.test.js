@@ -127,10 +127,21 @@ test('Mobile lead has four lines and hidden breaks never join adjacent words', (
 
 test('Hero uses Figma typography, compact consent and the requested submit label', () => {
   assert.equal($('.hero h1 > span').length, 3);
-  assert.match($('.hero .form-row > button').text(), /Проверить SEO/);
+  assert.match($('.hero .form-row > button').text(), /Проверить нарушения/);
   assert.match(css, /\.hero h1\s*\{ font-size: 44px; line-height: 1; \}/);
   assert.match(css, /\.hero \.policy\s*\{ min-height: 28px; margin: 0; gap: 7px; \}/);
   assert.match(css, /@container \(max-width: 364px\)/);
+});
+
+test('Statistics use small eager assets and mobile CTA keeps its explicit heading break', () => {
+  $('.stats img').each((_, image) => {
+    assert.equal($(image).attr('loading'), 'eager');
+    const asset = fs.readFileSync(path.join(publicDir, $(image).attr('src')));
+    assert.equal(asset.toString('ascii', 8, 12), 'WEBP');
+    assert.ok(asset.length < 100000);
+  });
+  assert.match(css, /\.stats \.stat img \{ width: 136px; height: 136px; margin: 0 auto 24px;/);
+  assert.match(css, /\.bottom-cta h2 br \{ display: initial; \}/);
 });
 
 test('Both mobile arcs are centered without inherited translation or corners inside the viewport', () => {

@@ -225,3 +225,21 @@ test('Audit consent and same-origin protection run before requests or quota cons
     assert.equal((await strangerResponse.json()).paid, false);
   } finally { safe.fetchText = originalSafeFetch; await new Promise(resolve => server.close(resolve)); }
 });
+
+test('Report storage errors never masquerade as an inaccessible audited website', async () => {
+  const { server } = require('../server');
+  const originalCreate = reports.create;
+  reports.create = async () => { throw Object.assign(new Error('Private storage path'), { code: 'EACCES' }); };
+  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  try {
+    const response = await realFetch('http://127.0.0.1:' + server.address().port + '/api/audit?url=https%3A%2F%2Fexample.ru');
+    const data = await response.json();
+    assert.equal(response.status, 503);
+    assert.match(data.error, /не удалось сохранить отчёт/);
+    assert.equal(data.checks, undefined);
+    assert.doesNotMatch(JSON.stringify(data), /EACCES|Private storage path|fetch-error/);
+  } finally {
+    reports.create = originalCreate;
+    await new Promise(resolve => server.close(resolve));
+  }
+});
