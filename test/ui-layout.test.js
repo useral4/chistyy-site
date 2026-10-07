@@ -9,6 +9,17 @@ const publicDir = path.join(__dirname, '../public');
 const $ = load(fs.readFileSync(path.join(publicDir, 'index.html'), 'utf8'));
 const css = fs.readFileSync(path.join(publicDir, 'styles.css'), 'utf8');
 
+test('Pricing and access move into a sticky header and plan buttons use white backgrounds', () => {
+  assert.equal($('.home-view > .site-header').length, 1);
+  assert.equal($('.site-header__pricing').attr('href'), '#pricing');
+  assert.equal($('.site-header [data-access-open]').text(), 'Мой доступ');
+  assert.equal($('.check-form .access-bar a, .check-form .access-bar button').length, 0);
+  assert.match(css, /\.site-header \{[^}]*position: sticky; top: 0;/);
+  assert.match(css, /\.site \{[^}]*overflow: clip;/);
+  assert.match(css, /\.price-plan button \{[^}]*background: #fff; color: #111;/);
+  assert.equal($('.result-risk-label').text(), 'Общий риск штрафов:');
+});
+
 function fontTable(font, tag) {
   assert.equal(font.toString('ascii', 0, 4), 'wOFF');
   for (let i = 0; i < font.readUInt16BE(12); i++) {

@@ -32,37 +32,24 @@
   <body>
     <main class="site" data-view="home">
       <section class="page-view home-view" data-screen="home">
+        <header class="site-header">
+          <a class="site-header__pricing" href="#pricing">Тарифы</a>
+          <a class="logo" href="#" aria-label="kinavaPro"><img src="/assets/kinavapro-logo.png" alt="kinavaPro" width="647" height="103" /></a>
+          <nav class="nav" aria-label="Основная навигация">
+            <a href="#legal">Юридическая проверка</a>
+            <a href="#seo">SEO-проверка</a>
+            <a href="#about">Кто мы?</a>
+            <a href="#clients">Результаты клиентов</a>
+            <a href="#faq">FAQ</a>
+          </nav>
+          <button class="site-header__access" type="button" data-access-open>Мой доступ</button>
+        </header>
         <section class="dark-stage">
           <img class="decor decor-coin-left" src="/assets/coin-left.png" alt="" width="576" height="944" />
           <img class="decor decor-coin-mid" src="/assets/coin-mid.png" alt="" width="936" height="1020" />
           <img class="decor decor-arrow" src="/assets/red-arrow.png" alt="" width="1651" height="2651" />
           <img class="decor decor-warning" src="/assets/warning.png" alt="" width="1924" height="1924" />
           <img class="decor decor-ring" src="/assets/red-ring.png" alt="" width="1463" height="2600" />
-
-          <header class="topbar">
-            <a class="logo" href="#" aria-label="kinavaPro">
-              <img src="/assets/kinavapro-logo.png" alt="kinavaPro" width="647" height="103" />
-            </a>
-            <nav class="nav" aria-label="Основная навигация">
-              <a href="#legal">Юридическая проверка</a>
-              <a href="#seo">SEO-проверка</a>
-              <a href="#about">Кто мы ?</a>
-              <a href="#clients">Результаты клиентов</a>
-              <a href="#faq">FAQ</a>
-            </nav>
-            <div class="socials" aria-label="Социальные сети">
-              <a href="https://t.me/svaslyeva" aria-label="Telegram" target="_blank" rel="noopener noreferrer">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M20.8 4.6 17.9 19c-.2 1-1.2 1.2-2 .7l-4.5-3.3-2.1 2c-.2.3-.4.5-.9.5l.3-4.7 8.6-7.8c.4-.3-.1-.5-.6-.2L6.1 13 1.5 11.5c-1-.3-1-1 .2-1.5l18-6.9c.8-.3 1.5.2 1.1 1.5Z" />
-                </svg>
-              </a>
-              <a href="https://max.ru/u/f9LHodD0cOJX9YGp-nI-L1uKEjcejWlwwqxxdtWaktCDILcYL573JfI1uPQ" aria-label="MAX" target="_blank" rel="noopener noreferrer">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M12 3.5c5 0 9 3.4 9 7.7s-4 7.7-9 7.7c-1.1 0-2.2-.2-3.2-.5L4 21l1.4-4.2C4 15.4 3 13.4 3 11.2c0-4.3 4-7.7 9-7.7Zm0 4.9a2.8 2.8 0 1 0 0 5.6 2.8 2.8 0 0 0 0-5.6Z" />
-                </svg>
-              </a>
-            </div>
-          </header>
 
           <div class="hero">
             <div class="eyebrow">Информация подтверждена РБК на 2026 год</div>
@@ -88,7 +75,6 @@
               </div>
               <div class="access-bar">
                 <span data-access-status>Предварительная проверка бесплатна</span>
-                <div><a href="#pricing">Тарифы</a><button type="button" data-access-open>Мой доступ</button></div>
               </div>
             </form>
           </div>
@@ -362,8 +348,9 @@
           <a class="checked-url js-home" href="#"><span>←</span> <b>https://вашсайт.ru</b></a>
           <h2 class="result-title">Результаты проверки</h2>
           <div class="risk-total">
-            <span class="result-risk-label">Справочный сценарий санкций:</span>
+            <span class="result-risk-label">Общий риск штрафов:</span>
             <strong class="result-risk-value">Запустите проверку</strong>
+            <small class="result-risk-note">Ориентировочно. Не является начисленным штрафом.</small>
           </div>
           <p class="report-payment-status" role="status" hidden></p>
           <div class="report-actions" role="group" aria-label="Действия с отчётом">

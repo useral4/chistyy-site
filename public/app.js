@@ -340,6 +340,7 @@ function renderHero() {
   const review = groupChecks.filter((check) => check.status === "review");
   const skipped = groupChecks.filter((check) => check.status === "skipped").length;
   const fineMax = Number(state.audit?.summary?.fineMax) || 0;
+  const fineMin = state.audit?.summary?.fineMin;
 
   if (resultTitle) {
     if (state.audit?.warning) {
@@ -357,8 +358,8 @@ function renderHero() {
     }
   }
 
-  if (riskLabel) riskLabel.textContent = "Справочный сценарий санкций для юрлица:";
-  if (riskValue) riskValue.textContent = fineMax > 0 ? `до ${formatRub(fineMax)}` : "";
+  if (riskLabel) riskLabel.textContent = "Общий риск штрафов:";
+  if (riskValue) riskValue.textContent = fineMax > 0 ? (Number.isFinite(fineMin) && fineMin > 0 && fineMin <= fineMax ? `${formatRub(fineMin)} – ${formatRub(fineMax)}` : "Требует уточнения") : "";
   if (riskValue?.parentElement) riskValue.parentElement.hidden = group !== "legal" || fineMax === 0;
   const summary = document.querySelector(".audit-summary");
   const hidden=Number(group==='legal'?state.audit?.access?.hiddenLegal:state.audit?.access?.hiddenSeo)||0;
@@ -628,7 +629,7 @@ document.addEventListener("keydown", (event) => {
   }
 });
 
-document.querySelectorAll(".js-home, .back-home, .logo, .nav a[href^='#'], .footer-inner a[href^='#']").forEach((link) => {
+document.querySelectorAll(".js-home, .back-home, .logo, .nav a[href^='#'], .site-header__pricing, .footer-inner a[href^='#']").forEach((link) => {
   link.addEventListener("click", (event) => {
     event.preventDefault();
     showView("home");

@@ -109,3 +109,24 @@ test('Blurred cards are neutral placeholders, never hidden findings or recommend
   assert.equal(classes.has('is-hidden'), true);
   assert.equal(lockedItems.innerHTML, '');
 });
+
+test('Risk hero displays the server range, stays hidden for SEO and never invents a minimum', () => {
+  const state = {tab: 'fines', audit: {checks: [], summary: {fineMin:180000, fineMax:360000}}};
+  const riskLabel = {}, card = {}, riskValue = {parentElement: card};
+  const context = vm.createContext({state, riskLabel, riskValue, resultUrl:null, resultTitle:null, document:{querySelector:()=>null}, formatRub:n=>`${n} ₽`});
+  vm.runInContext(source.slice(source.indexOf('function renderHero()'), source.indexOf('function getSeoOverviewHtml(')), context);
+  context.renderHero();
+  assert.equal(riskLabel.textContent, 'Общий риск штрафов:');
+  assert.equal(riskValue.textContent, '180000 ₽ – 360000 ₽');
+  assert.equal(card.hidden, false);
+  state.tab = 'growth';
+  context.renderHero();
+  assert.equal(card.hidden, true);
+  state.tab = 'fines';
+  state.audit.summary.fineMin = null;
+  context.renderHero();
+  assert.equal(riskValue.textContent, 'Требует уточнения');
+  state.audit.summary.fineMax = 0;
+  context.renderHero();
+  assert.equal(card.hidden, true);
+});
