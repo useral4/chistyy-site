@@ -9,6 +9,11 @@ const publicDir = path.join(__dirname, '../public');
 const $ = load(fs.readFileSync(path.join(publicDir, 'index.html'), 'utf8'));
 const css = fs.readFileSync(path.join(publicDir, 'styles.css'), 'utf8');
 
+test('Desktop hero removes excess header and form spacing without changing the mobile layout', () => {
+  assert.match(css, /@media \(min-width: 1101px\) \{\s*\.home-view > \.dark-stage \{ padding-top: 24px; \}\s*\.home-view \.hero \{ margin-top: 32px; \}\s*\.home-view \.check-form \{ margin-top: 40px; \}\s*\}/);
+  assert.match(css, /\.hero \{ gap: 16px; margin-top: 38px; container-type: inline-size; \}/);
+});
+
 test('Pricing and access move into a sticky header and plan buttons use white backgrounds', () => {
   assert.equal($('.home-view > .site-header').length, 1);
   assert.equal($('.site-header__pricing').attr('href'), '#pricing');

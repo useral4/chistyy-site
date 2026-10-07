@@ -3607,6 +3607,12 @@ html:has(body.offer-page) { background: #fff; }
 
 .hero h1 > span:last-child { display: block; }
 
+@media (min-width: 1101px) {
+  .home-view > .dark-stage { padding-top: 24px; }
+  .home-view .hero { margin-top: 32px; }
+  .home-view .check-form { margin-top: 40px; }
+}
+
 @media (max-width: 720px) {
   .site { min-width: 0; }
   .hero { gap: 16px; margin-top: 38px; container-type: inline-size; }
