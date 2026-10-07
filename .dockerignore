@@ -1,0 +1,12 @@
+.git
+.env
+.env.*
+**/.env
+**/.env.*
+node_modules
+.cache
+data
+backups
+prototype-renders
+*.log
+qa-*.png

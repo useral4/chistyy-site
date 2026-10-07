@@ -70,7 +70,7 @@ function resetAuditProgress(message = 'Подключаемся к провер�
   document.querySelector('[data-progress-stage]').textContent = '';
 }
 
-function updateAuditProgress({completed, total, message}) {
+function updateAuditProgress({completed, total, message, phase, queuePosition}) {
   if (!Number.isInteger(completed) || !Number.isInteger(total) || total <= 0 || completed < 0 || completed > total) return;
   const bar = document.querySelector('.loading-progress');
   if (!bar) return;
@@ -78,7 +78,8 @@ function updateAuditProgress({completed, total, message}) {
   bar.setAttribute('aria-valuenow', String(completed));
   bar.setAttribute('aria-valuetext', `Выполнено ${completed} из ${total} этапов`);
   bar.querySelector('span').style.transform = `scaleX(${completed / total})`;
-  document.querySelector('[data-progress-count]').textContent = `Выполнено ${completed} из ${total} этапов`;
+  document.querySelector('[data-progress-count]').textContent = phase === 'queue' && Number.isInteger(queuePosition) && queuePosition > 0
+    ? `В очереди · место ${queuePosition}` : `Выполнено ${completed} из ${total} этапов`;
   document.querySelector('[data-progress-stage]').textContent = typeof message === 'string' ? message : '';
 }
 
@@ -269,7 +270,7 @@ function getTabChecks() {
 function getPillText(check) {
   if (check.status === "review") return "Нет данных";
   if (state.tab === "growth") return check.severity === "high" ? "Приоритет" : "Исправить";
-  return Number(check.fineMax) > 0 ? `Справочно до ${formatRub(check.fineMax)}` : "Недостаток";
+  return Number(check.fineMax) > 0 ? `До ${formatRub(check.fineMax)}` : "Недостаток";
 }
 
 function getIssueText(check) {

@@ -1,0 +1,10 @@
+[Unit]
+Description=Check kinava queue, memory, database and backup health
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/kinavapro/deploy
+ExecStart=/usr/bin/docker compose run --rm --no-deps -T monitor
+TimeoutStartSec=50

@@ -1,0 +1,4 @@
+seccomp_profile.json is an unmodified copy of the Docker seccomp profile from
+Microsoft Playwright v1.63.0, distributed under the Apache License 2.0.
+Source: https://github.com/microsoft/playwright/blob/v1.63.0/utils/docker/seccomp_profile.json
+License: PLAYWRIGHT-LICENSE

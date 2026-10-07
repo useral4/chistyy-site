@@ -1,0 +1,16 @@
+[Unit]
+Description=Encrypted off-server kinava database and lead backup
+Requires=docker.service
+After=docker.service network-online.target
+
+[Service]
+Type=oneshot
+EnvironmentFile=/etc/kinavapro-backup.env
+ExecStart=/bin/sh /opt/kinavapro/deploy/backup.sh
+TimeoutStartSec=12min
+UMask=0077
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/var/lib/kinavapro-backup /run/lock /var/cache/kinavapro-restic
+Environment=RESTIC_CACHE_DIR=/var/cache/kinavapro-restic

@@ -1,0 +1,13 @@
+[Unit]
+Description=kinava browser worker egress restrictions
+Requires=docker.service
+After=docker.service
+PartOf=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh /opt/kinavapro/deploy/worker-firewall.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=docker.service

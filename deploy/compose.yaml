@@ -1,0 +1,141 @@
+name: kinavapro
+services:
+  web:
+    image: caddy:2.10-alpine
+    restart: unless-stopped
+    ports: ["80:80", "443:443"]
+    environment:
+      DOMAIN: ${DOMAIN:?Set DOMAIN}
+      ACME_EMAIL: ${ACME_EMAIL:?Set ACME_EMAIL}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks: [frontend]
+    mem_limit: 128m
+    cpus: 0.25
+    logging: &logging
+      driver: json-file
+      options: {max-size: "10m", max-file: "3"}
+    depends_on:
+      app: {condition: service_healthy}
+
+  app:
+    image: kinavapro-app:local
+    build: {context: .., target: app}
+    restart: unless-stopped
+    init: true
+    env_file: ../.env
+    environment:
+      PUBLIC_URL: https://${DOMAIN}
+      DATABASE_URL: postgres://kinava:${APP_DATABASE_PASSWORD:?Set APP_DATABASE_PASSWORD}@database:5432/kinava
+      BROWSER_WORKER_URL: http://172.30.0.3:4180
+      BROWSER_WORKER_KEY: ${BROWSER_WORKER_KEY:?Set BROWSER_WORKER_KEY}
+      BROWSER_REQUIRED: "1"
+      METRICS_TOKEN: ${METRICS_TOKEN:?Set METRICS_TOKEN}
+      TRUST_PROXY: "1"
+      LEADS_DIR: /var/lib/kinavapro/leads
+      OPS_DIR: /var/lib/kinavapro/operations
+    volumes: ["leads:/var/lib/kinavapro/leads", "operations:/var/lib/kinavapro/operations"]
+    read_only: true
+    tmpfs: ["/tmp:size=64m,mode=1777"]
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    networks:
+      frontend: {}
+      database: {}
+      browser: {ipv4_address: 172.30.0.2}
+    mem_limit: 896m
+    cpus: 0.75
+    pids_limit: 96
+    stop_grace_period: 110s
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:4173/readyz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 20s
+      timeout: 8s
+      start_period: 30s
+    depends_on:
+      database: {condition: service_healthy}
+      worker: {condition: service_healthy}
+    logging: *logging
+
+  worker:
+    build: {context: .., target: browser-worker}
+    restart: unless-stopped
+    init: true
+    environment:
+      BROWSER_WORKER_KEY: ${BROWSER_WORKER_KEY:?Set BROWSER_WORKER_KEY}
+    read_only: true
+    tmpfs: ["/tmp:size=384m,mode=1777"]
+    shm_size: 256m
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+      - seccomp=./seccomp_profile.json
+    sysctls:
+      net.ipv6.conf.all.disable_ipv6: "1"
+    networks:
+      browser: {ipv4_address: 172.30.0.3}
+    mem_limit: 1536m
+    cpus: 1.0
+    pids_limit: 128
+    stop_grace_period: 40s
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:4180/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 20s
+      timeout: 5s
+      start_period: 30s
+    logging: *logging
+
+  database:
+    image: postgres:17-bookworm
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: kinava
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+      APP_DATABASE_PASSWORD: ${APP_DATABASE_PASSWORD:?Set APP_DATABASE_PASSWORD}
+    volumes:
+      - database:/var/lib/postgresql/data
+      - ./init-database.sh:/docker-entrypoint-initdb.d/10-kinava.sh:ro
+    networks: [database]
+    mem_limit: 512m
+    cpus: 0.5
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d kinava"]
+      interval: 10s
+      timeout: 5s
+    logging: *logging
+
+  monitor:
+    image: kinavapro-app:local
+    profiles: [operations]
+    env_file: ../.env
+    environment:
+      MONITOR_BASE_URL: http://app:4173
+      METRICS_TOKEN: ${METRICS_TOKEN:?Set METRICS_TOKEN}
+      OPS_DIR: /var/lib/kinavapro/operations
+    command: ["node", "scripts/monitor.js"]
+    volumes: ["operations:/var/lib/kinavapro/operations"]
+    networks: [frontend]
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 128m
+    cpus: 0.25
+    pids_limit: 32
+    logging: *logging
+
+volumes:
+  leads:
+  operations:
+  database:
+  caddy_data:
+  caddy_config:
+networks:
+  frontend:
+  database: {internal: true}
+  browser:
+    enable_ipv6: false
+    ipam:
+      config: [{subnet: 172.30.0.0/24}]

@@ -4,6 +4,9 @@ data/
 Thumbs.db
 *.log
 .env
+.env.local
+backup.env
+restic-password
 .cache/
 server.log
 server.err.log

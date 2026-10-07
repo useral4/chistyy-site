@@ -13,6 +13,10 @@ const reports = require("./lib/reports");
 const domainAccess = require("./lib/domain-access");
 const { handlePayments, publicConfig } = require("./lib/payments");
 const { notifyLead } = require("./lib/mail");
+const {AuditQueue, QueueError} = require('./lib/audit-queue');
+const operations = require('./lib/operations');
+const security = require('./lib/security');
+const storage = require('./lib/storage');
 
 const PORT = Number(process.env.PORT || 4173);
 const PUBLIC_DIR = path.join(__dirname, "public");
@@ -65,19 +69,18 @@ function sendJson(res, status, payload) {
 }
 
 function serveStatic(req, res) {
-  const requestUrl = new URL(req.url, `http://${req.headers.host}`);
+  if (!['GET','HEAD'].includes(req.method)) { res.setHeader('Allow','GET, HEAD'); return sendJson(res,405,{error:'Нужен GET или HEAD'}); }
+  const requestUrl = new URL(req.url, 'http://localhost');
   if (requestUrl.pathname === "/index.html") {
     res.writeHead(301, {Location: "/" + requestUrl.search}); res.end(); return;
   }
-  const requestedPath =
-    requestUrl.pathname === "/" ? "/index.html" : decodeURIComponent(requestUrl.pathname);
-  const safePath = path
-    .normalize(requestedPath)
-    .replace(/^[/\\]+/, "")
-    .replace(/^(\.\.[/\\])+/, "");
-  const filePath = path.join(PUBLIC_DIR, safePath);
+  let requestedPath;
+  try { requestedPath = requestUrl.pathname === '/' ? '/index.html' : decodeURIComponent(requestUrl.pathname); }
+  catch { return sendJson(res,400,{error:'Некорректный адрес'}); }
+  if (requestedPath.includes('\0')) return sendJson(res,400,{error:'Некорректный адрес'});
+  const filePath = path.resolve(PUBLIC_DIR, '.' + requestedPath);
 
-  if (!filePath.startsWith(PUBLIC_DIR)) {
+  if (!filePath.startsWith(PUBLIC_DIR + path.sep)) {
     res.writeHead(403);
     res.end("Forbidden");
     return;
@@ -92,12 +95,13 @@ function serveStatic(req, res) {
 
     const ext = path.extname(filePath).toLowerCase();
     if (ext === ".html" && /^[a-f0-9]{16,64}$/i.test(process.env.YANDEX_VERIFICATION || "")) data = Buffer.from(data.toString("utf8").replace("</head>", `<meta name="yandex-verification" content="${process.env.YANDEX_VERIFICATION}" /></head>`));
-    if (requestUrl.searchParams.has("report") || requestUrl.searchParams.has("access")) res.setHeader("X-Robots-Tag", "noindex, nofollow");
+    const privatePage = requestUrl.searchParams.has('report') || requestUrl.searchParams.has('access');
+    if (privatePage) res.setHeader("X-Robots-Tag", "noindex, nofollow");
+    if (security.staticHeaders(req,res,requestUrl.pathname,data,privatePage)) return;
     res.writeHead(200, {
-      "Content-Type": MIME_TYPES[ext] || "application/octet-stream",
-      "Cache-Control": "no-store"
+      "Content-Type": MIME_TYPES[ext] || "application/octet-stream"
     });
-    res.end(data);
+    res.end(req.method === 'HEAD' ? undefined : data);
   });
 }
 
@@ -114,15 +118,6 @@ function normalizeTarget(input) {
 
   url.hash = "";
   return url;
-}
-
-async function fetchOptional(url) {
-  try {
-    const result = await safeFetchText(url, 5000);
-    return result.ok ? result.text : "";
-  } catch {
-    return "";
-  }
 }
 
 function stripTags(value) {
@@ -749,7 +744,7 @@ function analyzeHtml({ html, robots, sitemap, targetUrl, profile, timing }) {
 }
 
 async function handleAudit(req, res) {
-  const requestUrl = new URL(req.url, `http://${req.headers.host}`);
+  const requestUrl = new URL(req.url, 'http://localhost');
   let data;
   if (req.method === 'POST') {
     try {
@@ -775,21 +770,40 @@ async function handleAudit(req, res) {
   const progress = /application\/x-ndjson/i.test(req.headers.accept || '') ? createAuditProgress(res) : null;
   const respond = (status, payload) => progress ? progress.finish(status, payload) : sendJson(res, status, payload);
   let auditStage = 'fetch';
+  let release, deadline, bytes = 0, outcome = 'failed';
+  const started = Date.now(), controller = new AbortController(), signal = controller.signal;
+  const disconnect = () => { if (!res.writableEnded) controller.abort(new QueueError('CLIENT_CLOSED','Проверка отменена')); };
+  res.once('close', disconnect);
+  const heartbeat = progress ? setInterval(() => progress.update(),15000) : null;
+  const fetchResource = (url, timeout, options={}) => safeFetchText(url,timeout,{
+    ...options, signal, onBytes(count) {
+      bytes += count;
+      if (bytes > 16*1024*1024) controller.abort(new QueueError('AUDIT_BUDGET','Сайт превышает допустимый объём автоматической проверки'));
+      signal.throwIfAborted();
+    }
+  });
   try {
-    const page = await safeFetchText(targetUrl.href);
+    release = await auditQueue.acquire({signal,onPosition:position => progress?.queue(position)});
+    progress?.queue(0);
+    operations.totals.started++;
+    deadline = setTimeout(() => controller.abort(new QueueError('AUDIT_TIMEOUT','Проверка превысила лимит времени. Попробуйте позже.')),90000);
+    const page = await fetchResource(targetUrl.href,12000);
     if (!page.ok || !/text\/html|application\/xhtml/i.test(page.contentType)) throw new Error(`Страница не доступна как HTML (HTTP ${page.status})`);
     progress?.complete('page', 'Загружаем документы, скрипты и SEO-файлы');
     auditStage = 'analyze';
     const finalUrl = new URL(page.finalUrl || targetUrl.href);
     const [robots, sitemap, resources] = await Promise.all([
-      fetchOptional(new URL("/robots.txt", finalUrl).href).then(text => { progress?.complete('robots'); return text; }),
-      fetchOptional(new URL("/sitemap.xml", finalUrl).href).then(text => { progress?.complete('sitemap'); return text; }),
-      collectResources(page, undefined, ({completed, total}) => progress?.update(`Документы и скрипты: ${completed} из ${total}`))
+      fetchResource(new URL('/robots.txt', finalUrl).href,5000).catch(()=>({text:''})).then(result => { progress?.complete('robots'); return result.ok ? result.text : ''; }),
+      fetchResource(new URL('/sitemap.xml', finalUrl).href,5000).catch(()=>({text:''})).then(result => { progress?.complete('sitemap'); return result.ok ? result.text : ''; }),
+      collectResources(page, fetchResource, ({completed, total}) => progress?.update(`Документы и скрипты: ${completed} из ${total}`))
         .then(items => { progress?.complete('resources'); return items; })
     ]);
 
     progress?.update('Проверяем сайт в чистом браузере');
-    const browser = await inspectBrowser(page, resources);
+    signal.throwIfAborted();
+    const browser = await inspectBrowser(page, resources, {signal,fetchResource});
+    signal.throwIfAborted();
+    if(process.env.BROWSER_REQUIRED==='1'&&!browser.available)throw new QueueError('BROWSER_UNAVAILABLE','Браузерная проверка временно недоступна. Попробуйте позже.');
     progress?.complete('browser', 'Анализируем юридические риски и SEO');
     const audit = enhanceAudit({
       html: browser.available ? browser.html : page.text,
@@ -808,16 +822,30 @@ async function handleAudit(req, res) {
     }
 
     auditStage = 'save';
+    signal.throwIfAborted();
     const token = await reports.create(audit);
     const record = await reports.read(token);
+    signal.throwIfAborted();
     if (!record) throw new Error('Saved report could not be read');
     if (res.destroyed) return;
     // Only same-origin POSTs may spend a buyer's domain allowance; public GET previews never do.
     const pass = req.method === 'POST' ? await domainAccess.apply(record, token, req) : null;
+    signal.throwIfAborted();
     const result = { ...(pass ? reports.full(audit, token) : reports.preview(audit, token)), paid: Boolean(pass), domainAccess: pass };
     progress?.complete('save', 'Отчёт готов');
+    outcome = 'completed';
     respond(200, result);
   } catch (error) {
+    if (signal.aborted || error instanceof QueueError) {
+      const reason = signal.aborted ? signal.reason : error;
+      outcome = reason?.code === 'CLIENT_CLOSED' ? 'canceled' : 'failed';
+      if (!release) operations.totals.rejected++;
+      if (!res.destroyed) {
+        if(!res.headersSent)res.setHeader('Retry-After','30');
+        respond(503,{error:reason.message || 'Проверка отменена'});
+      }
+      return;
+    }
     if (auditStage !== 'fetch') {
       console.error('Audit failed at %s: %s', auditStage, error.code || error.name);
       return respond(503, { error: auditStage === 'save'
@@ -869,6 +897,11 @@ async function handleAudit(req, res) {
       services: recommendServices(checks, profile),
       sources: LEGAL_SOURCES
     });
+  } finally {
+    clearInterval(heartbeat); clearTimeout(deadline);
+    res.removeListener('close',disconnect);
+    release?.();
+    if (release) operations.finish(outcome,started,bytes);
   }
 }
 
@@ -936,11 +969,22 @@ async function handleRequest(req, res) {
 }
 
 const requestRates = new Map();
-let activeAudits = 0;
+const auditQueue = new AuditQueue();
 const server = http.createServer((req, res) => {
-  res.setHeader("Referrer-Policy", "no-referrer");
-  res.setHeader("X-Content-Type-Options", "nosniff");
-  const route = new URL(req.url, `http://${req.headers.host}`).pathname;
+  security.headers(req,res);
+  let route;
+  try { route = new URL(req.url, 'http://localhost').pathname; }
+  catch { return sendJson(res,400,{error:'Некорректный адрес'}); }
+  if (route === '/healthz') return sendJson(res,auditQueue.closed?503:200,{status:auditQueue.closed?'stopping':'ok'});
+  if (route === '/readyz') {
+    storage.health().then(()=>sendJson(res,auditQueue.closed?503:200,{status:auditQueue.closed?'stopping':'ok'})).catch(()=>sendJson(res,503,{status:'unavailable'}));
+    return;
+  }
+  if (route === '/metrics') {
+    if (!operations.authorized(req)) return sendJson(res,404,{error:'Not found'});
+    res.writeHead(200,{'Content-Type':'text/plain; version=0.0.4','Cache-Control':'no-store'});
+    return res.end(operations.metrics(auditQueue));
+  }
   if (req.method === 'POST' && route.startsWith('/api/') && route !== '/api/payments/webhook') {
     const origin = req.headers.origin;
     const site = req.headers['sec-fetch-site'];
@@ -963,25 +1007,36 @@ const server = http.createServer((req, res) => {
     handlePayments(req, res, sendJson).catch(() => sendJson(res, 503, {error:"Платёжный сервис временно недоступен. Попробуйте позже."}));
     return;
   }
-  if (new URL(req.url, `http://${req.headers.host}`).pathname === "/api/requests") {
+  if (route === "/api/requests") {
     handleRequest(req, res);
     return;
   }
   if (route === "/api/audit") {
     if (!["GET", "POST"].includes(req.method)) return sendJson(res, 405, {error:"Нужен GET или POST"});
-    if (activeAudits >= 6) return sendJson(res, 503, {error:"Все проверки заняты. Повторите чуть позже."});
-    activeAudits++;
     handleAudit(req, res).catch(() => {
       if (!res.headersSent) sendJson(res, 503, {error:"Не удалось выполнить проверку"});
       else if (!res.writableEnded) res.end(JSON.stringify({type:'error',error:'Не удалось выполнить проверку'})+'\n');
-    }).finally(() => activeAudits--);
+    });
     return;
   }
 
   serveStatic(req, res);
 });
 
-if (require.main === module) server.listen(PORT, () => {
+server.headersTimeout = 10000;
+server.requestTimeout = 15000;
+server.keepAliveTimeout = 5000;
+server.maxConnections = 1000;
+if (require.main === module) {
+  server.listen(PORT, () => {
   console.log(`Kinava Audit running at http://localhost:${PORT}`);
-});
+  });
+  const stop = () => {
+    auditQueue.close();
+    server.close(async () => { await storage.close(); process.exit(0); });
+    server.closeIdleConnections();
+    setTimeout(()=>process.exit(1),100000).unref();
+  };
+  process.once('SIGTERM',stop); process.once('SIGINT',stop);
+}
 module.exports = { analyzeHtml, server };

@@ -1,0 +1,10 @@
+[Unit]
+Description=Back up kinava every fifteen minutes
+
+[Timer]
+OnCalendar=*:0/15
+Persistent=yes
+RandomizedDelaySec=30
+
+[Install]
+WantedBy=timers.target

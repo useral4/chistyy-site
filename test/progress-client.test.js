@@ -66,3 +66,13 @@ test('Progress fill changes only to server values and resets for the next reques
   assert.equal(ui.count.textContent, 'Загружаем сохранённый отчёт');
   assert.equal(ui.stage.textContent, '');
 });
+
+test('Queued progress displays the server position without inventing completed work',()=>{
+  const ui=client();
+  ui.context.updateAuditProgress({completed:0,total:7,phase:'queue',queuePosition:3,message:'Ожидаем свободный обработчик'});
+  assert.equal(ui.count.textContent,'В очереди · место 3');
+  assert.equal(ui.fill.style.transform,'scaleX(0)');
+  assert.equal(ui.attributes.get('aria-valuenow'),'0');
+  ui.context.updateAuditProgress({completed:1,total:7,message:'Страница загружена'});
+  assert.equal(ui.count.textContent,'Выполнено 1 из 7 этапов');
+});

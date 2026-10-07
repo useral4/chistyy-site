@@ -5,6 +5,16 @@ const path = require('node:path');
 const vm = require('node:vm');
 const source = fs.readFileSync(path.join(__dirname, '../public/app.js'), 'utf8');
 
+test('Fine badges omit the reference label without changing the amount', () => {
+  const context = vm.createContext({state: {tab:'fines'}, formatRub: n => `${n} ₽`});
+  const start = source.indexOf('function getPillText(');
+  assert.ok(start >= 0);
+  vm.runInContext(source.slice(start, source.indexOf('\n}', start) + 2), context);
+  assert.equal(context.getPillText({fineMax:300000}), 'До 300000 ₽');
+  assert.doesNotMatch(source, /Справочно до/);
+  assert.doesNotMatch(fs.readFileSync(path.join(__dirname, '../public/index.html'), 'utf8'), /Справочно до/);
+});
+
 function toastContext() {
   const message = { textContent: '' };
   const toast = { hidden: true, dataset: {}, events: {}, querySelector: () => message, addEventListener(name, fn) { this.events[name] = fn; } };
