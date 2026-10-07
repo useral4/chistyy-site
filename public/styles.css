@@ -207,6 +207,8 @@ textarea {
   fill: var(--white);
 }
 
+.decor-picture { display: contents; }
+
 .decor {
   height: auto;
   position: absolute;
@@ -2058,14 +2060,14 @@ body:has(.request-modal[open]) { overflow: hidden; }
 
   .decor-arrow {
     top: min(368px, 19.1667vw);
-    left: calc(50% - min(950px, 49.4792vw));
+    left: 0;
     width: min(515px, 26.8229vw);
   }
 
   .decor-warning {
-    top: min(357px, 18.5938vw);
+    top: min(285px, 14.8438vw);
     right: auto;
-    left: calc(50% + min(444px, 23.1250vw));
+    left: calc(50% + min(476px, 24.7917vw));
     width: min(411px, 21.4062vw);
   }
 

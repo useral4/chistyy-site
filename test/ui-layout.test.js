@@ -9,6 +9,37 @@ const publicDir = path.join(__dirname, '../public');
 const $ = load(fs.readFileSync(path.join(publicDir, 'index.html'), 'utf8'));
 const css = fs.readFileSync(path.join(publicDir, 'styles.css'), 'utf8');
 
+test('Desktop decorations use lightweight sources without downloading them on mobile', () => {
+  const pictures = $('.dark-stage > .decor-picture');
+  assert.equal(pictures.length, 5);
+  let totalBytes = 0;
+  pictures.each((_, picture) => {
+    const source = $(picture).find('source');
+    assert.equal(source.attr('media'), '(min-width: 1101px)');
+    const asset = fs.readFileSync(path.join(publicDir, source.attr('srcset')));
+    assert.equal(asset.toString('ascii', 8, 12), 'WEBP');
+    totalBytes += asset.length;
+    assert.equal($(picture).find('img').attr('src'), '/assets/empty.webp');
+    assert.equal($(picture).find('img').attr('decoding'), 'async');
+  });
+  assert.ok(totalBytes < 500000, `Hero decorations exceed budget: ${totalBytes}`);
+  assert.ok(fs.statSync(path.join(publicDir, 'assets/empty.webp')).size < 100);
+  assert.match(css, /\.decor-arrow \{\s*top: min\(368px, 19\.1667vw\);\s*left: 0;/);
+  assert.match(css, /\.decor-warning \{\s*top: min\(285px, 14\.8438vw\);\s*right: auto;\s*left: calc\(50% \+ min\(476px, 24\.7917vw\)\);/);
+});
+
+test('Below-fold illustrations use existing WebP assets with lazy loading and async decoding', () => {
+  const illustrations = $('.chat-visual img, .service-card > img, .results > img, .client-cases img, .locked-report > img');
+  assert.equal(illustrations.length, 11);
+  illustrations.each((_, image) => {
+    assert.equal($(image).attr('loading'), 'lazy');
+    assert.equal($(image).attr('decoding'), 'async');
+    const asset = fs.readFileSync(path.join(publicDir, $(image).attr('src')));
+    assert.equal(asset.toString('ascii', 8, 12), 'WEBP');
+    assert.ok(asset.length < 150000);
+  });
+});
+
 test('Desktop hero removes excess header and form spacing without changing the mobile layout', () => {
   assert.match(css, /@media \(min-width: 1101px\) \{\s*\.home-view > \.dark-stage \{ padding-top: 24px; \}\s*\.home-view \.hero \{ margin-top: 32px; \}\s*\.home-view \.check-form \{ margin-top: 40px; \}\s*\}/);
   assert.match(css, /\.hero \{ gap: 16px; margin-top: 38px; container-type: inline-size; \}/);
