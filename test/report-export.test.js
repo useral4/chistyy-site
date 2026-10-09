@@ -47,3 +47,23 @@ test('Plain text is grouped, numbered and readable; browser and email use the sa
   vm.runInContext(fs.readFileSync(require.resolve('../public/report-export'),'utf8'),context);
   assert.equal(context.KinavaReport.reportHtml(withFineRange(audit)),reportHtml(audit));
 });
+
+test('Successful and skipped checks are omitted from exports but the successful count stays in the summary',()=>{
+  const data={...audit,checks:[...audit.checks,{group:'legal',status:'passed',title:'PASSED FINDING',evidence:'PASSED EVIDENCE'},{group:'seo',status:'skipped',title:'SKIPPED FINDING'}]};
+  const html=reportHtml(data), text=reportText(data);
+  assert.equal(load(html)('article').length,4);
+  assert.doesNotMatch(html+text,/PASSED FINDING|PASSED EVIDENCE|SKIPPED FINDING/);
+  assert.match(text,/Успешно пройдено: 1/);
+  assert.match(text,/Требуют ручной проверки: 1/);
+  const clear={...data,summary:{},checks:[{group:'legal',status:'passed',title:'PASSED FINDING'}]};
+  assert.equal(load(reportHtml(clear))('article').length,0);
+  assert.doesNotMatch(reportText(clear),/ЮРИДИЧЕСКИЕ РИСКИ/);
+});
+
+test('Export print layout permits long findings to flow across pages and uses compact type',()=>{
+  const css=load(reportHtml(audit))('style').text();
+  assert.match(css,/@page\{size:A4;margin:14mm\}/);
+  assert.match(css,/article\{break-inside:auto/);
+  assert.doesNotMatch(css,/article\{break-inside:avoid/);
+  assert.match(css,/font:10pt\/1\.35/);
+});

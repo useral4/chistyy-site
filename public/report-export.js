@@ -7,6 +7,8 @@
   const groups = [['legal', 'Юридические риски'], ['seo', 'SEO-проверка']];
   const escape = value => String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'}[char]));
   const rub = value => new Intl.NumberFormat('ru-RU').format(value) + ' ₽';
+  const findings = (audit, group) => audit.checks.filter(check => check.group === group && ['failed','review'].includes(check.status));
+  const counts = audit => `Успешно пройдено: ${audit.summary?.passedCount ?? audit.checks.filter(c=>c.status==='passed').length}. Требуют ручной проверки: ${audit.summary?.reviewIssues ?? audit.checks.filter(c=>c.status==='review').length}.`;
   function date(value) {
     const parsed = new Date(value);
     return value && Number.isFinite(parsed.getTime()) ? parsed.toLocaleString('ru-RU', {timeZone:'Europe/Moscow'}) + ' (МСК)' : String(value || 'Не указана');
@@ -35,12 +37,13 @@
       `Сайт: ${audit.url}\nДата проверки: ${date(audit.checkedAt)}`,
       'КРАТКИЙ ИТОГ',
       `Юридические проблемы: ${audit.summary?.legalIssues ?? audit.checks.filter(c=>c.group==='legal'&&c.status==='failed').length}\nSEO-проблемы: ${audit.summary?.seoIssues ?? audit.checks.filter(c=>c.group==='seo'&&c.status==='failed').length}`,
+      counts(audit),
       risk(audit.summary) ? `Общий риск штрафов: ${risk(audit.summary)}` : '',
       audit.summary?.fineExplanation || audit.summary?.fineBasis || '',
       audit.scope ? `ЧТО ПРОВЕРЕНО\n${audit.scope}` : ''
     ];
     for (const [group, label] of groups) {
-      const checks = audit.checks.filter(c=>c.group===group);
+      const checks = findings(audit,group);
       if (!checks.length) continue;
       sections.push(label.toUpperCase());
       checks.forEach((check, index) => sections.push([
@@ -59,13 +62,14 @@
   function reportBody(audit) {
     const summary = audit.summary || {};
     const problems = group => audit.checks.filter(c=>c.group===group&&c.status==='failed').length;
-    return `<header><div class="brand">kinava<span>Pro</span></div><h1>Отчёт о проверке сайта</h1><p class="site">${sourceLink(audit.url)}</p><p class="muted">${escape(date(audit.checkedAt))}</p></header>
+    return `<header><div class="brand">kinava<span>Pro</span></div><h1>Отчёт о проверке сайта</h1><p class="report-address">${sourceLink(audit.url)}</p><p class="muted">${escape(date(audit.checkedAt))}</p></header>
       <section class="overview"><h2>Краткий итог</h2><p>Юридические проблемы: <strong>${escape(summary.legalIssues ?? problems('legal'))}</strong> · SEO-проблемы: <strong>${escape(summary.seoIssues ?? problems('seo'))}</strong></p>
+      <p>${escape(counts(audit))}</p>
       ${risk(summary)?`<p class="risk">Общий риск штрафов: <strong>${escape(risk(summary))}</strong></p>`:''}
       ${summary.fineExplanation||summary.fineBasis?`<p class="note">${escape(summary.fineExplanation||summary.fineBasis)}</p>`:''}</section>
       ${audit.scope?`<section><h2>Что проверено</h2><p>${escape(audit.scope)}</p></section>`:''}
       ${groups.map(([group,label])=>{
-        const checks = audit.checks.filter(c=>c.group===group);
+        const checks = findings(audit,group);
         if (!checks.length) return '';
         return `<section><h2>${label}</h2>${checks.map((check,index)=>`<article><div class="status ${check.status==='failed'?'failed':check.status==='passed'?'passed':'review'}">${escape(statuses[check.status]||check.status)}</div><h3>${index+1}. ${escape(check.title)}</h3>
           ${Number(check.fineMax)>0?`<p class="fine">Возможный предел по этому пункту: <strong>до ${escape(rub(check.fineMax))}</strong></p>`:''}
@@ -77,8 +81,8 @@
   }
   function reportHtml(audit) {
     return `<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="referrer" content="no-referrer"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'"><title>Отчёт kinavaPro — ${escape(audit.url)}</title><style>
-      *{box-sizing:border-box}body{margin:0;background:#f4f5f6;color:#202020;font:16px/1.6 Arial,sans-serif}main{max-width:900px;margin:auto;padding:32px 24px}header{padding:28px;background:#1b1b1b;color:white;border-radius:8px}header a{color:white}.brand{font-size:28px;font-weight:600}.brand span{color:#fb4f61}h1{font-size:28px;line-height:1.25;margin:24px 0 12px}h2{font-size:24px;line-height:1.3;margin:0 0 16px}h3{font-size:20px;line-height:1.4;margin:8px 0 16px}h4{font-size:16px;margin:20px 0 6px}p{margin:8px 0;white-space:pre-line;overflow-wrap:anywhere}a{color:#9c1420;text-underline-offset:3px;overflow-wrap:anywhere}section{margin:32px 0}.overview{padding:24px 0;border-bottom:1px solid #c8c8c8}.risk{font-size:20px}.risk strong{display:block;color:#ae1520}.note,.basis{font-size:14px;color:#505050}.note{margin-top:20px}.muted{color:#dedede}.site{font-size:18px}article{margin:16px 0;padding:24px;background:white;border:1px solid #d5d5d5;border-radius:8px}.status{font-size:14px;font-weight:bold}.failed{color:#a71420}.passed{color:#196b38}.review{color:#735000}.fine{color:#a71420}.basis{margin-top:20px;padding-top:12px;border-top:1px solid #ddd}ul{padding-left:22px}li{margin:8px 0;overflow-wrap:anywhere}footer{border-top:1px solid #c8c8c8;padding-top:16px;font-size:14px;color:#505050}
-      @media(max-width:480px){main{padding:16px}header,article{padding:20px}h1{font-size:24px}h2{font-size:22px}h3{font-size:18px}.risk{font-size:18px}}@media print{body{background:white}main{max-width:none;padding:0}header{background:white;color:#111;padding:0;border-radius:0}header a,.brand span{color:#111}.muted{color:#555}article{break-inside:avoid}h2,h3,h4{break-after:avoid}a{color:inherit}section{margin:24px 0}}
+      *{box-sizing:border-box}body{margin:0;background:#f4f5f6;color:#202020;font:15px/1.5 Arial,sans-serif}main{max-width:900px;margin:auto;padding:24px}header{padding:24px;background:#1b1b1b;color:white;border-radius:8px}header a{color:white}.brand{font-size:26px;font-weight:600}.brand span{color:#fb4f61}h1{font-size:26px;line-height:1.25;margin:16px 0 10px}h2{font-size:22px;line-height:1.3;margin:0 0 12px}h3{font-size:18px;line-height:1.4;margin:6px 0 12px}h4{font-size:15px;margin:14px 0 4px}p{margin:6px 0;white-space:pre-line;overflow-wrap:anywhere}a{color:#9c1420;text-underline-offset:3px;overflow-wrap:anywhere}section{margin:24px 0}.overview{padding:16px 0;border-bottom:1px solid #c8c8c8}.risk{font-size:18px}.risk strong{display:block;color:#ae1520}.note,.basis{font-size:13px;color:#505050}.note{margin-top:14px}.muted{color:#dedede}.report-address{font-size:17px}article{margin:12px 0;padding:18px;background:white;border:1px solid #d5d5d5;border-radius:8px}.status{font-size:13px;font-weight:bold}.failed{color:#a71420}.review{color:#735000}.fine{color:#a71420}.basis{margin-top:14px;padding-top:8px;border-top:1px solid #ddd}ul{padding-left:20px;margin:6px 0}li{margin:4px 0;overflow-wrap:anywhere}footer{border-top:1px solid #c8c8c8;padding-top:12px;font-size:13px;color:#505050}
+      @media(max-width:480px){main{padding:16px}header,article{padding:16px}h1{font-size:24px}h2{font-size:20px}h3{font-size:18px}.risk{font-size:17px}}@page{size:A4;margin:14mm}@media print{body{background:white;font:10pt/1.35 Arial,sans-serif}main{max-width:none;padding:0}header{background:white;color:#111;padding:0;border-radius:0}header a,.brand span{color:#111}.brand{font-size:18pt}h1{font-size:19pt;margin:10pt 0 6pt}h2{font-size:14pt;margin:0 0 7pt}h3{font-size:12pt;margin:4pt 0 6pt}h4{font-size:10pt;margin:8pt 0 3pt}h2,h3,h4{break-after:avoid}.muted{color:#555}article{break-inside:auto;margin:8pt 0;padding:8pt 0;border:0;border-top:1px solid #ccc;border-radius:0}p,li{orphans:2;widows:2}a{color:inherit}section{margin:14pt 0}.overview{padding:10pt 0}.status,.note,.basis,footer{font-size:9pt}.status{break-after:avoid}.risk,.report-address{font-size:11pt}.basis{margin-top:8pt;padding-top:5pt}footer{margin-top:12pt}}
       </style></head><body><main>${reportBody(audit)}</main></body></html>`;
   }
   return {reportText, reportHtml, reportBody};

@@ -3226,14 +3226,17 @@ body:has(.request-modal[open]) { overflow: hidden; }
 @media print {
   body > :not(.print-report) { display: none !important; }
   body { color: #111; background: white; }
-  .print-report { display: block; font: 12pt/1.5 Arial, sans-serif; }
-  .print-report h1 { font-size: 24pt; }
-  .print-report h2 { font-size: 15pt; }
-  .print-report article { break-inside: avoid; border-top: 1px solid #ccc; margin-top: 16pt; }
+  .print-report { display: block; font: 10pt/1.35 Arial, sans-serif; }
+  .print-report h1 { font-size: 19pt; margin: 10pt 0 6pt; }
+  .print-report h2 { font-size: 14pt; margin: 14pt 0 7pt; }
+  .print-report article { break-inside: auto; border-top: 1px solid #ccc; margin-top: 8pt; padding-top: 8pt; }
   .print-report p, .print-report li { overflow-wrap: anywhere; white-space: pre-line; }
-  .print-report h3 { font-size: 14pt; }
-  .print-report h4 { margin-bottom: 6pt; }
-  .print-report .site { min-width: 0; }
+  .print-report h3 { font-size: 12pt; margin: 4pt 0 6pt; }
+  .print-report h4 { font-size: 10pt; margin: 8pt 0 3pt; }
+  .print-report h2, .print-report h3, .print-report h4 { break-after: avoid; }
+  .print-report p, .print-report ul { margin: 6pt 0; }
+  .print-report .status, .print-report .basis, .print-report .note { font-size: 9pt; }
+  .print-report .status { break-after: avoid; }
   .print-report .risk { display: block; width: auto; height: auto; padding: 0; color: #111; background: none; border: 0; }
 }
 .audit-scope { font-size: 14px; }
@@ -3401,6 +3404,13 @@ body:has(.request-modal[open]) { overflow: hidden; }
 .access-pass summary { cursor: pointer; font-size: 15px; }
 .access-pass details a { display: block; padding: 12px 0; color: #fff; font-size: 15px; overflow-wrap: anywhere; text-decoration: underline; text-underline-offset: 3px; }
 .access-pass details a span { display: block; color: #ccc; font-size: 13px; margin-top: 6px; text-decoration: none; }
+.access-pass__reports { margin: 18px 0; }
+.access-pass__reports h4 { margin: 0 0 8px; font-size: 16px; }
+.access-pass__reports a { display: block; padding: 12px 0; border-bottom: 1px solid #ffffff30; color: #fff; font-size: 15px; overflow-wrap: anywhere; }
+.access-pass__reports a strong { text-decoration: underline; text-underline-offset: 3px; }
+.access-pass__reports a span { display: block; margin-top: 4px; color: #ddd; font-size: 13px; }
+.access-pass__reports a:focus-visible { outline: 2px solid #ff7f85; outline-offset: 3px; }
+.access-pass [data-access-check] { margin: 0 8px 8px 0; }
 .access-restore { margin-top: 24px; }
 .access-restore label { display: block; margin-bottom: 10px; font-size: 15px; }
 .access-restore input { display: block; width: 100%; min-height: 48px; padding: 12px; margin-bottom: 12px; border: 1px solid #ffffff60; border-radius: 8px; background: #292929; color: #fff; font: inherit; font-size: 16px; }

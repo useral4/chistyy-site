@@ -708,7 +708,7 @@ function paidAccessText(pass) {
 const accessDialog = document.querySelector('.access-dialog');
 function renderAccessPasses() {
   const container=document.querySelector('[data-access-passes]');
-  container.innerHTML=accessPasses.length?accessPasses.map((pass,index)=>`<section class="access-pass"><h3>${escapeHtml(pass.name)}</h3><p>${pass.active?`До ${new Date(pass.expiresAt).toLocaleDateString('ru-RU')} · ${pass.used} из ${pass.limit} сайтов`:'Пакет завершён. Сохранённые отчёты доступны.'}</p><p class="access-pass__domains">${pass.domains.map(escapeHtml).join(', ')}</p><button type="button" data-access-copy="${index}">Скопировать личную ссылку</button>${pass.reports.length?`<details><summary>Сохранённые отчёты · ${pass.reports.length}</summary>${pass.reports.map(report=>`<a href="/?report=${encodeURIComponent(report.token)}">${escapeHtml(report.url)}<span>${new Date(report.checkedAt).toLocaleString('ru-RU')}</span></a>`).join('')}</details>`:''}</section>`).join(''):'<p class="access-empty">В этом браузере пока нет оплаченного пакета. После оплаты он появится здесь. На другом устройстве откройте вашу личную ссылку доступа.</p>';
+  container.innerHTML=accessPasses.length?accessPasses.map((pass,index)=>`<section class="access-pass"><h3>${escapeHtml(pass.name)}</h3><p>${pass.active?`До ${new Date(pass.expiresAt).toLocaleDateString('ru-RU')} · ${pass.used} из ${pass.limit} сайтов`:'Пакет завершён. Сохранённые отчёты доступны.'}</p><p class="access-pass__domains">${pass.domains.map(escapeHtml).join(', ')}</p>${pass.reports.length?`<div class="access-pass__reports"><h4>Сохранённые отчёты · ${pass.reports.length}</h4>${pass.reports.map(report=>`<a href="/?report=${encodeURIComponent(report.token)}"><strong>Открыть отчёт</strong><span>${escapeHtml(report.url)}</span><span>${new Date(report.checkedAt).toLocaleString('ru-RU')}</span></a>`).join('')}</div>`:''}${pass.active?'<button type="button" data-access-check>Проверить сайт</button>':''}<button type="button" data-access-copy="${index}">Скопировать личную ссылку на пакет</button></section>`).join(''):'<p class="access-empty">В этом браузере пока нет оплаченного пакета. После оплаты он появится здесь. На другом устройстве откройте вашу личную ссылку доступа.</p>';
   const active=accessPasses.filter(pass=>pass.active);
   const remaining = active.reduce((sum,pass)=>sum+pass.remaining,0);
   document.querySelector('[data-access-status]').textContent=active.length?`Перепроверки включены · новых сайтов осталось: ${remaining}`:accessPasses.length?'Пакет завершён · сохранённые отчёты доступны':'Предварительная проверка бесплатна';
@@ -724,11 +724,32 @@ async function restoreAccess(token) {
   if(!response.ok)throw new Error(data.error||'Не удалось восстановить доступ');
   await refreshAccess();return data.pass;
 }
+async function openSavedReport(token) {
+  paymentPolling=true;
+  state.tab='fines';
+  accessDialog.close();
+  showView('loading','Загружаем сохранённый отчёт');
+  await restoreReport(token);
+  if(paymentPolling)history.replaceState(null,'','/?report='+encodeURIComponent(token));
+}
+async function openAccessDestination(pass) {
+  const saved=Array.isArray(pass.reports)?pass.reports:[];
+  if(saved.length===1) {
+    await openSavedReport(saved[0].token);
+    return;
+  }
+  showView('home');
+  accessDialog.showModal();
+  document.querySelector('[data-access-message]').textContent=saved.length?'Выберите сохранённый отчёт. Вводить адрес сайта повторно не нужно.':'Доступ восстановлен. Нажмите «Проверить сайт», чтобы получить первый отчёт.';
+}
 document.querySelectorAll('[data-access-open]').forEach(button=>button.addEventListener('click',()=>{
   accessDialog.showModal();refreshAccess().catch(error=>document.querySelector('[data-access-message]').textContent=error.message);
 }));
 document.querySelector('[data-access-close]').addEventListener('click',()=>accessDialog.close());
 document.querySelector('[data-access-passes]').addEventListener('click',async(event)=>{
+  if(event.target.closest('[data-access-check]')){
+    accessDialog.close();showView('home');form.scrollIntoView({behavior:'smooth',block:'center'});input.focus({preventScroll:true});return;
+  }
   const button=event.target.closest('[data-access-copy]');if(!button)return;
   const link=new URL(accessPasses[Number(button.dataset.accessCopy)].accessUrl,location.origin).href;
   try{await navigator.clipboard.writeText(link);document.querySelector('[data-access-message]').textContent='Личная ссылка скопирована. Она восстанавливает весь пакет: не передавайте её посторонним.';}
@@ -742,8 +763,10 @@ document.querySelector('[data-access-restore]').addEventListener('submit',async(
     if(link.origin!==location.origin)throw new Error('Укажите личную ссылку с этого сайта.');
     const token=link.searchParams.get('access')||link.searchParams.get('report');
     if(!/^[a-f0-9]{48}$/.test(token||''))throw new Error('В ссылке не найден ключ доступа. Скопируйте её целиком.');
-    await restoreAccess(token);document.querySelector('[data-access-message]').textContent='Доступ восстановлен. Срок пакета не изменился.';form.reset();
-  }catch(error){document.querySelector('[data-access-message]').textContent=error.message;}
+    form.reset();
+    if(link.searchParams.get('access'))await openAccessDestination(await restoreAccess(token));
+    else await openSavedReport(token);
+  }catch(error){showView('home');accessDialog.showModal();document.querySelector('[data-access-message]').textContent=error.message;}
   finally{button.disabled=false;}
 });
 document.querySelectorAll('[data-plan-start]').forEach(button=>button.addEventListener('click',()=>{
@@ -754,8 +777,8 @@ const accessToken=new URLSearchParams(location.search).get('access');
 const returnToken = new URLSearchParams(window.location.search).get("report");
 if(/^[a-f0-9]{48}$/.test(accessToken||'')&&!returnToken){
   history.replaceState(null,'','/');
-  accessDialog.showModal();
-  restoreAccess(accessToken).then(()=>document.querySelector('[data-access-message]').textContent='Доступ восстановлен. Можно снова проверять добавленные сайты.').catch(error=>document.querySelector('[data-access-message]').textContent=error.message);
+  showView('loading','Восстанавливаем доступ');
+  restoreAccess(accessToken).then(openAccessDestination).catch(error=>{showView('home');accessDialog.showModal();document.querySelector('[data-access-message]').textContent=error.message;});
 }else refreshAccess().catch(()=>{});
 if (/^[a-f0-9]{48}$/.test(returnToken || "")) (async()=>{
   showView('loading', 'Загружаем сохранённый отчёт');
