@@ -3230,6 +3230,11 @@ body:has(.request-modal[open]) { overflow: hidden; }
   .print-report h1 { font-size: 24pt; }
   .print-report h2 { font-size: 15pt; }
   .print-report article { break-inside: avoid; border-top: 1px solid #ccc; margin-top: 16pt; }
+  .print-report p, .print-report li { overflow-wrap: anywhere; white-space: pre-line; }
+  .print-report h3 { font-size: 14pt; }
+  .print-report h4 { margin-bottom: 6pt; }
+  .print-report .site { min-width: 0; }
+  .print-report .risk { display: block; width: auto; height: auto; padding: 0; color: #111; background: none; border: 0; }
 }
 .audit-scope { font-size: 14px; }
 .issue-law, .issue-condition { display: block; color: #bbb; margin-top: 12px; font-size: 14px; line-height: 1.4; }
@@ -3653,8 +3658,14 @@ html:has(body.offer-page) { background: #fff; }
 .loading-help-links > a { display: inline-flex; align-items: center; justify-content: center; min-height: 40px; margin: 0; padding: 8px 14px; border: 1px solid #656565; border-radius: 8px; white-space: nowrap; text-decoration: none; }
 .loading-help-links > a:hover { background: #393939; }
 
-.result-hero .checked-url { display: flex; width: max-content; max-width: 100%; min-width: 0; margin-inline: auto; flex-wrap: nowrap; }
-.result-hero .checked-url > b { display: block; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; overflow-wrap: normal; }
+.result-hero .checked-url { display: flex; align-items: center; justify-content: center; width: 100%; max-width: 800px; min-width: 0; margin-inline: auto; flex-wrap: nowrap; }
+.result-hero .checked-url > b { display: block; min-width: 0; max-width: calc(100% - 48px); overflow-x: auto; white-space: nowrap; overflow-wrap: normal; scrollbar-width: thin; }
+.result-hero .checked-url > span { flex-shrink: 0; }
+.risk-explanation { width: min(732px, 100%); margin: 16px auto 0; text-align: left; color: #fff; font-size: 15px; line-height: 1.5; }
+.risk-explanation[hidden] { display: none; }
+.risk-explanation summary { padding: 8px 0; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.risk-explanation p { margin: 12px 0 0; white-space: pre-line; }
+.risk-explanation summary:focus-visible { outline: 2px solid #ff7f85; outline-offset: 3px; }
 .result-title > span { display: block; }
 .result-title > span + span { margin-top: 6px; }
 .result-hero .report-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 24px auto; }

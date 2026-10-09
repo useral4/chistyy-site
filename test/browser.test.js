@@ -9,9 +9,14 @@ test('Fresh browser detects a JS cookie banner, records early analytics and bloc
  fetch('https://mc.yandex.ru/watch/1').catch(()=>{});
  fetch('http://127.0.0.1/private').then(()=>document.body.dataset.leaked='yes').catch(()=>{});
  </script></body></html>`;
- const result=await inspectBrowser({finalUrl:'https://example.ru/',ok:true,status:200,text:html,contentType:'text/html'},[],{settleMs:500});
+ const progress=[];
+ const result=await inspectBrowser({finalUrl:'https://example.ru/',ok:true,status:200,text:html,contentType:'text/html'},[],{settleMs:500,onProgress:message=>progress.push(message)});
  assert.equal(result.available,true);assert.equal(result.bannerVisible,true);assert.equal(result.refusalVisible,true);
  assert.deepEqual(result.analyticsBeforeConsent,['https://mc.yandex.ru/watch/1']);assert.equal(result.blockedRequests,1);
  assert.ok(!result.html.includes('data-leaked'));assert.ok(!/type="checkbox" checked/.test(result.html));
  assert.equal(analyticsRequest('https://mc.yandex.ru.evil.com/watch/1'),false);
+ assert.equal(progress.length,4);
+ assert.match(progress[1],/загружаем её скрипты/);
+ assert.match(progress[3],/видимый cookie-баннер/);
+ assert.doesNotMatch(progress.join(' '),/чистом браузере/);
 });

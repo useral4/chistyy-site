@@ -1,6 +1,6 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const { summarizeFines } = require('../lib/fine-summary');
+const { summarizeFines, withFineRange } = require('../lib/fine-summary');
 const { preview, full } = require('../lib/reports');
 const failed = (id, fineMax, extra = {}) => ({ id, group: 'legal', status: 'failed', fineMax, ...extra });
 
@@ -26,4 +26,15 @@ test('Saved reports get the full range before entitlement filtering without leak
   assert.equal(p.access.hiddenLegal, 4);
   assert.equal(p.checks.length, 3);
   assert.equal(audit.summary.fineMin, undefined);
+});
+
+test('Calculation explanation separates report findings from sanction groups without exposing finding titles',()=>{
+  const audit={summary:{},checks:[failed('form-consent',300000,{title:'PRIVATE FORM'}),failed('cookie-consent',300000),failed('analytics-before-consent',300000),failed('privacy-policy',60000)]};
+  const {summary}=withFineRange(audit);
+  assert.match(summary.fineExplanation,/3 пункта отчёта; в оценке учтено один раз, 150\s000 ₽ – 300\s000 ₽/);
+  assert.match(summary.fineExplanation,/ч\. 3: 1 пункт отчёта/);
+  assert.match(summary.fineExplanation,/Независимые эпизоды/);
+  assert.doesNotMatch(summary.fineExplanation,/PRIVATE FORM/);
+  assert.equal(summary.fineMin,180000);
+  assert.equal(summary.fineMax,360000);
 });

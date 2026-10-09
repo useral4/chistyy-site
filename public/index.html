@@ -352,6 +352,7 @@
             <strong class="result-risk-value">Запустите проверку</strong>
             <small class="result-risk-note">Ориентировочно. Не является начисленным штрафом.</small>
           </div>
+          <details class="risk-explanation" hidden><summary>Почему суммы в карточках не складываются?</summary><p data-fine-explanation></p></details>
           <p class="report-payment-status" role="status" hidden></p>
           <div class="report-actions" role="group" aria-label="Действия с отчётом">
             <!-- Icons: lucide-static 0.468.0, ISC license. -->
@@ -478,6 +479,7 @@
     </section>
     <div class="flash-toast" role="status" aria-live="polite" hidden><p data-toast-message></p><button type="button" data-toast-close aria-label="Закрыть уведомление"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m18 6-12 12M6 6l12 12"/></svg></button></div>
     <script src="/privacy-controls.js" defer></script>
+    <script src="/report-export.js" defer></script>
     <script src="/app.js" defer></script>
   </body>
 </html>

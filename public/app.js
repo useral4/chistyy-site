@@ -313,13 +313,6 @@ function getCheckDetailsHtml(check) {
   return `<details class="issue-details"><summary>${locations.length?'Где обнаружено':'Подробнее о проверке'}</summary><ul>${rows}</ul></details>`;
 }
 
-function getExportDetails(check) {
-  return [...new Set([
-    ...(Array.isArray(check.locations)?check.locations:[]).map(item=>`${item.url}${item.forms?.length?` — формы: ${item.forms.join(', ')}`:''}`),
-    ...(Array.isArray(check.details)?check.details:[])
-  ])];
-}
-
 function renderTabs() {
   tabs.forEach((button) => {
     const isActive = button.dataset.resultTab === state.tab;
@@ -362,6 +355,11 @@ function renderHero() {
   if (riskLabel) riskLabel.textContent = "Общий риск штрафов:";
   if (riskValue) riskValue.textContent = fineMax > 0 ? (Number.isFinite(fineMin) && fineMin > 0 && fineMin <= fineMax ? `${formatRub(fineMin)} – ${formatRub(fineMax)}` : "Требует уточнения") : "";
   if (riskValue?.parentElement) riskValue.parentElement.hidden = group !== "legal" || fineMax === 0;
+  const explanation = document.querySelector('.risk-explanation');
+  if (explanation) {
+    explanation.hidden = group !== 'legal' || fineMax === 0;
+    explanation.querySelector('p').textContent = state.audit?.summary?.fineExplanation || state.audit?.summary?.fineBasis || '';
+  }
   const summary = document.querySelector(".audit-summary");
   const hidden=Number(group==='legal'?state.audit?.access?.hiddenLegal:state.audit?.access?.hiddenSeo)||0;
   if (summary) summary.textContent = `${group === "legal" ? "Юридическая проверка" : "SEO-проверка"}: ${groupChecks.length + hidden - skipped} пунктов. Найдено проблем: ${count}. Успешно: ${groupChecks.filter(c=>c.status==='passed').length}.${review.length?` Не удалось установить: ${review.length}.`:''}`;
@@ -776,8 +774,7 @@ document.querySelector('[data-report-print]')?.addEventListener('click',()=>{
   if(!state.reportUnlocked){openPaymentModal();return;}
   document.querySelector('.print-report')?.remove();
   const report=document.createElement('section');report.className='print-report';
-  const status={failed:'Проблема',review:'Недостаточно данных для вывода',passed:'Проверка пройдена',skipped:'Проверка не применялась'};
-  report.innerHTML=`<h1>Отчёт KinavaPro</h1><p>${escapeHtml(state.audit.url)} · ${escapeHtml(state.audit.checkedAt||'')}</p><p>${escapeHtml(state.audit.scope)}</p>${state.audit.checks.map(c=>`<article><h2>${escapeHtml(c.title)} — ${status[c.status]||''}</h2><p>${escapeHtml(c.evidence)}</p>${getExportDetails(c).length?`<ul>${getExportDetails(c).map(line=>`<li>${escapeHtml(line)}</li>`).join('')}</ul>`:''}${c.fix?`<p><strong>Что сделать:</strong> ${escapeHtml(c.fix)}</p>`:''}<p>${escapeHtml(c.law||'')} ${escapeHtml(c.condition||'')}</p></article>`).join('')}`;
+  report.innerHTML=KinavaReport.reportBody(state.audit);
   document.body.append(report);window.print();
 });
 window.addEventListener('afterprint',()=>document.querySelector('.print-report')?.remove());
@@ -806,8 +803,8 @@ document.querySelector('[data-report-email]')?.addEventListener('submit',async(e
 document.querySelector("[data-report-download]")?.addEventListener("click",()=>{
   if (!state.reportUnlocked) {openPaymentModal();return;}
   const audit=state.audit;
-  const content=[`Отчёт KinavaPro: ${audit.url}`,`Проверка: ${audit.checkedAt}`,audit.scope,audit.summary.fineBasis,...audit.checks.map(check=>`\n${check.title} [${check.status}]\n${check.evidence}\n${getExportDetails(check).join('\n')}\n${check.fix || ""}\n${check.law || ""}\n${check.condition||''}`)].join("\n");
-  const url=URL.createObjectURL(new Blob([content],{type:"text/plain;charset=utf-8"}));const anchor=document.createElement("a");anchor.href=url;anchor.download="kinavapro-report.txt";anchor.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+  const content=KinavaReport.reportHtml(audit);
+  const url=URL.createObjectURL(new Blob([content],{type:"text/html;charset=utf-8"}));const anchor=document.createElement("a");anchor.href=url;anchor.download="kinavapro-report.html";document.body.append(anchor);anchor.click();anchor.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
 });
 
 const requestModal = document.querySelector(".request-modal");

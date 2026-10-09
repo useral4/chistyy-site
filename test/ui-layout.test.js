@@ -266,7 +266,8 @@ test('Report actions have labeled icon controls, fixed touch targets and single-
     assert.equal($(button).attr('title'), $(button).attr('aria-label'));
     assert.equal($(button).find('svg[aria-hidden="true"]').length, 1);
   });
-  assert.match(css, /\.result-hero \.checked-url > b \{[^}]*white-space: nowrap; text-overflow: ellipsis;/);
+  assert.match(css, /\.result-hero \.checked-url > b \{[^}]*overflow-x: auto; white-space: nowrap;/);
+  assert.match(css, /\.result-hero \.checked-url \{[^}]*width: 100%;/);
   assert.match(css, /\.result-hero \.report-actions > button \{[^}]*width: 48px;[^}]*height: 48px;/);
   assert.match(css, /\.result-hero \.report-actions > button\[hidden\] \{ display: none; \}/);
   assert.equal($('.flash-toast').attr('role'), 'status');

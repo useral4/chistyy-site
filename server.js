@@ -776,10 +776,11 @@ async function handleAudit(req, res) {
   res.once('close', disconnect);
   const heartbeat = progress ? setInterval(() => progress.update(),15000) : null;
   const fetchResource = (url, timeout, options={}) => safeFetchText(url,timeout,{
-    ...options, signal, onBytes(count) {
+    ...options, signal:options.signal ? AbortSignal.any([signal,options.signal]) : signal, onBytes(count) {
       bytes += count;
       if (bytes > 16*1024*1024) controller.abort(new QueueError('AUDIT_BUDGET','Сайт превышает допустимый объём автоматической проверки'));
       signal.throwIfAborted();
+      options.onBytes?.(count);
     }
   });
   try {
@@ -799,9 +800,9 @@ async function handleAudit(req, res) {
         .then(items => { progress?.complete('resources'); return items; })
     ]);
 
-    progress?.update('Проверяем сайт в чистом браузере');
+    progress?.update('Проверяем cookie-баннер и запуск аналитики');
     signal.throwIfAborted();
-    const browser = await inspectBrowser(page, resources, {signal,fetchResource});
+    const browser = await inspectBrowser(page, resources, {signal,fetchResource,onProgress:message=>progress?.update(message)});
     signal.throwIfAborted();
     if(process.env.BROWSER_REQUIRED==='1'&&!browser.available)throw new QueueError('BROWSER_UNAVAILABLE','Браузерная проверка временно недоступна. Попробуйте позже.');
     progress?.complete('browser', 'Анализируем юридические риски и SEO');

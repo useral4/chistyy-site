@@ -69,7 +69,7 @@ test('Live progress reaches the client before fetching finishes and 100% waits f
     assert.deepEqual([first.completed, first.total], [0, 7]);
     updates.push(first);
     pageGate.resolve();
-    while (updates.at(-1).message !== 'Проверяем сайт в чистом браузере') updates.push((await stream.next()).value);
+    while (updates.at(-1).message !== 'Проверяем cookie-баннер и запуск аналитики') updates.push((await stream.next()).value);
     assert.equal(updates.at(-1).completed, 4);
     browserGate.resolve();
     while (updates.at(-1).completed < 6) updates.push((await stream.next()).value);
