@@ -1,0 +1,11 @@
+[Unit]
+Description=Retry kinavapro HTTPS activation until DNS propagation completes
+
+[Timer]
+OnBootSec=30s
+OnUnitInactiveSec=60s
+AccuracySec=5s
+Unit=kinavapro-tls.service
+
+[Install]
+WantedBy=timers.target

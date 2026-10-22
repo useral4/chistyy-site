@@ -1,0 +1,10 @@
+[Unit]
+Description=Complete kinavapro HTTPS activation after DNS propagation
+Requires=docker.service
+After=docker.service network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/kinavapro/deploy
+ExecStart=/usr/bin/python3 /opt/kinavapro/deploy/activate-tls.py
+TimeoutStartSec=180
