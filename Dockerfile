@@ -19,6 +19,7 @@ FROM node:24-bookworm-slim AS browser-worker
 RUN apt-get update && apt-get install -y --no-install-recommends chromium ca-certificates fonts-liberation \
     && rm -rf /var/lib/apt/lists/*
 ENV NODE_ENV=production PORT=4180 BROWSER_EXECUTABLE_PATH=/usr/bin/chromium
+ENV HOME=/tmp XDG_CONFIG_HOME=/tmp XDG_CACHE_HOME=/tmp
 WORKDIR /app
 COPY --from=dependencies /app/node_modules ./node_modules
 COPY worker.js ./
