@@ -7,9 +7,11 @@
   function startAnalytics(){
     if(loaded||privatePage||choice!=='accepted'||!config?.metrikaId)return;
     loaded=true;
+    document.querySelectorAll('input[type="text"],input[type="email"],input[type="url"],input[type="tel"],input[type="search"],textarea').forEach(field=>field.classList.add('ym-disable-keys'));
+    window.dataLayer=window.dataLayer||[];
     window.ym=window.ym||function(){(window.ym.a=window.ym.a||[]).push(arguments);};window.ym.l=Date.now();
     const script=document.createElement('script');script.src='https://mc.yandex.ru/metrika/tag.js';script.async=true;document.head.append(script);
-    window.ym(Number(config.metrikaId),'init',{clickmap:true,trackLinks:true,accurateTrackBounce:true,webvisor:false});
+    window.ym(Number(config.metrikaId),'init',{ssr:true,webvisor:true,clickmap:true,ecommerce:'dataLayer',referrer:document.referrer,url:location.href,accurateTrackBounce:true,trackLinks:true});
   }
   function choose(value){choice=value;try{localStorage.setItem(key,JSON.stringify({choice:value,at:Date.now()}));}catch{}banner.hidden=true;
     if(value==='accepted')startAnalytics();else if(loaded)window.location.reload();
