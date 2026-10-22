@@ -24,7 +24,7 @@ Compose публикует только 80/443. БД, метрики и worker �
 
 Worker запускается не от root, без capabilities, с `chromiumSandbox: true`, seccomp, read-only filesystem и лимитами CPU/RAM/PID. Он получает только URL и отдельный ключ, не получает почту, оплату, отчёты, пользовательские cookie или тома БД. Это дополнительная изоляция, не виртуальная машина и не абсолютная защита от уязвимости ядра. Правила `worker-firewall.sh` блокируют обращения к частным сетям и самому хосту, оставляя публичный HTTP/HTTPS и DNS.
 
-`seccomp_profile.json` взят из [Microsoft Playwright v1.63.0](https://github.com/microsoft/playwright/blob/v1.63.0/utils/docker/seccomp_profile.json), SHA256 `cc3e61cabda6bbc1e53e54d27ba4d55a9d3be829b6dd1a596f4a7b31b1cc7849`. Sandbox-подход: [документация Playwright](https://playwright.dev/docs/docker). Не добавлять `--no-sandbox` или `SYS_ADMIN`, если Chromium не запустился; исправить причину и проверить ядро/user namespaces.
+`seccomp_profile.json` основан на [Microsoft Playwright v1.63.0](https://github.com/microsoft/playwright/blob/v1.63.0/utils/docker/seccomp_profile.json). Разрешён системный вызов `chroot` для внутреннего user namespace Chromium: контейнер сохраняет `cap_drop: ALL`, поэтому этот вызов не даёт прав менять корень вне браузерной песочницы. Рабочие каталоги Chromium находятся во временной файловой системе `/tmp`. Sandbox-подход: [документация Playwright](https://playwright.dev/docs/docker). Не добавлять `--no-sandbox` или `SYS_ADMIN`, если Chromium не запустился; исправить причину и проверить ядро/user namespaces.
 
 ## Миграция без потери доступа
 
