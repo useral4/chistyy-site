@@ -204,7 +204,7 @@ function openPaymentModal(planId = 'single') {
   updatePaymentPlan(planId);
   document.querySelector('[data-payment-buy]')?.focus();
   refreshPaymentConfig().then(()=>{
-    if(paymentHint)paymentHint.textContent=paymentMode==="test"?"Тестовый режим ЮKassa: используйте тестовую карту, реальные деньги не списываются.":"Оплата временно недоступна. Попробуйте позже.";
+    if(paymentHint)paymentHint.textContent=paymentMode==="test"?"Тестовый режим ЮKassa: используйте тестовую карту, реальные деньги не списываются.":paymentMode==="live"?"Безопасная оплата через ЮKassa. Без подписки и автопродления.":"Оплата временно недоступна. Попробуйте позже.";
   }).catch(()=>{if(paymentHint)paymentHint.textContent="Не удалось проверить доступность оплаты. Повторите попытку.";});
 }
 
@@ -663,14 +663,14 @@ async function startTestPayment() {
   const button = document.querySelector("[data-payment-buy]");
   if (!state.audit?.reportToken) { paymentHint.textContent = "Сначала проверьте сайт."; return; }
   button.disabled = true;
-  paymentHint.textContent = "Готовим тестовый платёж…";
+  paymentHint.textContent = "Готовим платёж…";
   try {
     selectedPlan = document.querySelector('input[name="payment-plan"]:checked')?.value || 'single';
     const response = await fetch("/api/payments", { method:"POST", headers:{"Content-Type":"application/json"},body:JSON.stringify({reportToken:state.audit.reportToken,planId:selectedPlan}) });
     const payment = await response.json();
-    if (!response.ok) throw new Error(payment.error || "Не удалось создать тестовый платёж");
+    if (!response.ok) throw new Error(payment.error || "Не удалось создать платёж");
     if (payment.paid || payment.free) { await restoreReport(state.audit.reportToken); closePaymentModal(); return; }
-    if (payment.test !== true) throw new Error("Доступен только тестовый режим");
+    if (typeof payment.test !== 'boolean') throw new Error("Не удалось проверить режим оплаты");
     window.location.assign(payment.confirmationUrl);
   } catch (error) { paymentHint.textContent = error.message; }
   finally { button.disabled = false; }

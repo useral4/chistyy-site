@@ -16,13 +16,13 @@ test('Configuration trims copied values, defaults to test only, and exposes no s
     delete process.env.YOOKASSA_MODE;delete process.env.PUBLIC_URL;
     assert.equal(configured(),true,'Test key can infer test mode, with the canonical return URL');
     process.env.YOOKASSA_MODE='live';assert.equal(configured(),false);
-    assert.deepEqual(publicConfig().paymentSetup,[{field:'YOOKASSA_MODE',reason:'invalid'}]);
+    assert.deepEqual(publicConfig().paymentSetup,[{field:'YOOKASSA_SECRET_KEY',reason:'invalid'}]);
     process.env.YOOKASSA_MODE='test';delete process.env.YOOKASSA_SECRET_KEY;
     assert.deepEqual(publicConfig().paymentSetup,[{field:'YOOKASSA_SECRET_KEY',reason:'missing'}]);
     process.env.YOOKASSA_SECRET_KEY='live_secret';assert.equal(configured(),false);
   }finally{for(const field of fields)if(before[field]===undefined)delete process.env[field];else process.env[field]=before[field];}
 });
-test('Test-only API, idempotency, pending/canceled/amount tampering and verified grant',async()=>{
+test('Test API, idempotency, pending/canceled/amount tampering and verified grant',async()=>{
   const original=global.fetch;const old={...process.env};
   try{
     process.env.YOOKASSA_MODE='test';process.env.YOOKASSA_SHOP_ID='1391549';process.env.YOOKASSA_SECRET_KEY='live_not_allowed';process.env.PUBLIC_URL='https://kinavapro.ru';assert.equal(configured(),false);
@@ -46,6 +46,32 @@ test('Test-only API, idempotency, pending/canceled/amount tampering and verified
     assert.equal((await invoke('/api/payments',{reportToken:freeToken})).free,true);assert.equal(calls,1,'No charge created for a small report');
     assert.equal((await invoke('/api/report?token='+freeToken)).audit.checks[0].fix,'FREE PLAN');
   }finally{global.fetch=original;for(const key of ['YOOKASSA_MODE','YOOKASSA_SHOP_ID','YOOKASSA_SECRET_KEY','PUBLIC_URL'])if(old[key]===undefined)delete process.env[key];else process.env[key]=old[key];if(scratch.startsWith(path.resolve(__dirname,'../../../work')+path.sep))await fs.rm(scratch,{recursive:true,force:true});}
+});
+
+test('Live payments require explicit mode, reject test success and unlock only verified live payments',async()=>{
+  const original=global.fetch;const fields=['YOOKASSA_MODE','YOOKASSA_SHOP_ID','YOOKASSA_SECRET_KEY'];
+  const before=Object.fromEntries(fields.map(field=>[field,process.env[field]]));
+  try{
+    process.env.YOOKASSA_SECRET_KEY='live_unit_secret';process.env.YOOKASSA_SHOP_ID='1391549';delete process.env.YOOKASSA_MODE;
+    assert.equal(configured(),false);
+    process.env.YOOKASSA_MODE='live';assert.equal(configured(),true);assert.equal(publicConfig().paymentMode,'live');
+    assert.ok(!JSON.stringify(publicConfig()).includes('live_unit_secret'));
+    const token=await reports.create({url:'https://example.ru',checks:Array.from({length:6},(_,i)=>({id:'live-'+i,group:'legal',status:'failed'}))});
+    let isTest=false,phase='pending',amount='179.00';
+    global.fetch=async(_url,options)=>{
+      if(options.method==='POST')assert.ok(!JSON.parse(options.body).description.includes('(тест)'));
+      return {ok:true,json:async()=>({id:'live-payment',test:isTest,status:phase,paid:phase==='succeeded',amount:{value:amount,currency:'RUB'},metadata:{report_token:token},confirmation:{confirmation_url:'https://yoomoney.ru/checkout/payments/v2/contract?orderId=live'}})};
+    };
+    assert.equal((await invoke('/api/payments',{reportToken:token})).test,false);
+    assert.equal((await invoke('/api/payments',{reportToken:token})).test,false);
+    assert.equal((await invoke('/api/report?token='+token)).paid,false);
+    phase='succeeded';isTest=true;assert.equal((await invoke('/api/report?token='+token)).paid,false);
+    isTest=false;amount='1.00';assert.equal((await invoke('/api/report?token='+token)).paid,false);
+    amount='179.00';const paid=await invoke('/api/report?token='+token);assert.equal(paid.paid,true);assert.equal(paid.test,false);
+  }finally{
+    global.fetch=original;for(const field of fields)if(before[field]===undefined)delete process.env[field];else process.env[field]=before[field];
+    if(scratch.startsWith(path.resolve(__dirname,'../../../work')+path.sep))await fs.rm(scratch,{recursive:true,force:true});
+  }
 });
 
 test('Webhook verifies the provider payment and rejects forged entitlement data',async()=>{
